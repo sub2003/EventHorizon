@@ -51,17 +51,40 @@ EventHorizon is a full-stack Java web application designed to manage events and 
 ---
 
 ## 📂 Project Structure
--src/
--└─ main/
--├─ java/com/eventhorizon/
--│ ├─ model/ # Data models (User, Admin, Event, Booking)
--│ ├─ service/ # Business logic layer
--│ ├─ servlet/ # Controllers (Servlets)
--│ └─ util/ # Utilities (FileHandler, DatabaseConnection)
--│
--└─ webapp/
--├─ css/
--├─ js/
--├─ images/
--├─ WEB-INF/
--└─ *.jsp # UI pages
+
+![Project Structure](https://github.com/sub2003/EventHorizon/blob/main/src/Screenshot%202026-04-11%20175107.png?raw=true)
+
+
+---
+
+
+---
+
+## ⚠️ Limitations
+
+- Uses local `.txt` files
+- Works only when your PC is running
+- Not suitable for production
+
+---
+
+## 🔮 Future Improvements
+
+- Convert to MySQL database  
+- Deploy to cloud (AWS / Render)  
+- Improve security  
+- Enhance UI/UX  
+
+---
+
+## 👨‍💻 Author
+
+Subhanu Ravisankha Aththanayaka  
+SLIIT Undergraduate  
+BSc (Hons) in IT (Cybersecurity)
+
+---
+
+## ⭐ Final Note
+
+This project demonstrates a complete Java web application with authentication, booking system, and MVC architecture.
