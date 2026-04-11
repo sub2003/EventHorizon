@@ -51,3 +51,17 @@ EventHorizon is a full-stack Java web application designed to manage events and 
 ---
 
 ## 📂 Project Structure
+src/
+└─ main/
+├─ java/com/eventhorizon/
+│ ├─ model/ # Data models (User, Admin, Event, Booking)
+│ ├─ service/ # Business logic layer
+│ ├─ servlet/ # Controllers (Servlets)
+│ └─ util/ # Utilities (FileHandler, DatabaseConnection)
+│
+└─ webapp/
+├─ css/
+├─ js/
+├─ images/
+├─ WEB-INF/
+└─ *.jsp # UI pages
