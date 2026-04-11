@@ -80,8 +80,8 @@ EventHorizon is a full-stack Java web application designed to manage events and 
 ## 👨‍💻 Author
 
 Subhanu Ravisankha Aththanayaka  
-SLIIT Undergraduate  
-BSc (Hons) in IT (Cybersecurity)
+SLIIT Undergraduate  (First Year Second Semester)
+BSc (Hons) in IT
 
 ---
 
