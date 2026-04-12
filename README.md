@@ -121,8 +121,8 @@ This project follows the **MVC (Model-View-Controller)** pattern:
 ## 👨‍💻 Author
 
 **Subhanu Ravisankha Aththanayaka**  
-SLIIT Undergraduate  
-BSc (Hons) in IT – Cybersecurity  
+SLIIT Undergraduate (First Year Second Semester) 
+BSc (Hons) in IT  
 
 ---
 
