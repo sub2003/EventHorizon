@@ -2,47 +2,8 @@
 <h3 align="center">Event Booking Web Application</h3>
 
 <p align="center">
-A full-stack Java web application for managing events and ticket bookings.
+A full-stack Java web application for managing events and ticket bookings with authentication, role-based access, and real-time seat management.
 </p>
-
----
-
-## 🚀 Features
-
-### 🔐 Authentication System
-- Secure login for Admin and Customers  
-- Role-based access control  
-
-### 🎫 Event Management
-- View all available events  
-- Search events by title, category, or venue  
-- Admin can add, update, and cancel events  
-
-### 🛒 Booking System
-- Book tickets for events  
-- View personal bookings  
-- Automatic seat availability updates  
-
-### 👤 Role-Based System
-- **Admin**
-  - Manage events  
-  - Control event status  
-- **Customer**
-  - Browse events  
-  - Book tickets  
-  - View bookings  
-
-### 📁 File-Based Storage
-- Uses `.txt` files for data storage  
-- Stores:
-  - users  
-  - events  
-  - bookings  
-- Data is loaded from a runtime system directory  
-
----
-
-## 🛠️ Technologies Used
 
 <p align="center">
 
@@ -50,12 +11,83 @@ A full-stack Java web application for managing events and ticket bookings.
 <img src="https://img.shields.io/badge/JSP-323330?style=for-the-badge"/>
 <img src="https://img.shields.io/badge/Servlets-6DB33F?style=for-the-badge"/>
 <img src="https://img.shields.io/badge/Tomcat-F8DC75?style=for-the-badge&logo=apachetomcat&logoColor=black"/>
-<img src="https://img.shields.io/badge/HTML-E34F26?style=for-the-badge&logo=html5&logoColor=white"/>
-<img src="https://img.shields.io/badge/CSS-1572B6?style=for-the-badge&logo=css3&logoColor=white"/>
-<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black"/>
+<img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white"/>
+<img src="https://img.shields.io/badge/JDBC-000000?style=for-the-badge"/>
 <img src="https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white"/>
 
 </p>
+
+---
+
+## 🌐 Live Demo
+
+👉 **[Open EventHorizon Web App](https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon)**
+
+> ⚠️ This demo is hosted using ngrok and may not be available 24/7.
+
+---
+
+## 🚀 Features
+
+### 🔐 Authentication System
+- Secure login for Admin and Customers  
+- Session-based authentication  
+- Role-based access control  
+
+---
+
+### 🎫 Event Management
+- View all available events  
+- Search events by title, category, or venue  
+- Admin can:
+  - Add events  
+  - Update events  
+  - Cancel or delete events  
+- Image upload for events  
+
+---
+
+### 🛒 Booking System
+- Book tickets for events  
+- Real-time seat availability update  
+- Cancel bookings with seat restoration  
+- View personal bookings  
+
+---
+
+### 👤 Role-Based Access
+#### 🛠️ Admin
+- Manage events  
+- Manage users  
+- View all bookings  
+
+#### 👤 Customer
+- Browse events  
+- Book tickets  
+- Manage personal bookings  
+
+---
+
+## 🧱 System Architecture
+
+This project follows the **MVC (Model-View-Controller)** pattern:
+
+- **Model** → Java Classes (Event, User, Booking)  
+- **View** → JSP Pages  
+- **Controller** → Servlets  
+- **Database Layer** → JDBC + MySQL  
+
+---
+
+## 🛠️ Technologies Used
+
+- Java (Core + OOP)
+- JSP & Servlets
+- Apache Tomcat
+- MySQL Database
+- JDBC
+- HTML / CSS / JavaScript
+- Maven
 
 ---
 
@@ -69,35 +101,37 @@ A full-stack Java web application for managing events and ticket bookings.
 
 ## ⚠️ Limitations
 
-- Uses local `.txt` files  
-- Works only when your PC is running  
-- Not suitable for production  
+- Uses local server (Tomcat)  
+- Requires XAMPP/MySQL running  
+- ngrok link is temporary  
+- Not yet deployed to cloud  
 
 ---
 
 ## 🔮 Future Improvements
 
-- Convert to MySQL database  
-- Deploy to cloud (AWS / Render)  
-- Improve security  
-- Enhance UI/UX  
+- Deploy to cloud (AWS / Render / Railway)  
+- Implement password encryption (bcrypt)  
+- Add email verification  
+- Improve UI/UX (React / modern frontend)  
+- Add payment integration  
 
 ---
 
 ## 👨‍💻 Author
 
 **Subhanu Ravisankha Aththanayaka**  
-SLIIT Undergraduate (First Year – Second Semester)  
-BSc (Hons) in IT  
+SLIIT Undergraduate  
+BSc (Hons) in IT – Cybersecurity  
 
 ---
 
 ## ⭐ Final Note
 
-This project demonstrates a complete Java web application with authentication, booking system, and MVC architecture.
+This project demonstrates a complete **full-stack Java web application** with authentication, event management, booking system, and database integration.
 
 ---
 
 <p align="center">
-💡 Built for learning, improvement, and real-world development experience.
+💡 Built for learning, innovation, and real-world application development.
 </p>
