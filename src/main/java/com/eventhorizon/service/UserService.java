@@ -190,21 +190,44 @@ public class UserService {
     public User login(String email, String password) {
         String sql = "SELECT * FROM users WHERE email = ? AND password = ? AND is_verified = 1";
 
+        System.out.println("========== LOGIN DEBUG START ==========");
+        System.out.println("LOGIN EMAIL = [" + email + "]");
+        System.out.println("LOGIN PASSWORD = [" + password + "]");
+
+        User check = getUserByEmail(email);
+        if (check != null) {
+            System.out.println("USER FROM DB = [" + check.getEmail() + "]");
+            System.out.println("USER ROLE FROM DB = [" + check.getRole() + "]");
+            System.out.println("USER NAME FROM DB = [" + check.getName() + "]");
+        } else {
+            System.out.println("USER FROM DB = [NULL]");
+        }
+
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, email);
             ps.setString(2, password);
 
+            System.out.println("RUNNING LOGIN QUERY...");
             ResultSet rs = ps.executeQuery();
+
             if (rs.next()) {
-                return mapRowToUser(rs, conn);
+                System.out.println("LOGIN MATCH FOUND = [YES]");
+                User user = mapRowToUser(rs, conn);
+                System.out.println("LOGGED USER EMAIL = [" + user.getEmail() + "]");
+                System.out.println("LOGGED USER ROLE = [" + user.getRole() + "]");
+                System.out.println("========== LOGIN DEBUG END ==========");
+                return user;
+            } else {
+                System.out.println("LOGIN MATCH FOUND = [NO]");
             }
 
         } catch (SQLException e) {
             System.err.println("login error: " + e.getMessage());
         }
 
+        System.out.println("========== LOGIN DEBUG END ==========");
         return null;
     }
 
