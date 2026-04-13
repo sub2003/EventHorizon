@@ -283,6 +283,21 @@ public class UserService {
         }
     }
 
+    public boolean deleteUserByEmail(String email) {
+        String sql = "DELETE FROM users WHERE email = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, email);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("deleteUserByEmail error: " + e.getMessage());
+            return false;
+        }
+    }
+
     // ======================== HELPERS ========================
 
     private int getBookingCount(String customerId, Connection conn) {
