@@ -97,7 +97,7 @@ public class UserServlet extends HttpServlet {
         String token = userService.registerCustomerAndReturnToken(name, email, password, phone);
 
         if (token != null) {
-            String baseUrl = req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
+            String baseUrl = req.getScheme() + "://" + req.getServerName()
                     + req.getContextPath();
 
             boolean emailSent = emailService.sendVerificationEmail(email, token, baseUrl);
@@ -105,6 +105,7 @@ public class UserServlet extends HttpServlet {
             if (emailSent) {
                 resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=checkEmail");
             } else {
+                // remove inserted user if email sending failed
                 userService.deleteUserByEmail(email);
                 resp.sendRedirect(req.getContextPath() + "/register.jsp?error=emailSendFailed");
             }
