@@ -18,8 +18,8 @@ public class EmailService {
     public boolean sendVerificationEmail(String toEmail, String token, String baseUrl) {
         String verifyLink = baseUrl + "/user?action=verify&token=" + token;
 
-        if (FROM_EMAIL == null || APP_PASSWORD == null
-                || FROM_EMAIL.trim().isEmpty() || APP_PASSWORD.trim().isEmpty()) {
+        if (FROM_EMAIL == null || APP_PASSWORD == null ||
+                FROM_EMAIL.trim().isEmpty() || APP_PASSWORD.trim().isEmpty()) {
             System.out.println("EMAIL ERROR: FROM_EMAIL or APP_PASSWORD is missing.");
             return false;
         }
@@ -30,10 +30,10 @@ public class EmailService {
         props.put("mail.smtp.host", "smtp.gmail.com");
         props.put("mail.smtp.port", "587");
 
-        // IMPORTANT: prevent request from hanging too long
-        props.put("mail.smtp.connectiontimeout", "10000"); // 10 seconds
-        props.put("mail.smtp.timeout", "10000");           // 10 seconds
-        props.put("mail.smtp.writetimeout", "10000");      // 10 seconds
+        // VERY IMPORTANT: prevent hanging
+        props.put("mail.smtp.connectiontimeout", "10000");
+        props.put("mail.smtp.timeout", "10000");
+        props.put("mail.smtp.writetimeout", "10000");
 
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
@@ -43,6 +43,12 @@ public class EmailService {
         });
 
         try {
+            System.out.println("EMAIL DEBUG START");
+            System.out.println("FROM_EMAIL = " + FROM_EMAIL);
+            System.out.println("APP_PASSWORD = " + (APP_PASSWORD != null ? "SET" : "NULL"));
+            System.out.println("TO_EMAIL = " + toEmail);
+            System.out.println("VERIFY_LINK = " + verifyLink);
+
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(FROM_EMAIL));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
@@ -55,10 +61,6 @@ public class EmailService {
                     + "<p>If you did not create this account, please ignore this email.</p>";
 
             message.setContent(html, "text/html; charset=UTF-8");
-
-            System.out.println("EMAIL DEBUG START");
-            System.out.println("TO_EMAIL = " + toEmail);
-            System.out.println("VERIFY_LINK = " + verifyLink);
 
             Transport.send(message);
 
