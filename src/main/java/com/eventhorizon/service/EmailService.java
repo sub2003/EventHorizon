@@ -12,14 +12,17 @@ import java.util.Properties;
 
 public class EmailService {
 
-    // Replace with your Gmail address
-    private static final String FROM_EMAIL = "abcsraththanayaka21@gmail.com";
-
-    // Replace with your 16-character Gmail App Password
-    private static final String APP_PASSWORD = "snkybxkueazdagzc";
+    private static final String FROM_EMAIL = System.getenv("FROM_EMAIL");
+    private static final String APP_PASSWORD = System.getenv("APP_PASSWORD");
 
     public boolean sendVerificationEmail(String toEmail, String token, String baseUrl) {
         String verifyLink = baseUrl + "/user?action=verify&token=" + token;
+
+        if (FROM_EMAIL == null || APP_PASSWORD == null ||
+                FROM_EMAIL.trim().isEmpty() || APP_PASSWORD.trim().isEmpty()) {
+            System.out.println("EMAIL ERROR: FROM_EMAIL or APP_PASSWORD is missing.");
+            return false;
+        }
 
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
@@ -49,9 +52,11 @@ public class EmailService {
             message.setContent(html, "text/html; charset=UTF-8");
 
             Transport.send(message);
+            System.out.println("EMAIL SENT SUCCESSFULLY to: " + toEmail);
             return true;
 
         } catch (MessagingException e) {
+            System.out.println("EMAIL SEND FAILED");
             e.printStackTrace();
             return false;
         }
