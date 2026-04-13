@@ -7,6 +7,167 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Events – EventHorizon</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+
+    <style>
+        .search-panel {
+            max-width: 980px;
+            margin: 28px auto 36px auto;
+            padding: 18px;
+            border-radius: 22px;
+            background: rgba(20, 20, 58, 0.72);
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 0 24px rgba(124, 58, 237, 0.16);
+            backdrop-filter: blur(10px);
+            animation: fadeSlideDown 0.7s ease;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-input,
+        .search-select {
+            background: rgba(255,255,255,0.04);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.09);
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-size: 15px;
+            outline: none;
+            transition: all 0.25s ease;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 280px;
+            max-width: 430px;
+        }
+
+        .search-select {
+            min-width: 220px;
+            cursor: pointer;
+        }
+
+        .search-input:focus,
+        .search-select:focus {
+            border-color: rgba(34, 211, 238, 0.75);
+            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.10);
+            transform: translateY(-1px);
+        }
+
+        .search-btn {
+            border: none;
+            border-radius: 14px;
+            padding: 14px 26px;
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            background: linear-gradient(90deg, #7c3aed, #9333ea, #06b6d4);
+            background-size: 200% 200%;
+            transition: transform 0.2s ease, box-shadow 0.25s ease;
+            animation: gradientMove 4s ease infinite;
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 24px rgba(124, 58, 237, 0.35);
+        }
+
+        .filter-summary {
+            text-align: center;
+            margin: 0 0 22px 0;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            animation: fadeIn 0.6s ease;
+        }
+
+        .filter-summary strong {
+            color: white;
+        }
+
+        .clear-link {
+            color: var(--accent-teal);
+            text-decoration: none;
+            font-weight: 600;
+            margin-left: 6px;
+        }
+
+        .events-grid .card {
+            animation: fadeUp 0.6s ease both;
+            transition: transform 0.28s ease, box-shadow 0.28s ease;
+        }
+
+        .events-grid .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 35px rgba(0,0,0,0.28);
+        }
+
+        .card-img-placeholder img,
+        .card-img-placeholder div {
+            transition: transform 0.4s ease;
+        }
+
+        .card:hover .card-img-placeholder img,
+        .card:hover .card-img-placeholder div {
+            transform: scale(1.04);
+        }
+
+        .empty-state {
+            animation: fadeIn 0.7s ease;
+        }
+
+        @keyframes fadeSlideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-18px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        @keyframes gradientMove {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @media (max-width: 768px) {
+            .search-panel {
+                padding: 14px;
+                border-radius: 18px;
+            }
+
+            .search-input,
+            .search-select,
+            .search-btn {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -44,21 +205,48 @@
         </p>
     </div>
 
-    <form action="${pageContext.request.contextPath}/event" method="get" class="search-bar">
-        <input type="hidden" name="action" value="search">
-        <input type="text"
-               name="q"
-               placeholder="Search by title, category, venue..."
-               value="${keyword}"
-               id="liveSearch">
-        <button type="submit">🔍 Search</button>
-    </form>
+    <div class="search-panel">
+        <form action="${pageContext.request.contextPath}/event" method="get" class="search-form">
+            <input type="hidden" name="action" value="list">
+
+            <input type="text"
+                   name="keyword"
+                   class="search-input"
+                   placeholder="Search by title or venue..."
+                   value="${keyword}">
+
+            <select name="category" class="search-select">
+                <option value="">All Categories</option>
+                <option value="Concert" ${category == 'Concert' ? 'selected' : ''}>Concert</option>
+                <option value="Sports" ${category == 'Sports' ? 'selected' : ''}>Sports</option>
+                <option value="Technology" ${category == 'Technology' ? 'selected' : ''}>Technology</option>
+                <option value="Cultural" ${category == 'Cultural' ? 'selected' : ''}>Cultural</option>
+                <option value="Theater" ${category == 'Theater' ? 'selected' : ''}>Theater</option>
+                <option value="Comedy" ${category == 'Comedy' ? 'selected' : ''}>Comedy</option>
+            </select>
+
+            <button type="submit" class="search-btn">🔍 Search</button>
+        </form>
+    </div>
+
+    <c:if test="${not empty keyword or not empty category}">
+        <div class="filter-summary">
+            Showing results
+            <c:if test="${not empty keyword}">
+                for <strong>${keyword}</strong>
+            </c:if>
+            <c:if test="${not empty category}">
+                in <strong>${category}</strong>
+            </c:if>
+            <a href="${pageContext.request.contextPath}/event?action=list" class="clear-link">Clear Filters</a>
+        </div>
+    </c:if>
 
     <c:choose>
         <c:when test="${not empty events}">
             <div class="events-grid">
-                <c:forEach var="event" items="${events}">
-                    <div class="card">
+                <c:forEach var="event" items="${events}" varStatus="status">
+                    <div class="card" style="animation-delay:${status.index * 0.08}s;">
 
                         <div class="card-img-placeholder" style="overflow:hidden;">
                             <c:choose>
@@ -122,7 +310,7 @@
             <div class="empty-state">
                 <span class="emoji">🔭</span>
                 <h3>No Events Found</h3>
-                <p>Try a different search term or check back later.</p>
+                <p>Try a different title, venue, or category.</p>
                 <a href="${pageContext.request.contextPath}/event?action=list"
                    class="btn btn-outline"
                    style="margin-top:16px;">

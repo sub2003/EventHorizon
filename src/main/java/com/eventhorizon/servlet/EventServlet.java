@@ -13,6 +13,7 @@ import javax.servlet.http.Part;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,7 +40,7 @@ public class EventServlet extends HttpServlet {
                 showEventDetail(req, resp);
                 break;
             case "search":
-                searchEvents(req, resp);
+                showEventList(req, resp);
                 break;
             case "adminList":
                 showAdminEventList(req, resp);
@@ -81,7 +82,50 @@ public class EventServlet extends HttpServlet {
 
     private void showEventList(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        req.setAttribute("events", eventService.getActiveEvents());
+
+        String keyword = req.getParameter("keyword");
+        String category = req.getParameter("category");
+
+        if (keyword != null) keyword = keyword.trim();
+        if (category != null) category = category.trim();
+
+        List<Event> allEvents = eventService.getActiveEvents();
+        List<Event> filteredEvents = new ArrayList<>();
+
+        boolean hasKeyword = keyword != null && !keyword.isEmpty();
+        boolean hasCategory = category != null && !category.isEmpty();
+
+        if (!hasKeyword && !hasCategory) {
+            filteredEvents = allEvents;
+        } else {
+            String lowerKeyword = hasKeyword ? keyword.toLowerCase() : "";
+
+            for (Event event : allEvents) {
+                boolean matchesKeyword = true;
+                boolean matchesCategory = true;
+
+                if (hasKeyword) {
+                    String title = event.getTitle() != null ? event.getTitle().toLowerCase() : "";
+                    String venue = event.getVenue() != null ? event.getVenue().toLowerCase() : "";
+
+                    matchesKeyword = title.contains(lowerKeyword) || venue.contains(lowerKeyword);
+                }
+
+                if (hasCategory) {
+                    String eventCategory = event.getCategory() != null ? event.getCategory() : "";
+                    matchesCategory = eventCategory.equalsIgnoreCase(category);
+                }
+
+                if (matchesKeyword && matchesCategory) {
+                    filteredEvents.add(event);
+                }
+            }
+        }
+
+        req.setAttribute("events", filteredEvents);
+        req.setAttribute("keyword", keyword != null ? keyword : "");
+        req.setAttribute("category", category != null ? category : "");
+
         req.getRequestDispatcher("/events.jsp").forward(req, resp);
     }
 
@@ -104,22 +148,6 @@ public class EventServlet extends HttpServlet {
 
         req.setAttribute("event", event);
         req.getRequestDispatcher("/eventDetail.jsp").forward(req, resp);
-    }
-
-    private void searchEvents(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
-        String keyword = req.getParameter("q");
-
-        if (keyword == null || keyword.trim().isEmpty()) {
-            req.setAttribute("events", eventService.getActiveEvents());
-            req.setAttribute("keyword", "");
-        } else {
-            req.setAttribute("events", eventService.searchEvents(keyword.trim()));
-            req.setAttribute("keyword", keyword.trim());
-        }
-
-        req.getRequestDispatcher("/events.jsp").forward(req, resp);
     }
 
     private void showAdminEventList(HttpServletRequest req, HttpServletResponse resp)
