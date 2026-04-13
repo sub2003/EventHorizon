@@ -1,6 +1,7 @@
 package com.eventhorizon.servlet;
 
 import com.eventhorizon.model.User;
+import com.eventhorizon.service.EmailService;
 import com.eventhorizon.service.UserService;
 
 import javax.servlet.ServletException;
@@ -14,6 +15,7 @@ import java.io.IOException;
 public class UserServlet extends HttpServlet {
 
     private final UserService userService = new UserService();
+    private final EmailService emailService = new EmailService();
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
@@ -48,7 +50,18 @@ public class UserServlet extends HttpServlet {
 
         String action = req.getParameter("action");
 
-        // 🔥 FIX: handle logout via GET (your missing part)
+        if ("verify".equals(action)) {
+            String token = req.getParameter("token");
+            boolean verified = userService.verifyUser(token);
+
+            if (verified) {
+                resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=verified");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/login.jsp?error=invalidToken");
+            }
+            return;
+        }
+
         if ("logout".equals(action)) {
             handleLogout(req, resp);
             return;
@@ -81,10 +94,19 @@ public class UserServlet extends HttpServlet {
         if (password != null) password = password.trim();
         if (phone != null) phone = phone.trim();
 
-        boolean success = userService.registerCustomer(name, email, password, phone);
+        String token = userService.registerCustomerAndReturnToken(name, email, password, phone);
 
-        if (success) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=registered");
+        if (token != null) {
+            String baseUrl = req.getScheme() + "://" + req.getServerName() + ":" + req.getServerPort()
+                    + req.getContextPath();
+
+            boolean emailSent = emailService.sendVerificationEmail(email, token, baseUrl);
+
+            if (emailSent) {
+                resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=checkEmail");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/register.jsp?error=emailSendFailed");
+            }
         } else {
             resp.sendRedirect(req.getContextPath() + "/register.jsp?error=emailExists");
         }
@@ -107,6 +129,7 @@ public class UserServlet extends HttpServlet {
             session.setAttribute("userId", user.getUserId());
             session.setAttribute("userName", user.getName());
             session.setAttribute("userEmail", user.getEmail());
+            session.setAttribute("userPhone", user.getPhone());
             session.setAttribute("role", user.getRole());
 
             session.setMaxInactiveInterval(30 * 60);
@@ -117,7 +140,11 @@ public class UserServlet extends HttpServlet {
                 resp.sendRedirect(req.getContextPath() + "/event?action=list");
             }
         } else {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp?error=invalid");
+            if (userService.getUserByEmail(email) != null && !userService.isEmailVerified(email)) {
+                resp.sendRedirect(req.getContextPath() + "/login.jsp?error=notVerified");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/login.jsp?error=invalid");
+            }
         }
     }
 
@@ -158,6 +185,7 @@ public class UserServlet extends HttpServlet {
 
         if (success) {
             session.setAttribute("userName", name);
+            session.setAttribute("userPhone", phone);
             resp.sendRedirect(req.getContextPath() + "/profile.jsp?msg=updated");
         } else {
             resp.sendRedirect(req.getContextPath() + "/profile.jsp?error=updateFailed");
