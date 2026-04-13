@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import java.io.IOException;
 
 public class UserServlet extends HttpServlet {
@@ -37,6 +36,15 @@ public class UserServlet extends HttpServlet {
             case "delete":
                 handleDelete(req, resp);
                 break;
+            case "requestAdmin":
+                handleRequestAdmin(req, resp);
+                break;
+            case "approveAdminRequest":
+                handleApproveAdminRequest(req, resp);
+                break;
+            case "rejectAdminRequest":
+                handleRejectAdminRequest(req, resp);
+                break;
             default:
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
         }
@@ -62,9 +70,33 @@ public class UserServlet extends HttpServlet {
 
             req.setAttribute("users", userService.getAllUsers());
             req.getRequestDispatcher("/admin/users.jsp").forward(req, resp);
-        } else {
-            resp.sendRedirect(req.getContextPath() + "/index.jsp");
+            return;
         }
+
+        if ("addAdminForm".equals(action)) {
+            HttpSession session = req.getSession(false);
+            if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+                resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                return;
+            }
+
+            req.getRequestDispatcher("/admin/addAdmin.jsp").forward(req, resp);
+            return;
+        }
+
+        if ("listAdminRequests".equals(action)) {
+            HttpSession session = req.getSession(false);
+            if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+                resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                return;
+            }
+
+            req.setAttribute("adminRequests", userService.getPendingAdminRequests());
+            req.getRequestDispatcher("/admin/adminRequests.jsp").forward(req, resp);
+            return;
+        }
+
+        resp.sendRedirect(req.getContextPath() + "/index.jsp");
     }
 
     private void handleRegister(HttpServletRequest req, HttpServletResponse resp)
@@ -178,5 +210,78 @@ public class UserServlet extends HttpServlet {
         userService.deleteUser(userId);
 
         resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=deleted");
+    }
+
+    private void handleRequestAdmin(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        HttpSession session = req.getSession(false);
+        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String requesterAdminId = (String) session.getAttribute("userId");
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+        String phone = req.getParameter("phone");
+
+        if (name != null) name = name.trim();
+        if (email != null) email = email.trim();
+        if (password != null) password = password.trim();
+        if (phone != null) phone = phone.trim();
+
+        boolean created = userService.submitAdminRequest(
+                requesterAdminId, name, email, password, phone
+        );
+
+        if (created) {
+            resp.sendRedirect(req.getContextPath() + "/admin/addAdmin.jsp?msg=requestSubmitted");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/admin/addAdmin.jsp?error=requestFailed");
+        }
+    }
+
+    private void handleApproveAdminRequest(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        HttpSession session = req.getSession(false);
+        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String approverAdminId = (String) session.getAttribute("userId");
+        String requestId = req.getParameter("requestId");
+
+        boolean approved = userService.approveAdminRequest(requestId, approverAdminId);
+
+        if (approved) {
+            resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&msg=approved");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&error=approveFailed");
+        }
+    }
+
+    private void handleRejectAdminRequest(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        HttpSession session = req.getSession(false);
+        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String approverAdminId = (String) session.getAttribute("userId");
+        String requestId = req.getParameter("requestId");
+
+        boolean rejected = userService.rejectAdminRequest(requestId, approverAdminId);
+
+        if (rejected) {
+            resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&msg=rejected");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&error=rejectFailed");
+        }
     }
 }
