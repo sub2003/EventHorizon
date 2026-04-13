@@ -18,10 +18,9 @@ public class UserService {
         if (getUserByEmail(email) != null) return false;
 
         String id = generateId("USR");
-        String token = java.util.UUID.randomUUID().toString();
 
-        String sql = "INSERT INTO users (user_id, name, email, password, phone, role, is_verified, verification_token) "
-                + "VALUES (?, ?, ?, ?, ?, 'CUSTOMER', 0, ?)";
+        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) "
+                + "VALUES (?, ?, ?, ?, ?, 'CUSTOMER')";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -31,7 +30,6 @@ public class UserService {
             ps.setString(3, email);
             ps.setString(4, password);
             ps.setString(5, phone);
-            ps.setString(6, token);
 
             ps.executeUpdate();
             return true;
@@ -42,52 +40,14 @@ public class UserService {
         }
     }
 
-    public String registerCustomerAndReturnToken(String name, String email,
-                                                 String password, String phone) {
-
-        User existingUser = getUserByEmail(email);
-
-        // ✅ If email exists but NOT verified → delete old user
-        if (existingUser != null) {
-            if (!isEmailVerified(email)) {
-                deleteUserByEmail(email);
-            } else {
-                return null; // already verified → block signup
-            }
-        }
-
-        String id = generateId("USR");
-        String token = java.util.UUID.randomUUID().toString();
-
-        String sql = "INSERT INTO users (user_id, name, email, password, phone, role, is_verified, verification_token) "
-                + "VALUES (?, ?, ?, ?, ?, 'CUSTOMER', 0, ?)";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, id);
-            ps.setString(2, name);
-            ps.setString(3, email);
-            ps.setString(4, password);
-            ps.setString(5, phone);
-            ps.setString(6, token);
-
-            ps.executeUpdate();
-            return token;
-
-        } catch (SQLException e) {
-            System.err.println("registerCustomerAndReturnToken error: " + e.getMessage());
-            return null;
-        }
-    }
-
     public boolean registerAdmin(String name, String email,
                                  String password, String phone) {
         if (getUserByEmail(email) != null) return false;
 
         String id = generateId("ADM");
-        String sql = "INSERT INTO users (user_id, name, email, password, phone, role, is_verified, verification_token) "
-                + "VALUES (?, ?, ?, ?, ?, 'ADMIN', 1, NULL)";
+
+        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) "
+                + "VALUES (?, ?, ?, ?, ?, 'ADMIN')";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -198,7 +158,7 @@ public class UserService {
     }
 
     public User login(String email, String password) {
-        String sql = "SELECT * FROM users WHERE email = ? AND password = ? AND is_verified = 1";
+        String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -217,41 +177,6 @@ public class UserService {
         }
 
         return null;
-    }
-
-    public boolean isEmailVerified(String email) {
-        String sql = "SELECT is_verified FROM users WHERE email = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, email);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return rs.getBoolean("is_verified");
-            }
-
-        } catch (SQLException e) {
-            System.err.println("isEmailVerified error: " + e.getMessage());
-        }
-
-        return false;
-    }
-
-    public boolean verifyUser(String token) {
-        String sql = "UPDATE users SET is_verified = 1, verification_token = NULL WHERE verification_token = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, token);
-            return ps.executeUpdate() > 0;
-
-        } catch (SQLException e) {
-            System.err.println("verifyUser error: " + e.getMessage());
-            return false;
-        }
     }
 
     // ======================== UPDATE ========================
