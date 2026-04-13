@@ -1,8 +1,11 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List,java.util.Map" %>
 <%
-    String role = (String) session.getAttribute("role");
-    if (session == null || role == null || !"ADMIN".equals(role)) {
+    HttpSession currentSession = request.getSession(false);
+    String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
+    String currentAdminId = currentSession != null ? (String) currentSession.getAttribute("userId") : null;
+
+    if (currentSession == null || role == null || !"ADMIN".equals(role)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
@@ -16,83 +19,25 @@
     <meta charset="UTF-8">
     <title>Pending Admin Requests</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            margin: 0;
-            padding: 20px;
+        body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+        h2 { text-align: center; color: #333; }
+        .msg { width: 90%; max-width: 1100px; margin: 15px auto; padding: 10px; border-radius: 6px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        table { width: 90%; margin: 20px auto; border-collapse: collapse; background: #fff; box-shadow: 0 0 12px rgba(0,0,0,0.08); }
+        th, td { padding: 12px; border: 1px solid #ddd; text-align: center; }
+        th { background: #007bff; color: white; }
+        .actions form { display: inline-block; margin: 0 4px; }
+        .approve-btn, .reject-btn, .disabled-btn {
+            border: none; padding: 8px 12px; border-radius: 5px; color: white; cursor: pointer;
         }
-        h2 {
-            text-align: center;
-            color: #333;
-        }
-        .msg {
-            width: 90%;
-            max-width: 1100px;
-            margin: 15px auto;
-            padding: 10px;
-            border-radius: 6px;
-        }
-        .success {
-            background: #d4edda;
-            color: #155724;
-        }
-        .error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        table {
-            width: 90%;
-            margin: 20px auto;
-            border-collapse: collapse;
-            background: #fff;
-            box-shadow: 0 0 12px rgba(0,0,0,0.08);
-        }
-        th, td {
-            padding: 12px;
-            border: 1px solid #ddd;
-            text-align: center;
-        }
-        th {
-            background: #007bff;
-            color: white;
-        }
-        .actions form {
-            display: inline-block;
-            margin: 0 4px;
-        }
-        .approve-btn, .reject-btn {
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            color: white;
-            cursor: pointer;
-        }
-        .approve-btn {
-            background: #28a745;
-        }
-        .reject-btn {
-            background: #dc3545;
-        }
-        .top-links {
-            text-align: center;
-            margin-top: 20px;
-        }
-        .top-links a {
-            text-decoration: none;
-            margin: 0 10px;
-            color: #007bff;
-        }
-        .empty {
-            width: 90%;
-            max-width: 1100px;
-            margin: 25px auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-            box-shadow: 0 0 12px rgba(0,0,0,0.08);
-        }
+        .approve-btn { background: #28a745; }
+        .reject-btn { background: #dc3545; }
+        .disabled-btn { background: #6c757d; cursor: not-allowed; }
+        .top-links { text-align: center; margin-top: 20px; }
+        .top-links a { text-decoration: none; margin: 0 10px; color: #007bff; }
+        .empty { width: 90%; max-width: 1100px; margin: 25px auto; background: white; padding: 20px; border-radius: 8px; text-align: center; box-shadow: 0 0 12px rgba(0,0,0,0.08); }
+        .small-note { font-size: 12px; color: #555; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -134,7 +79,7 @@
     <table>
         <tr>
             <th>Request ID</th>
-            <th>Requested By Admin ID</th>
+            <th>Requested By</th>
             <th>Name</th>
             <th>Email</th>
             <th>Phone</th>
@@ -144,6 +89,8 @@
 
         <%
             for (Map<String, String> requestRow : adminRequests) {
+                boolean ownRequest = currentAdminId != null &&
+                        currentAdminId.equals(requestRow.get("requesterAdminId"));
         %>
         <tr>
             <td><%= requestRow.get("requestId") %></td>
@@ -153,17 +100,23 @@
             <td><%= requestRow.get("requestedPhone") %></td>
             <td><%= requestRow.get("requestedAt") %></td>
             <td class="actions">
-                <form action="<%= request.getContextPath() %>/user" method="post">
-                    <input type="hidden" name="action" value="approveAdminRequest">
-                    <input type="hidden" name="requestId" value="<%= requestRow.get("requestId") %>">
-                    <button type="submit" class="approve-btn">Approve</button>
-                </form>
+                <% if (ownRequest) { %>
+                    <button type="button" class="disabled-btn" disabled>Approve</button>
+                    <button type="button" class="disabled-btn" disabled>Reject</button>
+                    <div class="small-note">You cannot review your own request</div>
+                <% } else { %>
+                    <form action="<%= request.getContextPath() %>/user" method="post">
+                        <input type="hidden" name="action" value="approveAdminRequest">
+                        <input type="hidden" name="requestId" value="<%= requestRow.get("requestId") %>">
+                        <button type="submit" class="approve-btn">Approve</button>
+                    </form>
 
-                <form action="<%= request.getContextPath() %>/user" method="post">
-                    <input type="hidden" name="action" value="rejectAdminRequest">
-                    <input type="hidden" name="requestId" value="<%= requestRow.get("requestId") %>">
-                    <button type="submit" class="reject-btn">Reject</button>
-                </form>
+                    <form action="<%= request.getContextPath() %>/user" method="post">
+                        <input type="hidden" name="action" value="rejectAdminRequest">
+                        <input type="hidden" name="requestId" value="<%= requestRow.get("requestId") %>">
+                        <button type="submit" class="reject-btn">Reject</button>
+                    </form>
+                <% } %>
             </td>
         </tr>
         <%

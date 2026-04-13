@@ -39,6 +39,9 @@ public class UserServlet extends HttpServlet {
             case "requestAdmin":
                 handleRequestAdmin(req, resp);
                 break;
+            case "requestPublicAdmin":
+                handleRequestPublicAdmin(req, resp);
+                break;
             case "approveAdminRequest":
                 handleApproveAdminRequest(req, resp);
                 break;
@@ -117,7 +120,35 @@ public class UserServlet extends HttpServlet {
         if (created) {
             resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=registered");
         } else {
-            resp.sendRedirect(req.getContextPath() + "/register.jsp?error=emailExists");
+            resp.sendRedirect(req.getContextPath() + "/registerCustomer.jsp?error=emailExists");
+        }
+    }
+
+    private void handleRequestPublicAdmin(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
+        String password = req.getParameter("password");
+        String phone = req.getParameter("phone");
+
+        if (name != null) name = name.trim();
+        if (email != null) email = email.trim();
+        if (password != null) password = password.trim();
+        if (phone != null) phone = phone.trim();
+
+        boolean created = userService.submitAdminRequest(
+                "PUBLIC",
+                name,
+                email,
+                password,
+                phone
+        );
+
+        if (created) {
+            resp.sendRedirect(req.getContextPath() + "/registerAdminRequest.jsp?msg=requestSubmitted");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/registerAdminRequest.jsp?error=requestFailed");
         }
     }
 

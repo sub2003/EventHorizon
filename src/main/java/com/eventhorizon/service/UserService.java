@@ -78,10 +78,8 @@ public class UserService {
                                       String phone) {
         if (requesterAdminId == null || requesterAdminId.trim().isEmpty()) return false;
 
-        // Do not allow request if a user already exists with that email
         if (getUserByEmail(email) != null) return false;
 
-        // Do not allow duplicate pending request for same email
         String pendingCheckSql = "SELECT request_id FROM admin_requests WHERE requested_email = ? AND status = 'PENDING'";
         String insertSql = "INSERT INTO admin_requests "
                 + "(request_id, requester_admin_id, requested_name, requested_email, requested_password, requested_phone, status) "
@@ -171,13 +169,11 @@ public class UserService {
                 String password = rs.getString("requested_password");
                 String phone = rs.getString("requested_phone");
 
-                // Admin cannot approve their own request
                 if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
                     conn.rollback();
                     return false;
                 }
 
-                // Do not create duplicate admin/user email
                 if (getUserByEmail(email) != null) {
                     conn.rollback();
                     return false;
@@ -243,7 +239,6 @@ public class UserService {
 
             String requesterAdminId = rs.getString("requester_admin_id");
 
-            // Admin cannot reject their own request either
             if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
                 return false;
             }
