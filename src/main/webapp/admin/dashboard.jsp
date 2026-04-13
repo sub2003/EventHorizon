@@ -1,120 +1,160 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
+<%@ page import="com.eventhorizon.service.EventService" %>
+<%@ page import="com.eventhorizon.service.BookingService" %>
+<%@ page import="com.eventhorizon.model.Booking" %>
+<%@ page import="java.util.List" %>
+
 <%
-    if (session.getAttribute("userId") == null || !"ADMIN".equals(session.getAttribute("role"))) {
-        response.sendRedirect("../login.jsp");
+    // 🔒 Prevent browser caching (FIX logout issue)
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.setHeader("Pragma", "no-cache");
+    response.setDateHeader("Expires", 0);
+
+    // 🔒 Admin authentication check
+    if (session.getAttribute("userId") == null ||
+        !"ADMIN".equals(session.getAttribute("role"))) {
+
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
+
+    UserService userService = new UserService();
+    EventService eventService = new EventService();
+    BookingService bookingService = new BookingService();
+
+    int totalUsers = userService.getAllUsers().size();
+    int totalEvents = eventService.getAllEvents().size();
+    int activeEvents = eventService.getActiveEvents().size();
+    List<Booking> recentBookings = bookingService.getAllBookings();
+    int totalBookings = recentBookings.size();
+
+    String adminName = (String) session.getAttribute("userName");
 %>
-<%@ page import="com.eventhorizon.service.UserService, com.eventhorizon.service.EventService, com.eventhorizon.service.BookingService" %>
-<%
-    UserService us = new UserService();
-    EventService es = new EventService();
-    BookingService bs = new BookingService();
-    int totalUsers    = us.getAllCustomers().size();
-    int totalEvents   = es.getAllEvents().size();
-    int activeEvents  = es.getActiveEvents().size();
-    int totalBookings = bs.getAllBookings().size();
-    pageContext.setAttribute("totalUsers",    totalUsers);
-    pageContext.setAttribute("totalEvents",   totalEvents);
-    pageContext.setAttribute("activeEvents",  activeEvents);
-    pageContext.setAttribute("totalBookings", totalBookings);
-%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard – EventHorizon</title>
-    <link rel="stylesheet" href="../css/style.css">
+    <title>Admin Dashboard - EventHorizon</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="../index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
-    <ul class="navbar-links">
-        <li><a href="../index.jsp">← Public Site</a></li>
-        <li><a href="../user?action=logout" class="btn-nav">Logout</a></li>
-    </ul>
-</nav>
+<div class="admin-layout">
 
-<div class="admin-wrapper">
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-title">Admin Panel</div>
-        <a href="dashboard.jsp" class="sidebar-link active"><span>📊</span> Dashboard</a>
-        <a href="events.jsp"    class="sidebar-link"><span>🎟️</span> Manage Events</a>
-        <a href="bookings.jsp"  class="sidebar-link"><span>📋</span> All Bookings</a>
-        <a href="users.jsp"     class="sidebar-link"><span>👥</span> Manage Users</a>
-        <a href="addEvent.jsp"  class="sidebar-link"><span>➕</span> Add New Event</a>
-    </aside>
-
-    <!-- MAIN CONTENT -->
-    <main class="admin-content">
-        <div class="page-header">
-            <h1 class="page-title">📊 Dashboard</h1>
-            <span style="color:var(--text-muted);font-size:0.9rem;">
-                Welcome back, <strong>${sessionScope.userName}</strong>
-            </span>
+    <aside class="admin-sidebar">
+        <div class="admin-sidebar-brand">
+            <a href="${pageContext.request.contextPath}/index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
         </div>
 
-        <!-- Stats Cards -->
+        <div class="admin-sidebar-section">
+            <div class="admin-sidebar-title">ADMIN PANEL</div>
+
+            <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="sidebar-link active">
+                <span>📊</span> Dashboard
+            </a>
+
+            <a href="${pageContext.request.contextPath}/event?action=adminList" class="sidebar-link">
+                <span>🎟️</span> Manage Events
+            </a>
+
+            <a href="${pageContext.request.contextPath}/admin/bookings.jsp" class="sidebar-link">
+                <span>📋</span> All Bookings
+            </a>
+
+            <a href="${pageContext.request.contextPath}/user?action=list" class="sidebar-link">
+                <span>👥</span> Manage Users
+            </a>
+
+            <a href="${pageContext.request.contextPath}/event?action=adminList" class="sidebar-link">
+                <span>➕</span> Add New Event
+            </a>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+
+        <div class="admin-topbar">
+            <a href="${pageContext.request.contextPath}/event?action=list" class="btn btn-outline btn-sm">← Public Site</a>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <span style="color:var(--text-muted);">Welcome back, <%= adminName %></span>
+                <a href="${pageContext.request.contextPath}/user?action=logout" class="btn btn-primary btn-sm">Logout</a>
+            </div>
+        </div>
+
+        <div class="section-header" style="align-items:flex-start;">
+            <h2 class="section-title">📊 <span>Dashboard</span></h2>
+        </div>
+
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon purple">👥</div>
+                <div class="stat-icon">👥</div>
                 <div>
-                    <div class="stat-value">${totalUsers}</div>
+                    <div class="stat-number"><%= totalUsers %></div>
                     <div class="stat-label">Registered Users</div>
                 </div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-icon teal">🎟️</div>
+                <div class="stat-icon">🎟️</div>
                 <div>
-                    <div class="stat-value">${totalEvents}</div>
+                    <div class="stat-number"><%= totalEvents %></div>
                     <div class="stat-label">Total Events</div>
                 </div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-icon green">✅</div>
+                <div class="stat-icon">✅</div>
                 <div>
-                    <div class="stat-value">${activeEvents}</div>
+                    <div class="stat-number"><%= activeEvents %></div>
                     <div class="stat-label">Active Events</div>
                 </div>
             </div>
+
             <div class="stat-card">
-                <div class="stat-icon pink">📋</div>
+                <div class="stat-icon">📋</div>
                 <div>
-                    <div class="stat-value">${totalBookings}</div>
+                    <div class="stat-number"><%= totalBookings %></div>
                     <div class="stat-label">Total Bookings</div>
                 </div>
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;margin-bottom:28px;">
-            <h2 style="font-size:1rem;margin-bottom:20px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;font-size:0.8rem;">Quick Actions</h2>
-            <div style="display:flex;gap:12px;flex-wrap:wrap;">
-                <a href="addEvent.jsp" class="btn btn-primary">➕ Add New Event</a>
-                <a href="events.jsp"   class="btn btn-outline">🎟️ Manage Events</a>
-                <a href="bookings.jsp" class="btn btn-outline">📋 View Bookings</a>
-                <a href="users.jsp"    class="btn btn-outline">👥 View Users</a>
+        <div class="card" style="padding:24px; margin-bottom:24px;">
+            <h3 style="margin-bottom:18px;">QUICK ACTIONS</h3>
+            <div style="display:flex; flex-wrap:wrap; gap:12px;">
+                <a href="${pageContext.request.contextPath}/event?action=adminList" class="btn btn-primary">
+                    ➕ Add New Event
+                </a>
+
+                <a href="${pageContext.request.contextPath}/event?action=adminList" class="btn btn-outline">
+                    🎟️ Manage Events
+                </a>
+
+                <a href="${pageContext.request.contextPath}/admin/bookings.jsp" class="btn btn-outline">
+                    📋 View Bookings
+                </a>
+
+                <a href="${pageContext.request.contextPath}/user?action=list" class="btn btn-outline">
+                    👥 View Users
+                </a>
             </div>
         </div>
 
-        <!-- Recent Bookings preview -->
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;">
-            <div style="padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
-                <h2 style="font-size:1rem;font-weight:700;">Recent Bookings</h2>
-                <a href="bookings.jsp" style="font-size:0.85rem;color:var(--accent-teal);">View All →</a>
+        <div class="card" style="padding:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                <h3>Recent Bookings</h3>
+                <a href="${pageContext.request.contextPath}/admin/bookings.jsp" class="btn btn-outline btn-sm">View All →</a>
             </div>
+
             <%
-                java.util.List<com.eventhorizon.model.Booking> recentBookings = bs.getAllBookings();
-                int showCount = Math.min(5, recentBookings.size());
-                pageContext.setAttribute("recentBookings",
-                    recentBookings.subList(Math.max(0, recentBookings.size() - showCount), recentBookings.size()));
+                if (recentBookings != null && !recentBookings.isEmpty()) {
             %>
-            <table>
-                <thead>
+            <div style="overflow-x:auto;">
+                <table class="table" style="width:100%;">
+                    <thead>
                     <tr>
                         <th>Booking ID</th>
                         <th>Event</th>
@@ -122,35 +162,45 @@
                         <th>Amount</th>
                         <th>Status</th>
                     </tr>
-                </thead>
-                <tbody>
-                    <c:forEach var="b" items="${recentBookings}">
-                        <tr>
-                            <td style="font-family:'Orbitron',monospace;font-size:0.78rem;color:var(--accent-teal);">${b.bookingId}</td>
-                            <td>${b.eventTitle}</td>
-                            <td>${b.numberOfTickets}</td>
-                            <td>LKR ${b.totalAmount}</td>
-                            <td>
-                                <c:choose>
-                                    <c:when test="${b.status == 'CONFIRMED'}">
-                                        <span class="badge badge-success">CONFIRMED</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="badge badge-danger">CANCELLED</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </td>
-                        </tr>
-                    </c:forEach>
-                    <c:if test="${empty recentBookings}">
-                        <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No bookings yet.</td></tr>
-                    </c:if>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    <%
+                        int count = 0;
+                        for (Booking booking : recentBookings) {
+                            if (count >= 5) break;
+                    %>
+                    <tr>
+                        <td><%= booking.getBookingId() %></td>
+                        <td><%= booking.getEventTitle() %></td>
+                        <td><%= booking.getNumberOfTickets() %></td>
+                        <td>LKR <%= booking.getTotalAmount() %></td>
+                        <td>
+                            <span class="status-badge"><%= booking.getStatus() %></span>
+                        </td>
+                    </tr>
+                    <%
+                            count++;
+                        }
+                    %>
+                    </tbody>
+                </table>
+            </div>
+            <%
+                } else {
+            %>
+            <div class="empty-state">
+                <span class="emoji">📭</span>
+                <h3>No Bookings Yet</h3>
+                <p>Bookings will appear here once customers start booking tickets.</p>
+            </div>
+            <%
+                }
+            %>
         </div>
+
     </main>
 </div>
 
-<script src="../js/main.js"></script>
+<script src="${pageContext.request.contextPath}/js/main.js"></script>
 </body>
 </html>

@@ -3,145 +3,209 @@ package com.eventhorizon.service;
 import com.eventhorizon.model.Admin;
 import com.eventhorizon.model.Customer;
 import com.eventhorizon.model.User;
-import com.eventhorizon.util.FileHandler;
+import com.eventhorizon.util.DatabaseConnection;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * UserService - Handles all CRUD operations for Users (Customers & Admins).
- * Data is stored in / read from users.txt
- *
- * CRUD:
- *  CREATE  → registerCustomer(), registerAdmin()
- *  READ    → getAllUsers(), getUserById(), getUserByEmail()
- *  UPDATE  → updateUser()
- *  DELETE  → deleteUser()
- */
 public class UserService {
 
     // ======================== CREATE ========================
 
-    /**
-     * Register a new Customer. Returns false if email already exists.
-     */
     public boolean registerCustomer(String name, String email,
                                     String password, String phone) {
-        // Check for duplicate email
         if (getUserByEmail(email) != null) return false;
-
-        String id = FileHandler.generateId(FileHandler.USERS_FILE, "USR");
-        Customer customer = new Customer(id, name, email, password, phone, 0);
-        FileHandler.appendLine(FileHandler.USERS_FILE, customer.toFileString());
-        return true;
+        String id  = generateId("USR");
+        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) "
+                + "VALUES (?, ?, ?, ?, ?, 'CUSTOMER')";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ps.setString(2, name);
+            ps.setString(3, email);
+            ps.setString(4, password);
+            ps.setString(5, phone);
+            ps.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("registerCustomer error: " + e.getMessage());
+            return false;
+        }
     }
 
-    /**
-     * Register a new Admin.
-     */
     public boolean registerAdmin(String name, String email,
                                  String password, String phone) {
         if (getUserByEmail(email) != null) return false;
-
-        String id = FileHandler.generateId(FileHandler.USERS_FILE, "ADM");
-        Admin admin = new Admin(id, name, email, password, phone, "STANDARD");
-        FileHandler.appendLine(FileHandler.USERS_FILE, admin.toFileString());
-        return true;
+        String id  = generateId("ADM");
+        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) "
+                + "VALUES (?, ?, ?, ?, ?, 'ADMIN')";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, id);
+            ps.setString(2, name);
+            ps.setString(3, email);
+            ps.setString(4, password);
+            ps.setString(5, phone);
+            ps.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            System.err.println("registerAdmin error: " + e.getMessage());
+            return false;
+        }
     }
 
     // ======================== READ ========================
 
-    /**
-     * Returns all users (Customers + Admins) from users.txt
-     */
     public List<User> getAllUsers() {
-        List<String> lines = FileHandler.readAllLines(FileHandler.USERS_FILE);
         List<User> users = new ArrayList<>();
-
-        for (String line : lines) {
-            try {
-                String[] parts = line.split(",");
-                if (parts.length < 6) continue;
-                String role = parts[5];
-
-                if (role.equals("CUSTOMER")) {
-                    users.add(Customer.fromFileString(line));
-                } else if (role.equals("ADMIN")) {
-                    users.add(Admin.fromFileString(line));
-                }
-            } catch (Exception e) {
-                System.err.println("Skipping malformed user line: " + line);
-            }
+        String sql = "SELECT * FROM users";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) users.add(mapRowToUser(rs, conn));
+        } catch (SQLException e) {
+            System.err.println("getAllUsers error: " + e.getMessage());
         }
         return users;
     }
 
-    /**
-     * Find a user by their ID.
-     */
-    public User getUserById(String userId) {
-        for (User u : getAllUsers()) {
-            if (u.getUserId().equals(userId)) return u;
-        }
-        return null;
-    }
-
-    /**
-     * Find a user by email (used for login).
-     */
-    public User getUserByEmail(String email) {
-        for (User u : getAllUsers()) {
-            if (u.getEmail().equalsIgnoreCase(email)) return u;
-        }
-        return null;
-    }
-
-    /**
-     * Login: validate email + password. Returns the User or null.
-     */
-    public User login(String email, String password) {
-        User user = getUserByEmail(email);
-        if (user != null && user.getPassword().equals(password)) {
-            return user;
-        }
-        return null;
-    }
-
-    /**
-     * Returns only Customer objects.
-     */
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
-        for (User u : getAllUsers()) {
-            if (u instanceof Customer) customers.add((Customer) u);
+        String sql = "SELECT * FROM users WHERE role = 'CUSTOMER'";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) {
+                String id = rs.getString("user_id");
+                int bookingCount = getBookingCount(id, conn);
+                customers.add(new Customer(
+                        id,
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        rs.getString("phone"),
+                        bookingCount
+                ));
+            }
+        } catch (SQLException e) {
+            System.err.println("getAllCustomers error: " + e.getMessage());
         }
         return customers;
     }
 
+    public User getUserById(String userId) {
+        String sql = "SELECT * FROM users WHERE user_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, userId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapRowToUser(rs, conn);
+        } catch (SQLException e) {
+            System.err.println("getUserById error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public User getUserByEmail(String email) {
+        String sql = "SELECT * FROM users WHERE email = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapRowToUser(rs, conn);
+        } catch (SQLException e) {
+            System.err.println("getUserByEmail error: " + e.getMessage());
+        }
+        return null;
+    }
+
+    public User login(String email, String password) {
+        User user = getUserByEmail(email);
+        if (user != null && user.getPassword().equals(password)) return user;
+        return null;
+    }
+
     // ======================== UPDATE ========================
 
-    /**
-     * Update a user's name, phone, and password by their ID.
-     */
     public boolean updateUser(String userId, String newName,
                               String newPhone, String newPassword) {
-        User user = getUserById(userId);
-        if (user == null) return false;
-
-        user.setName(newName);
-        user.setPhone(newPhone);
-        user.setPassword(newPassword);
-
-        return FileHandler.updateLine(FileHandler.USERS_FILE,
-                userId, user.toFileString(), ",");
+        String sql = "UPDATE users SET name=?, phone=?, password=? WHERE user_id=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newName);
+            ps.setString(2, newPhone);
+            ps.setString(3, newPassword);
+            ps.setString(4, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("updateUser error: " + e.getMessage());
+            return false;
+        }
     }
 
     // ======================== DELETE ========================
 
-    /**
-     * Delete a user by their ID.
-     */
     public boolean deleteUser(String userId) {
-        return FileHandler.deleteLine(FileHandler.USERS_FILE, userId, ",");
+        String sql = "DELETE FROM users WHERE user_id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("deleteUser error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ======================== HELPERS ========================
+
+    /**
+     * Gets the real booking count for a customer from the bookings table.
+     * Only counts CONFIRMED bookings.
+     */
+    private int getBookingCount(String customerId, Connection conn) {
+        String sql = "SELECT COUNT(*) FROM bookings WHERE customer_id = ? AND status = 'CONFIRMED'";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            System.err.println("getBookingCount error: " + e.getMessage());
+        }
+        return 0;
+    }
+
+    /**
+     * Maps a database row to the correct User subclass.
+     * Automatically counts real bookings for Customer objects.
+     */
+    private User mapRowToUser(ResultSet rs, Connection conn) throws SQLException {
+        String role  = rs.getString("role");
+        String id    = rs.getString("user_id");
+        String name  = rs.getString("name");
+        String email = rs.getString("email");
+        String pass  = rs.getString("password");
+        String phone = rs.getString("phone");
+
+        if ("ADMIN".equals(role)) {
+            return new Admin(id, name, email, pass, phone, "STANDARD");
+        } else {
+            // Get real booking count from database
+            int bookingCount = getBookingCount(id, conn);
+            return new Customer(id, name, email, pass, phone, bookingCount);
+        }
+    }
+
+    private String generateId(String prefix) {
+        String sql = "SELECT COUNT(*) FROM users";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            if (rs.next()) return String.format("%s%03d", prefix, rs.getInt(1) + 1);
+        } catch (SQLException e) {
+            System.err.println("generateId error: " + e.getMessage());
+        }
+        return prefix + System.currentTimeMillis();
     }
 }

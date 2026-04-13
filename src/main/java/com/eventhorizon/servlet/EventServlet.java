@@ -4,31 +4,27 @@ import com.eventhorizon.model.Event;
 import com.eventhorizon.service.EventService;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
-/**
- * EventServlet - Handles all event-related HTTP requests.
- *
- * URL Mappings:
- *   GET  /event?action=list          -> Public event list
- *   GET  /event?action=view&id=X     -> View single event
- *   GET  /event?action=search&q=X    -> Search events
- *   POST /event?action=add           -> Add event (Admin)
- *   POST /event?action=update        -> Update event (Admin)
- *   POST /event?action=delete        -> Delete event (Admin)
- *   POST /event?action=cancel        -> Cancel event (Admin)
- */
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024,
+        maxFileSize = 5 * 1024 * 1024,
+        maxRequestSize = 10 * 1024 * 1024
+)
 public class EventServlet extends HttpServlet {
 
     private final EventService eventService = new EventService();
 
-    // ==================== GET ====================
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -49,18 +45,16 @@ public class EventServlet extends HttpServlet {
                 showAdminEventList(req, resp);
                 break;
             default:
-                resp.sendRedirect("events.jsp");
+                resp.sendRedirect("event?action=list");
         }
     }
 
-    // ==================== POST ====================
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         String action = req.getParameter("action");
 
-        // All POST actions require admin
         HttpSession session = req.getSession(false);
         if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
             resp.sendRedirect("login.jsp");
@@ -68,98 +62,199 @@ public class EventServlet extends HttpServlet {
         }
 
         switch (action == null ? "" : action) {
-            case "add":    handleAdd(req, resp);    break;
-            case "update": handleUpdate(req, resp); break;
-            case "delete": handleDelete(req, resp); break;
-            case "cancel": handleCancel(req, resp); break;
+            case "add":
+                handleAdd(req, resp);
+                break;
+            case "update":
+                handleUpdate(req, resp);
+                break;
+            case "delete":
+                handleDelete(req, resp);
+                break;
+            case "cancel":
+                handleCancel(req, resp);
+                break;
             default:
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
         }
     }
 
-    // -------------------- List all active events --------------------
     private void showEventList(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
         req.setAttribute("events", eventService.getActiveEvents());
         req.getRequestDispatcher("/events.jsp").forward(req, resp);
     }
 
-    // -------------------- Event detail --------------------
     private void showEventDetail(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
         String id = req.getParameter("id");
-        Event event = eventService.getEventById(id);
-        if (event == null) { resp.sendRedirect("event?action=list"); return; }
+
+        if (id == null || id.trim().isEmpty()) {
+            resp.sendRedirect("event?action=list");
+            return;
+        }
+
+        Event event = eventService.getEventById(id.trim());
+
+        if (event == null) {
+            resp.sendRedirect("event?action=list");
+            return;
+        }
+
         req.setAttribute("event", event);
         req.getRequestDispatcher("/eventDetail.jsp").forward(req, resp);
     }
 
-    // -------------------- Search --------------------
     private void searchEvents(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+
         String keyword = req.getParameter("q");
-        List<Event> results = (keyword == null || keyword.isEmpty())
-                ? eventService.getActiveEvents()
-                : eventService.searchEvents(keyword);
-        req.setAttribute("events", results);
-        req.setAttribute("keyword", keyword);
+
+        if (keyword == null || keyword.trim().isEmpty()) {
+            req.setAttribute("events", eventService.getActiveEvents());
+            req.setAttribute("keyword", "");
+        } else {
+            req.setAttribute("events", eventService.searchEvents(keyword.trim()));
+            req.setAttribute("keyword", keyword.trim());
+        }
+
         req.getRequestDispatcher("/events.jsp").forward(req, resp);
     }
 
-    // -------------------- Admin: list all --------------------
     private void showAdminEventList(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        req.setAttribute("events", eventService.getAllEvents());
-        req.getRequestDispatcher("/admin/events.jsp").forward(req, resp);
+
+        HttpSession session = req.getSession(false);
+        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+            resp.sendRedirect("login.jsp");
+            return;
+        }
+
+        List<Event> events = eventService.getAllEvents();
+        req.setAttribute("events", events);
+
+        req.getRequestDispatcher("/admin/addEvent.jsp").forward(req, resp);
     }
 
-    // -------------------- Add event --------------------
     private void handleAdd(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        String title       = req.getParameter("title");
-        String category    = req.getParameter("category");
-        String date        = req.getParameter("date");
-        String time        = req.getParameter("time");
-        String venue       = req.getParameter("venue");
-        double price       = Double.parseDouble(req.getParameter("ticketPrice"));
-        int    seats       = Integer.parseInt(req.getParameter("totalSeats"));
+            throws IOException, ServletException {
+
+        String title = req.getParameter("title");
+        String category = req.getParameter("category");
+        String date = req.getParameter("date");
+        String time = req.getParameter("time");
+        String venue = req.getParameter("venue");
         String description = req.getParameter("description");
 
-        String newId = eventService.addEvent(title, category, date, time,
-                                             venue, price, seats, description);
-        resp.sendRedirect("event?action=adminList&msg=added&id=" + newId);
+        double price = Double.parseDouble(req.getParameter("ticketPrice"));
+        int seats = Integer.parseInt(req.getParameter("totalSeats"));
+
+        String imagePath = saveUploadedImage(req.getPart("eventImage"));
+
+        String newId = eventService.addEvent(
+                title,
+                category,
+                date,
+                time,
+                venue,
+                price,
+                seats,
+                description,
+                imagePath
+        );
+
+        resp.sendRedirect("event?action=adminList&msg=" + (newId != null ? "added" : "error"));
     }
 
-    // -------------------- Update event --------------------
     private void handleUpdate(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-        String eventId     = req.getParameter("eventId");
-        String title       = req.getParameter("title");
-        String category    = req.getParameter("category");
-        String date        = req.getParameter("date");
-        String time        = req.getParameter("time");
-        String venue       = req.getParameter("venue");
-        double price       = Double.parseDouble(req.getParameter("ticketPrice"));
+            throws IOException, ServletException {
+
+        String eventId = req.getParameter("eventId");
+        String title = req.getParameter("title");
+        String category = req.getParameter("category");
+        String date = req.getParameter("date");
+        String time = req.getParameter("time");
+        String venue = req.getParameter("venue");
         String description = req.getParameter("description");
 
-        boolean ok = eventService.updateEvent(eventId, title, category, date,
-                                              time, venue, price, description);
+        double price = Double.parseDouble(req.getParameter("ticketPrice"));
+
+        Part imagePart = req.getPart("eventImage");
+        boolean ok;
+
+        if (imagePart != null && imagePart.getSize() > 0) {
+            String imagePath = saveUploadedImage(imagePart);
+            ok = eventService.updateEventWithImage(
+                    eventId,
+                    title,
+                    category,
+                    date,
+                    time,
+                    venue,
+                    price,
+                    description,
+                    imagePath
+            );
+        } else {
+            ok = eventService.updateEvent(
+                    eventId,
+                    title,
+                    category,
+                    date,
+                    time,
+                    venue,
+                    price,
+                    description
+            );
+        }
+
         resp.sendRedirect("event?action=adminList&msg=" + (ok ? "updated" : "error"));
     }
 
-    // -------------------- Delete event --------------------
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
+
         String eventId = req.getParameter("eventId");
         eventService.deleteEvent(eventId);
         resp.sendRedirect("event?action=adminList&msg=deleted");
     }
 
-    // -------------------- Cancel event --------------------
     private void handleCancel(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
+
         String eventId = req.getParameter("eventId");
         eventService.cancelEvent(eventId);
         resp.sendRedirect("event?action=adminList&msg=cancelled");
+    }
+
+    private String saveUploadedImage(Part imagePart) throws IOException {
+        if (imagePart == null || imagePart.getSize() == 0) {
+            return null;
+        }
+
+        String originalFileName = imagePart.getSubmittedFileName();
+        if (originalFileName == null || originalFileName.trim().isEmpty()) {
+            return null;
+        }
+
+        String extension = "";
+        int dotIndex = originalFileName.lastIndexOf('.');
+        if (dotIndex >= 0) {
+            extension = originalFileName.substring(dotIndex);
+        }
+
+        String uniqueFileName = UUID.randomUUID() + extension;
+
+        String uploadPath = getServletContext().getRealPath("/uploads/events");
+        File uploadDir = new File(uploadPath);
+        if (!uploadDir.exists()) {
+            uploadDir.mkdirs();
+        }
+
+        File savedFile = new File(uploadDir, uniqueFileName);
+        imagePart.write(savedFile.getAbsolutePath());
+
+        return "uploads/events/" + uniqueFileName;
     }
 }

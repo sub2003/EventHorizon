@@ -11,22 +11,10 @@ import javax.servlet.http.HttpSession;
 
 import java.io.IOException;
 
-/**
- * UserServlet - Handles all user-related HTTP requests.
- *
- * URL Mappings (action parameter):
- *   POST /user?action=register  -> Register new customer
- *   POST /user?action=login     -> Login
- *   POST /user?action=logout    -> Logout
- *   POST /user?action=update    -> Update profile
- *   POST /user?action=delete    -> Delete user (Admin only)
- *   GET  /user?action=list      -> List all users (Admin only)
- */
 public class UserServlet extends HttpServlet {
 
     private final UserService userService = new UserService();
 
-    // ==================== POST - Write Operations ====================
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -54,110 +42,140 @@ public class UserServlet extends HttpServlet {
         }
     }
 
-    // ==================== GET - Read Operations ====================
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
         String action = req.getParameter("action");
 
+        // 🔥 FIX: handle logout via GET (your missing part)
+        if ("logout".equals(action)) {
+            handleLogout(req, resp);
+            return;
+        }
+
         if ("list".equals(action)) {
-            // Admin: list all users
             HttpSession session = req.getSession(false);
             if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-                resp.sendRedirect("login.jsp");
+                resp.sendRedirect(req.getContextPath() + "/login.jsp");
                 return;
             }
+
             req.setAttribute("users", userService.getAllUsers());
             req.getRequestDispatcher("/admin/users.jsp").forward(req, resp);
         } else {
-            resp.sendRedirect("index.jsp");
+            resp.sendRedirect(req.getContextPath() + "/index.jsp");
         }
     }
 
-    // -------------------- Register --------------------
     private void handleRegister(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        String name     = req.getParameter("name");
-        String email    = req.getParameter("email");
+
+        String name = req.getParameter("name");
+        String email = req.getParameter("email");
         String password = req.getParameter("password");
-        String phone    = req.getParameter("phone");
+        String phone = req.getParameter("phone");
+
+        if (name != null) name = name.trim();
+        if (email != null) email = email.trim();
+        if (password != null) password = password.trim();
+        if (phone != null) phone = phone.trim();
 
         boolean success = userService.registerCustomer(name, email, password, phone);
 
         if (success) {
-            resp.sendRedirect("login.jsp?msg=registered");
+            resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=registered");
         } else {
-            resp.sendRedirect("register.jsp?error=emailExists");
+            resp.sendRedirect(req.getContextPath() + "/register.jsp?error=emailExists");
         }
     }
 
-    // -------------------- Login --------------------
     private void handleLogin(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException, ServletException {
-        String email    = req.getParameter("email");
+            throws IOException {
+
+        String email = req.getParameter("email");
         String password = req.getParameter("password");
+
+        if (email != null) email = email.trim();
+        if (password != null) password = password.trim();
 
         User user = userService.login(email, password);
 
         if (user != null) {
-            HttpSession session = req.getSession();
-            session.setAttribute("userId",   user.getUserId());
-            session.setAttribute("userName", user.getName());
-            session.setAttribute("userEmail",user.getEmail());
-            session.setAttribute("role",     user.getRole());
+            HttpSession session = req.getSession(true);
 
-            // Redirect based on role (POLYMORPHISM in action)
+            session.setAttribute("userId", user.getUserId());
+            session.setAttribute("userName", user.getName());
+            session.setAttribute("userEmail", user.getEmail());
+            session.setAttribute("role", user.getRole());
+
+            session.setMaxInactiveInterval(30 * 60);
+
             if ("ADMIN".equals(user.getRole())) {
-                resp.sendRedirect("admin/dashboard.jsp");
+                resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp");
             } else {
-                resp.sendRedirect("events.jsp");
+                resp.sendRedirect(req.getContextPath() + "/event?action=list");
             }
         } else {
-            resp.sendRedirect("login.jsp?error=invalid");
+            resp.sendRedirect(req.getContextPath() + "/login.jsp?error=invalid");
         }
     }
 
-    // -------------------- Logout --------------------
     private void handleLogout(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
+
         HttpSession session = req.getSession(false);
-        if (session != null) session.invalidate();
-        resp.sendRedirect("index.jsp");
+        if (session != null) {
+            session.invalidate();
+        }
+
+        resp.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        resp.setHeader("Pragma", "no-cache");
+        resp.setDateHeader("Expires", 0);
+
+        resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=logout");
     }
 
-    // -------------------- Update Profile --------------------
     private void handleUpdate(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
-        HttpSession session = req.getSession(false);
-        if (session == null) { resp.sendRedirect("login.jsp"); return; }
 
-        String userId   = (String) session.getAttribute("userId");
-        String name     = req.getParameter("name");
-        String phone    = req.getParameter("phone");
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String userId = (String) session.getAttribute("userId");
+        String name = req.getParameter("name");
+        String phone = req.getParameter("phone");
         String password = req.getParameter("password");
+
+        if (name != null) name = name.trim();
+        if (phone != null) phone = phone.trim();
+        if (password != null) password = password.trim();
 
         boolean success = userService.updateUser(userId, name, phone, password);
 
         if (success) {
-            session.setAttribute("userName", name);   // Update session name
-            resp.sendRedirect("profile.jsp?msg=updated");
+            session.setAttribute("userName", name);
+            resp.sendRedirect(req.getContextPath() + "/profile.jsp?msg=updated");
         } else {
-            resp.sendRedirect("profile.jsp?error=updateFailed");
+            resp.sendRedirect(req.getContextPath() + "/profile.jsp?error=updateFailed");
         }
     }
 
-    // -------------------- Delete User (Admin) --------------------
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
+
         HttpSession session = req.getSession(false);
         if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect("login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
             return;
         }
 
         String userId = req.getParameter("userId");
         userService.deleteUser(userId);
-        resp.sendRedirect("user?action=list&msg=deleted");
+
+        resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=deleted");
     }
 }

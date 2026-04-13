@@ -2,121 +2,197 @@ package com.eventhorizon.service;
 
 import com.eventhorizon.model.Booking;
 import com.eventhorizon.model.Event;
-import com.eventhorizon.util.FileHandler;
+import com.eventhorizon.util.DatabaseConnection;
 
+import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * BookingService - Handles all CRUD operations for Bookings.
- * Data is stored in / read from bookings.txt
+ * BookingService - CRUD operations for Bookings using MySQL.
  *
- * CRUD:
- *  CREATE  → createBooking()
- *  READ    → getAllBookings(), getBookingById(), getBookingsByCustomer()
- *  UPDATE  → (status changes via cancelBooking)
- *  DELETE  → cancelBooking()
+ * CREATE → createBooking()
+ * READ   → getAllBookings(), getBookingById(), getBookingsByCustomer(), getBookingsByEvent()
+ * UPDATE → cancelBooking()
+ * DELETE → (handled via cancel - soft delete)
  */
 public class BookingService {
 
     private final EventService eventService = new EventService();
 
-    // ======================== CREATE ========================
+    // ==================== CREATE ====================
 
     /**
-     * Create a new booking. Automatically reduces available seats on the event.
-     * Returns the generated Booking ID, or null if booking failed.
+     * Create a new booking.
+     * Automatically deducts seats from the event.
+     * Returns booking ID or null if failed.
      */
     public String createBooking(String customerId, String eventId, int numberOfTickets) {
-        // Fetch the event
+        // Check event exists and has enough seats
         Event event = eventService.getEventById(eventId);
-        if (event == null)                       return null;
-        if (!"ACTIVE".equals(event.getStatus())) return null;
+        if (event == null)                         return null;
+        if (!"ACTIVE".equals(event.getStatus()))   return null;
         if (event.getAvailableSeats() < numberOfTickets) return null;
 
         // Deduct seats from event
         boolean seated = eventService.reduceSeat(eventId, numberOfTickets);
         if (!seated) return null;
 
-        // Create booking record
-        String id     = FileHandler.generateId(FileHandler.BOOKINGS_FILE, "BKG");
+        // Save booking
+        String id     = generateId();
         double total  = event.getTicketPrice() * numberOfTickets;
         String today  = LocalDate.now().toString();
 
-        Booking booking = new Booking(id, customerId, eventId,
-                                      event.getTitle(), numberOfTickets,
-                                      total, today, "CONFIRMED");
-        FileHandler.appendLine(FileHandler.BOOKINGS_FILE, booking.toFileString());
-        return id;
+        String sql = "INSERT INTO bookings (booking_id, customer_id, event_id, event_title, "
+                   + "number_of_tickets, total_amount, booking_date, status) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, 'CONFIRMED')";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, id);
+            ps.setString(2, customerId);
+            ps.setString(3, eventId);
+            ps.setString(4, event.getTitle());
+            ps.setInt(5, numberOfTickets);
+            ps.setDouble(6, total);
+            ps.setString(7, today);
+            ps.executeUpdate();
+            return id;
+
+        } catch (SQLException e) {
+            System.err.println("createBooking error: " + e.getMessage());
+            // Restore seats if booking save failed
+            eventService.restoreSeat(eventId, numberOfTickets);
+            return null;
+        }
     }
 
-    // ======================== READ ========================
+    // ==================== READ ====================
 
-    /**
-     * Returns all bookings from bookings.txt
-     */
+    /** Get all bookings (Admin view). */
     public List<Booking> getAllBookings() {
-        List<String> lines = FileHandler.readAllLines(FileHandler.BOOKINGS_FILE);
         List<Booking> bookings = new ArrayList<>();
-        for (String line : lines) {
-            try {
-                bookings.add(Booking.fromFileString(line));
-            } catch (Exception e) {
-                System.err.println("Skipping malformed booking line: " + line);
-            }
+        String sql = "SELECT * FROM bookings ORDER BY booking_date DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+
+            while (rs.next()) bookings.add(mapRowToBooking(rs));
+
+        } catch (SQLException e) {
+            System.err.println("getAllBookings error: " + e.getMessage());
         }
         return bookings;
     }
 
-    /**
-     * Get a booking by its ID.
-     */
+    /** Get a booking by ID. */
     public Booking getBookingById(String bookingId) {
-        for (Booking b : getAllBookings()) {
-            if (b.getBookingId().equals(bookingId)) return b;
+        String sql = "SELECT * FROM bookings WHERE booking_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, bookingId);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapRowToBooking(rs);
+
+        } catch (SQLException e) {
+            System.err.println("getBookingById error: " + e.getMessage());
         }
         return null;
     }
 
-    /**
-     * Get all bookings made by a specific customer.
-     */
+    /** Get all bookings by a specific customer. */
     public List<Booking> getBookingsByCustomer(String customerId) {
-        List<Booking> result = new ArrayList<>();
-        for (Booking b : getAllBookings()) {
-            if (b.getCustomerId().equals(customerId)) result.add(b);
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT * FROM bookings WHERE customer_id = ? ORDER BY booking_date DESC";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, customerId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) bookings.add(mapRowToBooking(rs));
+
+        } catch (SQLException e) {
+            System.err.println("getBookingsByCustomer error: " + e.getMessage());
         }
-        return result;
+        return bookings;
     }
 
-    /**
-     * Get all bookings for a specific event (admin view).
-     */
+    /** Get all bookings for a specific event (Admin view). */
     public List<Booking> getBookingsByEvent(String eventId) {
-        List<Booking> result = new ArrayList<>();
-        for (Booking b : getAllBookings()) {
-            if (b.getEventId().equals(eventId)) result.add(b);
+        List<Booking> bookings = new ArrayList<>();
+        String sql = "SELECT * FROM bookings WHERE event_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, eventId);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) bookings.add(mapRowToBooking(rs));
+
+        } catch (SQLException e) {
+            System.err.println("getBookingsByEvent error: " + e.getMessage());
         }
-        return result;
+        return bookings;
     }
 
-    // ======================== CANCEL (Update status) ========================
+    // ==================== CANCEL (UPDATE status) ====================
 
-    /**
-     * Cancel a booking: sets status to CANCELLED and restores event seats.
-     */
+    /** Cancel a booking and restore event seats. */
     public boolean cancelBooking(String bookingId) {
         Booking booking = getBookingById(bookingId);
         if (booking == null)                          return false;
         if ("CANCELLED".equals(booking.getStatus())) return false;
 
-        // Restore seats to the event
+        // Restore seats
         eventService.restoreSeat(booking.getEventId(), booking.getNumberOfTickets());
 
-        // Update booking status
-        booking.setStatus("CANCELLED");
-        return FileHandler.updateLine(FileHandler.BOOKINGS_FILE,
-                bookingId, booking.toFileString(), "|");
+        // Update status to CANCELLED
+        String sql = "UPDATE bookings SET status='CANCELLED' WHERE booking_id=?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, bookingId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("cancelBooking error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ==================== HELPERS ====================
+
+    private Booking mapRowToBooking(ResultSet rs) throws SQLException {
+        return new Booking(
+            rs.getString("booking_id"),
+            rs.getString("customer_id"),
+            rs.getString("event_id"),
+            rs.getString("event_title"),
+            rs.getInt("number_of_tickets"),
+            rs.getDouble("total_amount"),
+            rs.getString("booking_date"),
+            rs.getString("status")
+        );
+    }
+
+    private String generateId() {
+        String sql = "SELECT COUNT(*) FROM bookings";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            if (rs.next()) {
+                return String.format("BKG%03d", rs.getInt(1) + 1);
+            }
+        } catch (SQLException e) {
+            System.err.println("generateId error: " + e.getMessage());
+        }
+        return "BKG" + System.currentTimeMillis();
     }
 }

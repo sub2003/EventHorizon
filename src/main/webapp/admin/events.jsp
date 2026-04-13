@@ -1,115 +1,178 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<%
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.setHeader("Pragma", "no-cache");
+    response.setDateHeader("Expires", 0);
+
+    if (session.getAttribute("userId") == null ||
+        !"ADMIN".equals(session.getAttribute("role"))) {
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        return;
+    }
+%>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Events – EventHorizon</title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>Manage Events – EventHorizon Admin</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
-<!-- NAVBAR -->
 <nav class="navbar">
-    <a href="index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
-    <div class="hamburger"><span></span><span></span><span></span></div>
+    <a href="${pageContext.request.contextPath}/index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
     <ul class="navbar-links">
-        <li><a href="index.jsp">Home</a></li>
-        <li><a href="event?action=list" class="active">Events</a></li>
-        <c:choose>
-            <c:when test="${not empty sessionScope.userId}">
-                <c:if test="${sessionScope.role == 'ADMIN'}">
-                    <li><a href="admin/dashboard.jsp">Admin Panel</a></li>
-                </c:if>
-                <li><a href="booking?action=myBookings">My Bookings</a></li>
-                <li><a href="profile.jsp">Profile</a></li>
-                <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
-            </c:when>
-            <c:otherwise>
-                <li><a href="login.jsp">Login</a></li>
-                <li><a href="register.jsp" class="btn-nav">Sign Up</a></li>
-            </c:otherwise>
-        </c:choose>
+        <li><a href="${pageContext.request.contextPath}/index.jsp">← Public Site</a></li>
+        <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
     </ul>
 </nav>
 
-<div class="container">
-    <div class="section-header">
-        <h2 class="section-title">Upcoming <span>Events</span></h2>
-        <div class="section-divider"></div>
-        <p style="color:var(--text-muted);margin-top:12px;font-size:0.95rem;">
-            Browse and book tickets for the hottest events in Sri Lanka
-        </p>
-    </div>
+<div class="admin-wrapper">
+    <aside class="sidebar">
+        <div class="sidebar-title">Admin Panel</div>
+        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="sidebar-link">
+            <span>📊</span> Dashboard
+        </a>
+        <a href="${pageContext.request.contextPath}/event?action=adminList" class="sidebar-link active">
+            <span>🎟️</span> Manage Events
+        </a>
+        <a href="${pageContext.request.contextPath}/admin/bookings.jsp" class="sidebar-link">
+            <span>📋</span> All Bookings
+        </a>
+        <a href="${pageContext.request.contextPath}/user?action=list" class="sidebar-link">
+            <span>👥</span> Manage Users
+        </a>
+        <a href="${pageContext.request.contextPath}/admin/addEvent.jsp" class="sidebar-link">
+            <span>➕</span> Add New Event
+        </a>
+    </aside>
 
-    <!-- Search Bar -->
-    <form action="event" method="get" class="search-bar">
-        <input type="hidden" name="action" value="search">
-        <input type="text" name="q" placeholder="Search by title, category, venue..."
-               value="${keyword}" id="liveSearch">
-        <button type="submit">🔍 Search</button>
-    </form>
+    <main class="admin-content">
+        <div class="page-header">
+            <h1 class="page-title">🎟️ Manage Events</h1>
+            <a href="${pageContext.request.contextPath}/admin/addEvent.jsp" class="btn btn-primary">
+                ➕ Add New Event
+            </a>
+        </div>
 
-    <c:choose>
-        <c:when test="${not empty events}">
-            <div class="events-grid">
-                <c:forEach var="event" items="${events}">
-                    <div class="card">
-                        <!-- Category icon placeholder -->
-                        <div class="card-img-placeholder">
-                            <c:choose>
-                                <c:when test="${event.category == 'Concert'}">🎵</c:when>
-                                <c:when test="${event.category == 'Sports'}">⚽</c:when>
-                                <c:when test="${event.category == 'Technology'}">💻</c:when>
-                                <c:when test="${event.category == 'Cultural'}">🎭</c:when>
-                                <c:when test="${event.category == 'Theater'}">🎬</c:when>
-                                <c:when test="${event.category == 'Comedy'}">😂</c:when>
-                                <c:otherwise>🎟️</c:otherwise>
-                            </c:choose>
-                        </div>
-                        <div class="card-body">
-                            <div class="card-category">${event.category}</div>
-                            <div class="card-title">${event.title}</div>
-                            <div class="card-meta">
-                                <span>📅 ${event.date} at ${event.time}</span>
-                                <span>📍 ${event.venue}</span>
-                                <span>💺 ${event.availableSeats} seats left</span>
-                            </div>
-                            <!-- Seats availability bar -->
-                            <div class="seats-bar">
-                                <div class="seats-bar-fill"
-                                     data-pct="${(event.availableSeats * 100) / event.totalSeats}">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <div class="price">LKR ${event.ticketPrice}</div>
-                            <a href="event?action=view&id=${event.eventId}"
-                               class="btn btn-primary btn-sm">View Details</a>
-                        </div>
-                    </div>
-                </c:forEach>
-            </div>
-        </c:when>
-        <c:otherwise>
-            <div class="empty-state">
-                <span class="emoji">🔭</span>
-                <h3>No Events Found</h3>
-                <p>Try a different search term or check back later.</p>
-                <a href="event?action=list" class="btn btn-outline" style="margin-top:16px;">
-                    Show All Events
-                </a>
-            </div>
-        </c:otherwise>
-    </c:choose>
+        <c:if test="${param.msg == 'updated'}">
+            <div class="alert alert-success" data-auto-dismiss>✅ Event updated successfully.</div>
+        </c:if>
+        <c:if test="${param.msg == 'deleted'}">
+            <div class="alert alert-success" data-auto-dismiss>✅ Event deleted successfully.</div>
+        </c:if>
+        <c:if test="${param.msg == 'cancelled'}">
+            <div class="alert alert-info" data-auto-dismiss>⚠️ Event cancelled successfully.</div>
+        </c:if>
+        <c:if test="${param.msg == 'error'}">
+            <div class="alert alert-danger" data-auto-dismiss>❌ Something went wrong.</div>
+        </c:if>
+
+        <c:choose>
+            <c:when test="${not empty events}">
+                <div class="table-wrapper">
+                    <table class="table" style="width:100%;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Image</th>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Venue</th>
+                                <th>Price</th>
+                                <th>Total Seats</th>
+                                <th>Available</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="event" items="${events}">
+                                <tr>
+                                    <td>${event.eventId}</td>
+
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty event.imagePath}">
+                                                <img src="${pageContext.request.contextPath}/${event.imagePath}"
+                                                     alt="${event.title}"
+                                                     style="width:80px;height:55px;object-fit:cover;border-radius:8px;">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span style="font-size:1.5rem;">🎟️</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+
+                                    <td>${event.title}</td>
+                                    <td>${event.category}</td>
+                                    <td>${event.date}</td>
+                                    <td>${event.time}</td>
+                                    <td>${event.venue}</td>
+                                    <td>LKR ${event.ticketPrice}</td>
+                                    <td>${event.totalSeats}</td>
+                                    <td>${event.availableSeats}</td>
+                                    <td>${event.status}</td>
+
+                                    <td>
+                                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                            <a href="${pageContext.request.contextPath}/admin/editEvent.jsp?id=${event.eventId}"
+                                               class="btn btn-outline btn-sm">
+                                                ✏️ Edit
+                                            </a>
+
+                                            <form action="${pageContext.request.contextPath}/event"
+                                                  method="post"
+                                                  style="display:inline;">
+                                                <input type="hidden" name="action" value="cancel">
+                                                <input type="hidden" name="eventId" value="${event.eventId}">
+                                                <button type="submit"
+                                                        class="btn btn-outline btn-sm"
+                                                        onclick="return confirm('Are you sure you want to cancel this event?');">
+                                                    Cancel
+                                                </button>
+                                            </form>
+
+                                            <form action="${pageContext.request.contextPath}/event"
+                                                  method="post"
+                                                  style="display:inline;">
+                                                <input type="hidden" name="action" value="delete">
+                                                <input type="hidden" name="eventId" value="${event.eventId}">
+                                                <button type="submit"
+                                                        class="btn btn-danger btn-sm"
+                                                        onclick="return confirm('Are you sure you want to delete this event?');">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:when>
+
+            <c:otherwise>
+                <div class="empty-state">
+                    <span class="emoji">📭</span>
+                    <h3>No Events Found</h3>
+                    <p>There are no events in the system yet.</p>
+                    <a href="${pageContext.request.contextPath}/admin/addEvent.jsp" class="btn btn-primary" style="margin-top:16px;">
+                        Add First Event
+                    </a>
+                </div>
+            </c:otherwise>
+        </c:choose>
+    </main>
 </div>
 
-<footer class="footer">
-    <div class="footer-brand">⬡ EVENTHORIZON</div>
-    <p>SE1020 – Object Oriented Programming Project &copy; 2026</p>
-</footer>
-
-<script src="js/main.js"></script>
+<script src="${pageContext.request.contextPath}/js/main.js"></script>
 </body>
 </html>
