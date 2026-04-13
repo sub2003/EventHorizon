@@ -105,9 +105,7 @@ public class UserServlet extends HttpServlet {
             if (emailSent) {
                 resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=checkEmail");
             } else {
-                // remove inserted user if email sending failed
-                userService.deleteUserByEmail(email);
-                resp.sendRedirect(req.getContextPath() + "/register.jsp?error=emailSendFailed");
+                resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=registeredButEmailFailed");
             }
         } else {
             resp.sendRedirect(req.getContextPath() + "/register.jsp?error=emailExists");
