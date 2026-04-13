@@ -32,7 +32,8 @@ A full-stack Java web application for managing events and ticket bookings with a
 ### 🔐 Authentication System
 - Secure login for Admin and Customers  
 - Session-based authentication  
-- Role-based access control  
+- Role-based access control
+- Email verification  
 
 ---
 
@@ -111,8 +112,7 @@ This project follows the **MVC (Model-View-Controller)** pattern:
 ## 🔮 Future Improvements
 
 - Deploy to cloud (AWS / Render / Railway)  
-- Implement password encryption (bcrypt)  
-- Add email verification  
+- Implement password encryption (bcrypt)   
 - Improve UI/UX (React / modern frontend)  
 - Add payment integration  
 
