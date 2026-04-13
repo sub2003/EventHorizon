@@ -9,122 +9,230 @@
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 
     <style>
+        .events-hero {
+            position: relative;
+            padding-top: 10px;
+        }
+
+        .events-hero::before {
+            content: "";
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 540px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(124,58,237,0.18) 0%, rgba(6,182,212,0.10) 35%, rgba(0,0,0,0) 75%);
+            filter: blur(18px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .section-header {
+            position: relative;
+            z-index: 1;
+        }
+
         .search-panel {
-            max-width: 980px;
-            margin: 28px auto 36px auto;
-            padding: 18px;
-            border-radius: 22px;
-            background: rgba(20, 20, 58, 0.72);
+            position: relative;
+            z-index: 1;
+            max-width: 1020px;
+            margin: 34px auto 38px auto;
+            padding: 20px;
+            border-radius: 26px;
+            background: linear-gradient(135deg, rgba(18,18,48,0.92), rgba(22,22,62,0.80));
             border: 1px solid rgba(255,255,255,0.08);
-            box-shadow: 0 0 24px rgba(124, 58, 237, 0.16);
-            backdrop-filter: blur(10px);
-            animation: fadeSlideDown 0.7s ease;
+            box-shadow:
+                    0 0 0 1px rgba(255,255,255,0.02) inset,
+                    0 14px 40px rgba(0,0,0,0.28),
+                    0 0 35px rgba(124,58,237,0.14);
+            backdrop-filter: blur(14px);
+            animation: fadeSlideDown 0.8s ease;
+            overflow: hidden;
+        }
+
+        .search-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, rgba(124,58,237,0.08), rgba(6,182,212,0.05), rgba(255,255,255,0.01));
+            pointer-events: none;
         }
 
         .search-form {
+            position: relative;
             display: flex;
             gap: 14px;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
+            z-index: 1;
         }
 
         .search-input,
         .search-select {
-            background: rgba(255,255,255,0.04);
-            color: white;
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 14px;
-            padding: 14px 16px;
+            background: rgba(255,255,255,0.045);
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,0.10);
+            border-radius: 16px;
+            padding: 15px 17px;
             font-size: 15px;
             outline: none;
-            transition: all 0.25s ease;
+            transition: all 0.28s ease;
+            box-shadow: 0 0 0 rgba(0,0,0,0);
         }
 
         .search-input {
             flex: 1;
-            min-width: 280px;
-            max-width: 430px;
+            min-width: 290px;
+            max-width: 440px;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255,255,255,0.45);
         }
 
         .search-select {
-            min-width: 220px;
+            min-width: 230px;
             cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image:
+                    linear-gradient(45deg, transparent 50%, #c4b5fd 50%),
+                    linear-gradient(135deg, #c4b5fd 50%, transparent 50%);
+            background-position:
+                    calc(100% - 22px) calc(50% - 3px),
+                    calc(100% - 16px) calc(50% - 3px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 44px;
+        }
+
+        .search-select option {
+            background: #14143a;
+            color: #ffffff;
         }
 
         .search-input:focus,
         .search-select:focus {
-            border-color: rgba(34, 211, 238, 0.75);
-            box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.10);
-            transform: translateY(-1px);
+            border-color: rgba(34,211,238,0.72);
+            box-shadow:
+                    0 0 0 4px rgba(34,211,238,0.10),
+                    0 10px 24px rgba(6,182,212,0.08);
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.065);
         }
 
         .search-btn {
             border: none;
-            border-radius: 14px;
-            padding: 14px 26px;
+            border-radius: 16px;
+            padding: 15px 28px;
             font-size: 15px;
             font-weight: 700;
             color: white;
             cursor: pointer;
             background: linear-gradient(90deg, #7c3aed, #9333ea, #06b6d4);
-            background-size: 200% 200%;
-            transition: transform 0.2s ease, box-shadow 0.25s ease;
-            animation: gradientMove 4s ease infinite;
+            background-size: 220% 220%;
+            transition: transform 0.25s ease, box-shadow 0.28s ease;
+            animation: gradientMove 5s ease infinite;
+            letter-spacing: 0.2px;
         }
 
         .search-btn:hover {
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 10px 24px rgba(124, 58, 237, 0.35);
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 14px 30px rgba(124,58,237,0.34);
+        }
+
+        .search-btn:active {
+            transform: translateY(-1px) scale(1.01);
         }
 
         .filter-summary {
             text-align: center;
-            margin: 0 0 22px 0;
+            margin: 0 0 26px 0;
             color: var(--text-muted);
-            font-size: 0.95rem;
-            animation: fadeIn 0.6s ease;
+            font-size: 0.96rem;
+            animation: fadeIn 0.7s ease;
         }
 
         .filter-summary strong {
-            color: white;
+            color: #ffffff;
+            font-weight: 700;
         }
 
         .clear-link {
             color: var(--accent-teal);
             text-decoration: none;
-            font-weight: 600;
-            margin-left: 6px;
+            font-weight: 700;
+            margin-left: 8px;
+            transition: color 0.25s ease, text-shadow 0.25s ease;
+        }
+
+        .clear-link:hover {
+            color: #67e8f9;
+            text-shadow: 0 0 12px rgba(103,232,249,0.35);
         }
 
         .events-grid .card {
-            animation: fadeUp 0.6s ease both;
-            transition: transform 0.28s ease, box-shadow 0.28s ease;
+            animation: fadeUp 0.65s ease both;
+            transition: transform 0.30s ease, box-shadow 0.30s ease, border-color 0.30s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .events-grid .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(124,58,237,0.04), rgba(6,182,212,0.02), transparent);
+            pointer-events: none;
         }
 
         .events-grid .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 16px 35px rgba(0,0,0,0.28);
+            transform: translateY(-10px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.34);
+            border-color: rgba(124,58,237,0.18);
         }
 
         .card-img-placeholder img,
         .card-img-placeholder div {
-            transition: transform 0.4s ease;
+            transition: transform 0.45s ease, filter 0.45s ease;
         }
 
         .card:hover .card-img-placeholder img,
         .card:hover .card-img-placeholder div {
-            transform: scale(1.04);
+            transform: scale(1.05);
+            filter: saturate(1.05);
+        }
+
+        .card-category {
+            box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+            backdrop-filter: blur(8px);
+        }
+
+        .card-title {
+            transition: color 0.25s ease;
+        }
+
+        .card:hover .card-title {
+            color: #c4b5fd;
         }
 
         .empty-state {
-            animation: fadeIn 0.7s ease;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .empty-state .emoji {
+            display: inline-block;
+            animation: floaty 2.8s ease-in-out infinite;
         }
 
         @keyframes fadeSlideDown {
             from {
                 opacity: 0;
-                transform: translateY(-18px);
+                transform: translateY(-20px);
             }
             to {
                 opacity: 1;
@@ -135,7 +243,7 @@
         @keyframes fadeUp {
             from {
                 opacity: 0;
-                transform: translateY(24px);
+                transform: translateY(28px);
             }
             to {
                 opacity: 1;
@@ -154,10 +262,15 @@
             100% { background-position: 0% 50%; }
         }
 
+        @keyframes floaty {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-8px); }
+        }
+
         @media (max-width: 768px) {
             .search-panel {
-                padding: 14px;
-                border-radius: 18px;
+                padding: 16px;
+                border-radius: 20px;
             }
 
             .search-input,
@@ -165,6 +278,11 @@
             .search-btn {
                 width: 100%;
                 max-width: 100%;
+            }
+
+            .events-hero::before {
+                width: 320px;
+                height: 180px;
             }
         }
     </style>
@@ -196,7 +314,7 @@
     </ul>
 </nav>
 
-<div class="container">
+<div class="container events-hero">
     <div class="section-header">
         <h2 class="section-title">Upcoming <span>Events</span></h2>
         <div class="section-divider"></div>
