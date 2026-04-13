@@ -44,7 +44,17 @@ public class UserService {
 
     public String registerCustomerAndReturnToken(String name, String email,
                                                  String password, String phone) {
-        if (getUserByEmail(email) != null) return null;
+
+        User existingUser = getUserByEmail(email);
+
+        // ✅ If email exists but NOT verified → delete old user
+        if (existingUser != null) {
+            if (!isEmailVerified(email)) {
+                deleteUserByEmail(email);
+            } else {
+                return null; // already verified → block signup
+            }
+        }
 
         String id = generateId("USR");
         String token = java.util.UUID.randomUUID().toString();
