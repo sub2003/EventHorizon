@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.eventhorizon.model.User" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
 <%
     Object roleObj = session.getAttribute("role");
     if (roleObj == null || !"ADMIN".equals(roleObj.toString())) {
@@ -9,6 +10,12 @@
     }
 
     List<User> users = (List<User>) request.getAttribute("users");
+
+    if (users == null) {
+        UserService userService = new UserService();
+        users = userService.getAllUsers();
+    }
+
     String currentAdminId = (String) session.getAttribute("userId");
     String msg = request.getParameter("msg");
     String error = request.getParameter("error");
@@ -38,7 +45,6 @@
             --text-muted: #64748b;
             --accent: #4f46e5;
             --accent-light: #6366f1;
-            --accent-soft: rgba(99, 102, 241, 0.18);
             --success: #10b981;
             --success-soft: rgba(16, 185, 129, 0.18);
             --danger: #ef4444;
@@ -185,11 +191,6 @@
             flex: 1;
         }
 
-        .search-box,
-        .filter-box {
-            position: relative;
-        }
-
         .search-box {
             flex: 1;
             min-width: 280px;
@@ -324,19 +325,11 @@
             min-width: 92px;
         }
 
-        .btn-edit:hover {
-            background: rgba(37, 99, 235, 0.3);
-        }
-
         .btn-delete {
             color: #fecaca;
             background: rgba(239, 68, 68, 0.18);
             border: 1px solid rgba(239, 68, 68, 0.3);
             min-width: 92px;
-        }
-
-        .btn-delete:hover {
-            background: rgba(239, 68, 68, 0.3);
         }
 
         .btn-delete:disabled {
@@ -376,12 +369,6 @@
             gap: 18px;
         }
 
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
         .form-group label {
             font-size: 13px;
             font-weight: 800;
@@ -400,17 +387,6 @@
             color: white;
             font-size: 14px;
             outline: none;
-            transition: 0.25s ease;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: rgba(99, 102, 241, 0.6);
-            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
-        }
-
-        .form-group input::placeholder {
-            color: #64748b;
         }
 
         .form-actions {
@@ -423,21 +399,12 @@
         .btn-save {
             color: white;
             background: linear-gradient(135deg, #059669, #10b981);
-            box-shadow: 0 12px 28px rgba(16, 185, 129, 0.22);
-        }
-
-        .btn-save:hover {
-            transform: translateY(-1px);
         }
 
         .btn-cancel {
             color: var(--text-primary);
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--border-strong);
-        }
-
-        .btn-cancel:hover {
-            background: rgba(255,255,255,0.1);
         }
 
         .note {
