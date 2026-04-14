@@ -98,16 +98,12 @@
                                     <td>${event.eventId}</td>
 
                                     <td>
-                                        <c:choose>
-                                            <c:when test="${not empty event.imagePath}">
-                                                <img src="${pageContext.request.contextPath}/${event.imagePath}"
-                                                     alt="${event.title}"
-                                                     style="width:80px;height:55px;object-fit:cover;border-radius:8px;">
-                                            </c:when>
-                                            <c:otherwise>
-                                                <span style="font-size:1.5rem;">🎟️</span>
-                                            </c:otherwise>
-                                        </c:choose>
+                                        <img src="${pageContext.request.contextPath}/event?action=image&id=${event.eventId}"
+                                             alt="${event.title}"
+                                             style="width:80px;height:55px;object-fit:cover;border-radius:8px;"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';">
+
+                                        <span style="display:none;font-size:1.5rem;">⬡</span>
                                     </td>
 
                                     <td>${event.title}</td>

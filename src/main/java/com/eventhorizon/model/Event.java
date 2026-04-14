@@ -7,16 +7,20 @@ public class Event {
 
     private String eventId;
     private String title;
-    private String category;     // e.g., Concert, Sports, Theater
-    private String date;         // Format: YYYY-MM-DD
-    private String time;         // Format: HH:MM
+    private String category;
+    private String date;
+    private String time;
     private String venue;
     private double ticketPrice;
     private int totalSeats;
     private int availableSeats;
     private String description;
-    private String status;       // "ACTIVE" or "CANCELLED"
-    private String imagePath;    // uploaded image relative path
+    private String status;
+    private String imagePath;
+
+    // New fields for DB-stored images
+    private byte[] imageData;
+    private String imageType;
 
     public Event(String eventId, String title, String category, String date,
                  String time, String venue, double ticketPrice,
@@ -148,5 +152,25 @@ public class Event {
 
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
+    }
+
+    public byte[] getImageData() {
+        return imageData;
+    }
+
+    public void setImageData(byte[] imageData) {
+        this.imageData = imageData;
+    }
+
+    public String getImageType() {
+        return imageType;
+    }
+
+    public void setImageType(String imageType) {
+        this.imageType = imageType;
+    }
+
+    public boolean hasImage() {
+        return imageData != null && imageData.length > 0;
     }
 }

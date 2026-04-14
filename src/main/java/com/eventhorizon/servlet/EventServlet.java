@@ -11,11 +11,10 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 @MultipartConfig(
         fileSizeThreshold = 1024 * 1024,
@@ -44,6 +43,9 @@ public class EventServlet extends HttpServlet {
                 break;
             case "adminList":
                 showAdminEventList(req, resp);
+                break;
+            case "image":
+                serveEventImage(req, resp);
                 break;
             default:
                 resp.sendRedirect("event?action=list");
@@ -178,7 +180,9 @@ public class EventServlet extends HttpServlet {
         double price = Double.parseDouble(req.getParameter("ticketPrice"));
         int seats = Integer.parseInt(req.getParameter("totalSeats"));
 
-        String imagePath = saveUploadedImage(req.getPart("eventImage"));
+        Part imagePart = req.getPart("eventImage");
+        byte[] imageData = extractImageBytes(imagePart);
+        String imageType = getImageType(imagePart);
 
         String newId = eventService.addEvent(
                 title,
@@ -189,7 +193,8 @@ public class EventServlet extends HttpServlet {
                 price,
                 seats,
                 description,
-                imagePath
+                imageData,
+                imageType
         );
 
         resp.sendRedirect("event?action=adminList&msg=" + (newId != null ? "added" : "error"));
@@ -212,7 +217,9 @@ public class EventServlet extends HttpServlet {
         boolean ok;
 
         if (imagePart != null && imagePart.getSize() > 0) {
-            String imagePath = saveUploadedImage(imagePart);
+            byte[] imageData = extractImageBytes(imagePart);
+            String imageType = getImageType(imagePart);
+
             ok = eventService.updateEventWithImage(
                     eventId,
                     title,
@@ -222,7 +229,8 @@ public class EventServlet extends HttpServlet {
                     venue,
                     price,
                     description,
-                    imagePath
+                    imageData,
+                    imageType
             );
         } else {
             ok = eventService.updateEvent(
@@ -256,33 +264,43 @@ public class EventServlet extends HttpServlet {
         resp.sendRedirect("event?action=adminList&msg=cancelled");
     }
 
-    private String saveUploadedImage(Part imagePart) throws IOException {
+    private void serveEventImage(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        String eventId = req.getParameter("id");
+
+        if (eventId == null || eventId.trim().isEmpty()) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        Event event = eventService.getEventById(eventId.trim());
+
+        if (event == null || event.getImageData() == null || event.getImageData().length == 0) {
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        resp.setContentType(event.getImageType() != null ? event.getImageType() : "image/jpeg");
+        resp.setContentLength(event.getImageData().length);
+        resp.getOutputStream().write(event.getImageData());
+        resp.getOutputStream().flush();
+    }
+
+    private byte[] extractImageBytes(Part imagePart) throws IOException {
         if (imagePart == null || imagePart.getSize() == 0) {
             return null;
         }
 
-        String originalFileName = imagePart.getSubmittedFileName();
-        if (originalFileName == null || originalFileName.trim().isEmpty()) {
+        try (InputStream inputStream = imagePart.getInputStream()) {
+            return inputStream.readAllBytes();
+        }
+    }
+
+    private String getImageType(Part imagePart) {
+        if (imagePart == null || imagePart.getSize() == 0) {
             return null;
         }
-
-        String extension = "";
-        int dotIndex = originalFileName.lastIndexOf('.');
-        if (dotIndex >= 0) {
-            extension = originalFileName.substring(dotIndex);
-        }
-
-        String uniqueFileName = UUID.randomUUID() + extension;
-
-        String uploadPath = getServletContext().getRealPath("/uploads/events");
-        File uploadDir = new File(uploadPath);
-        if (!uploadDir.exists()) {
-            uploadDir.mkdirs();
-        }
-
-        File savedFile = new File(uploadDir, uniqueFileName);
-        imagePart.write(savedFile.getAbsolutePath());
-
-        return "uploads/events/" + uniqueFileName;
+        return imagePart.getContentType();
     }
 }

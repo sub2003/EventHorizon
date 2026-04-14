@@ -11,13 +11,13 @@ public class EventService {
 
     public String addEvent(String title, String category, String date, String time,
                            String venue, double ticketPrice, int totalSeats,
-                           String description, String imagePath) {
+                           String description, byte[] imageData, String imageType) {
 
         String id = generateId();
 
         String sql = "INSERT INTO events (event_id, title, category, date, time, venue, " +
-                "ticket_price, total_seats, available_seats, description, status, image_path) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?)";
+                "ticket_price, total_seats, available_seats, description, status, image_data, image_type) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -32,7 +32,14 @@ public class EventService {
             ps.setInt(8, totalSeats);
             ps.setInt(9, totalSeats);
             ps.setString(10, description);
-            ps.setString(11, imagePath);
+
+            if (imageData != null && imageData.length > 0) {
+                ps.setBytes(11, imageData);
+                ps.setString(12, imageType);
+            } else {
+                ps.setNull(11, Types.BLOB);
+                ps.setNull(12, Types.VARCHAR);
+            }
 
             ps.executeUpdate();
             return id;
@@ -156,10 +163,10 @@ public class EventService {
     public boolean updateEventWithImage(String eventId, String title, String category,
                                         String date, String time, String venue,
                                         double ticketPrice, String description,
-                                        String imagePath) {
+                                        byte[] imageData, String imageType) {
 
         String sql = "UPDATE events SET title=?, category=?, date=?, time=?, " +
-                "venue=?, ticket_price=?, description=?, image_path=? WHERE event_id=?";
+                "venue=?, ticket_price=?, description=?, image_data=?, image_type=? WHERE event_id=?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -171,8 +178,16 @@ public class EventService {
             ps.setString(5, venue);
             ps.setDouble(6, ticketPrice);
             ps.setString(7, description);
-            ps.setString(8, imagePath);
-            ps.setString(9, eventId);
+
+            if (imageData != null && imageData.length > 0) {
+                ps.setBytes(8, imageData);
+                ps.setString(9, imageType);
+            } else {
+                ps.setNull(8, Types.BLOB);
+                ps.setNull(9, Types.VARCHAR);
+            }
+
+            ps.setString(10, eventId);
 
             return ps.executeUpdate() > 0;
 
@@ -249,7 +264,7 @@ public class EventService {
     }
 
     private Event mapRowToEvent(ResultSet rs) throws SQLException {
-        return new Event(
+        Event event = new Event(
                 rs.getString("event_id"),
                 rs.getString("title"),
                 rs.getString("category"),
@@ -263,6 +278,11 @@ public class EventService {
                 rs.getString("status"),
                 rs.getString("image_path")
         );
+
+        event.setImageData(rs.getBytes("image_data"));
+        event.setImageType(rs.getString("image_type"));
+
+        return event;
     }
 
     private String generateId() {
