@@ -1,4 +1,4 @@
-<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
     HttpSession currentSession = request.getSession(false);
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
@@ -10,84 +10,182 @@
     }
 %>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - EventHorizon</title>
-    <style>
-        body { margin: 0; font-family: Arial, sans-serif; background: #f4f6f9; }
-        .header { background: #1f2937; color: white; padding: 20px 30px; }
-        .header h1 { margin: 0; font-size: 28px; }
-        .header p { margin: 6px 0 0; font-size: 14px; color: #d1d5db; }
-        .container { width: 90%; max-width: 1100px; margin: 30px auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
-        .card { background: white; border-radius: 12px; padding: 22px; box-shadow: 0 0 12px rgba(0,0,0,0.08); }
-        .card h3 { margin-top: 0; color: #222; }
-        .card p { color: #555; min-height: 48px; }
-        .card a {
-            display: inline-block; margin-top: 12px; text-decoration: none;
-            background: #007bff; color: white; padding: 10px 14px; border-radius: 6px;
-        }
-        .card a:hover { background: #0056b3; }
-        .logout { margin-top: 30px; text-align: center; }
-        .logout a {
-            text-decoration: none; color: white; background: #dc3545;
-            padding: 12px 18px; border-radius: 6px;
-        }
-        .logout a:hover { background: #b02a37; }
-    </style>
+
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
 
-<div class="header">
-    <h1>Admin Dashboard</h1>
-    <p>Welcome, <%= userName != null ? userName : "Admin" %></p>
-</div>
+<div class="admin-shell">
 
-<div class="container">
-    <div class="grid">
+    <aside class="sidebar">
+        <div>
+            <div class="brand">
+                <div class="brand-icon">⬡</div>
+                <div>
+                    <h2>EVENTHORIZON</h2>
+                    <p>Admin Workspace</p>
+                </div>
+            </div>
 
-        <div class="card">
-            <h3>Manage Users</h3>
-            <p>View all users, including customers and admins, and manage user records.</p>
-            <a href="<%= request.getContextPath() %>/user?action=list">Open Users</a>
+            <nav class="nav-links">
+                <a class="active" href="<%= request.getContextPath() %>/admin/dashboard.jsp">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/user?action=list">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Manage Users</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Request New Admin</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>Admin Requests</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/event?action=adminList">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Manage Events</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/admin/bookings.jsp">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Bookings</span>
+                </a>
+            </nav>
         </div>
 
-        <div class="card">
-            <h3>Request New Admin</h3>
-            <p>Create a new admin request. Another admin must approve it before the admin account is created.</p>
-            <a href="<%= request.getContextPath() %>/user?action=addAdminForm">Open Request Form</a>
+        <div class="sidebar-footer">
+            <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
+                <i class="fa-solid fa-globe"></i>
+                <span>Open Website</span>
+            </a>
+
+            <a class="logout-btn" href="<%= request.getContextPath() %>/user?action=logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </a>
         </div>
+    </aside>
 
-        <div class="card">
-            <h3>Pending Admin Requests</h3>
-            <p>Review pending admin requests and approve or reject them.</p>
-            <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">View Requests</a>
-        </div>
+    <main class="main-content">
+        <section class="topbar">
+            <div>
+                <p class="eyebrow">Administration</p>
+                <h1>Dashboard</h1>
+                <p class="subtitle">Welcome back, <strong><%= userName != null ? userName : "Admin" %></strong></p>
+            </div>
 
-        <div class="card">
-            <h3>Manage Events</h3>
-            <p>View, add, edit, and manage events in the system.</p>
-            <a href="<%= request.getContextPath() %>/admin/events.jsp">Open Events</a>
-        </div>
+            <div class="topbar-badge">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Admin Access</span>
+            </div>
+        </section>
 
-        <div class="card">
-            <h3>Add Event</h3>
-            <p>Create a brand-new event for customers to browse and book.</p>
-            <a href="<%= request.getContextPath() %>/admin/addEvent.jsp">Add Event</a>
-        </div>
+        <section class="hero-panel">
+            <div class="hero-text">
+                <h2>Control your platform from one place</h2>
+                <p>
+                    Manage users, events, bookings, and admin approvals with a cleaner and more professional workflow.
+                </p>
+            </div>
 
-        <div class="card">
-            <h3>Bookings</h3>
-            <p>View and manage booking records made by customers.</p>
-            <a href="<%= request.getContextPath() %>/admin/bookings.jsp">Open Bookings</a>
-        </div>
+            <div class="hero-actions">
+                <a href="<%= request.getContextPath() %>/event?action=adminList" class="primary-btn">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    <span>Manage Events</span>
+                </a>
 
-    </div>
+                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="secondary-btn">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Review Requests</span>
+                </a>
+            </div>
+        </section>
 
-    <div class="logout">
-        <a href="<%= request.getContextPath() %>/user?action=logout">Logout</a>
-    </div>
+        <section class="stats-grid">
+            <div class="mini-card purple">
+                <div class="mini-icon"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <h3>User Control</h3>
+                    <p>View and manage registered users</p>
+                </div>
+            </div>
+
+            <div class="mini-card cyan">
+                <div class="mini-icon"><i class="fa-solid fa-user-shield"></i></div>
+                <div>
+                    <h3>Admin Workflow</h3>
+                    <p>Handle pending admin approval requests</p>
+                </div>
+            </div>
+
+            <div class="mini-card pink">
+                <div class="mini-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                <div>
+                    <h3>Event Control</h3>
+                    <p>Create, update, cancel, or delete events</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="dashboard-grid">
+
+            <a href="<%= request.getContextPath() %>/user?action=list" class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-users"></i></div>
+                <h3>Manage Users</h3>
+                <p>Open the user management panel to review customers and admins.</p>
+                <span class="feature-link">Open Users <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <a href="<%= request.getContextPath() %>/user?action=addAdminForm" class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-user-plus"></i></div>
+                <h3>Request New Admin</h3>
+                <p>Create a new admin request that must be approved by another admin.</p>
+                <span class="feature-link">Open Request Form <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-user-check"></i></div>
+                <h3>Pending Admin Requests</h3>
+                <p>Approve or reject incoming admin access requests from one screen.</p>
+                <span class="feature-link">View Requests <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <a href="<%= request.getContextPath() %>/event?action=adminList" class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                <h3>Manage Events</h3>
+                <p>Access the event management area to update live event listings.</p>
+                <span class="feature-link">Open Events <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <a href="<%= request.getContextPath() %>/admin/addEvent.jsp" class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-plus-circle"></i></div>
+                <h3>Add Event</h3>
+                <p>Create a brand-new event with venue, date, seats, pricing, and image.</p>
+                <span class="feature-link">Add Event <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+            <a href="<%= request.getContextPath() %>/admin/bookings.jsp" class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-ticket"></i></div>
+                <h3>Bookings</h3>
+                <p>Review customer booking records and monitor system activity.</p>
+                <span class="feature-link">Open Bookings <i class="fa-solid fa-arrow-right"></i></span>
+            </a>
+
+        </section>
+    </main>
 </div>
 
 </body>
