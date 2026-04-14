@@ -1,13 +1,13 @@
 <h1 align="center">EventHorizon</h1>
 
 <p align="center">
-  <b>Event Booking Web Application</b><br>
-  Full-stack Java system for event discovery, booking, and admin management
+  <strong>Event Booking Web Application</strong><br>
+  A full-stack Java web platform for event discovery, ticket booking, and administrative management.
 </p>
 
 <p align="center">
   <a href="https://glistening-light-production-f277.up.railway.app/">
-    <img src="https://img.shields.io/badge/Live%20App-Railway-6C63FF?style=for-the-badge"/>
+    <img src="https://img.shields.io/badge/Live%20App-Railway-6C63FF?style=for-the-badge" alt="Live App on Railway"/>
   </a>
 </p>
 
@@ -15,312 +15,184 @@
 
 ## Overview
 
-<table>
-<tr>
-<td width="50%">
+**EventHorizon** is a full-stack event booking and management system developed using **Java, JSP, Servlets, JDBC, and MySQL**. It is designed to provide a complete workflow for both customers and administrators within a single platform.
 
-EventHorizon is a complete event booking platform built using Java (JSP & Servlets).  
-It enables users to browse events, book tickets, and manage their activity.
-
-</td>
-<td width="50%">
-
-The system also provides powerful admin tools for managing events, users, and bookings with structured workflows.
-
-</td>
-</tr>
-</table>
+The application enables users to discover events, view event details, make bookings, and manage their own activity. On the administrative side, it provides structured tools for managing events, users, bookings, and system operations through a professional dashboard environment.
 
 ---
 
 ## Live Deployment
 
-<table>
-<tr>
-<th>Environment</th>
-<th>Access</th>
-<th>Status</th>
-</tr>
-
-<tr>
-<td><b>Railway (Production)</b></td>
-<td>https://glistening-light-production-f277.up.railway.app/</td>
-<td>Active</td>
-</tr>
-
-<tr>
-<td><b>ngrok (Temporary)</b></td>
-<td>https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon</td>
-<td>Occasional</td>
-</tr>
-</table>
+| Environment | Access | Status |
+|---|---|---|
+| **Railway (Production)** | `https://glistening-light-production-f277.up.railway.app/` | Active |
+| **ngrok (Temporary)** | `https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon` | Occasional |
 
 ---
 
 ## Technology Stack
 
-<table>
-<tr>
-<th>Category</th>
-<th>Technologies</th>
-</tr>
+### Backend
+- Java
+- JSP
+- Servlets
+- JDBC
 
-<tr>
-<td><b>Backend</b></td>
-<td>
+### Frontend
+- HTML
+- CSS
+- JavaScript
 
-<img src="https://img.shields.io/badge/Java-ED8B00?style=flat-square"/>
-<img src="https://img.shields.io/badge/Servlets-6DB33F?style=flat-square"/>
-<img src="https://img.shields.io/badge/JSP-323330?style=flat-square"/>
+### Database
+- MySQL
 
-</td>
-</tr>
+### Server
+- Apache Tomcat
 
-<tr>
-<td><b>Frontend</b></td>
-<td>
+### Build & Development Tools
+- Maven
+- Git
+- GitHub
+- XAMPP
 
-<img src="https://img.shields.io/badge/HTML-000000?style=flat-square"/>
-<img src="https://img.shields.io/badge/CSS-1572B6?style=flat-square"/>
-<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square"/>
-
-</td>
-</tr>
-
-<tr>
-<td><b>Server</b></td>
-<td>
-
-<img src="https://img.shields.io/badge/Tomcat-F8DC75?style=flat-square"/>
-
-</td>
-</tr>
-
-<tr>
-<td><b>Database</b></td>
-<td>
-
-<img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square"/>
-<img src="https://img.shields.io/badge/JDBC-000000?style=flat-square"/>
-
-</td>
-</tr>
-
-<tr>
-<td><b>Tools & Environment</b></td>
-<td>
-
-<img src="https://img.shields.io/badge/Maven-C71A36?style=flat-square"/>
-<img src="https://img.shields.io/badge/XAMPP-FB7A24?style=flat-square"/>
-<img src="https://img.shields.io/badge/Git-181717?style=flat-square"/>
-<img src="https://img.shields.io/badge/GitHub-000000?style=flat-square"/>
-
-</td>
-</tr>
-
-<tr>
-<td><b>Deployment</b></td>
-<td>
-
-<img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square"/>
-<img src="https://img.shields.io/badge/ngrok-1F1F1F?style=flat-square"/>
-
-</td>
-</tr>
-
-</table>
+### Deployment
+- Railway
+- ngrok
 
 ---
 
-## Architecture
+## System Architecture
 
-<table>
-<tr>
-<th width="25%">Layer</th>
-<th width="75%">Description</th>
-</tr>
+The project follows a layered web application structure:
 
-<tr>
-<td><b>Model</b></td>
-<td>Java classes such as Event, User, Booking, Admin</td>
-</tr>
+| Layer | Description |
+|---|---|
+| **Model** | Java classes such as `Event`, `User`, `Booking`, and `Admin` for representing system entities |
+| **View** | JSP pages used to render the user interface |
+| **Controller** | Servlets responsible for request handling, business flow, and navigation |
+| **Database** | MySQL database accessed through JDBC |
 
-<tr>
-<td><b>View</b></td>
-<td>JSP pages for frontend rendering</td>
-</tr>
-
-<tr>
-<td><b>Controller</b></td>
-<td>Servlets handling request/response logic</td>
-</tr>
-
-<tr>
-<td><b>Database</b></td>
-<td>MySQL using JDBC</td>
-</tr>
-</table>
+This structure helps separate data handling, interface rendering, and request processing, making the system easier to maintain and extend.
 
 ---
 
 ## Core Features
 
-<table>
-<tr>
-<th width="50%">User Side</th>
-<th width="50%">Admin Side</th>
-</tr>
+### Customer Features
+- User registration and login
+- Secure session-based access
+- Browse available events
+- Search events by title or venue
+- Filter events by category
+- View detailed event information
+- Book tickets online
+- Cancel bookings
+- View personal booking history
+- Manage user profile information
 
-<tr>
-<td>
-
-- User registration and login  
-- Browse and search events  
-- Filter by category  
-- Book tickets  
-- Cancel bookings  
-- View personal bookings  
-
-</td>
-
-<td>
-
-- Manage events (CRUD)  
-- Manage users  
-- View all bookings  
-- Approve admin requests  
-- Control system operations  
-
-</td>
-</tr>
-</table>
+### Admin Features
+- Access dedicated admin dashboard
+- Add new events
+- Update existing events
+- Cancel or delete events
+- Upload and manage event images
+- Manage registered users
+- View all customer bookings
+- Review and approve admin requests
+- Monitor overall system activity
 
 ---
 
-## System Modules
+## Key Functional Modules
 
-<table>
-<tr>
-<th width="33%">Module</th>
-<th width="33%">Responsibilities</th>
-<th width="34%">Access Level</th>
-</tr>
+| Module | Responsibilities | Access Level |
+|---|---|---|
+| **Authentication Module** | Login, logout, session handling, role validation | All Users |
+| **Event Management Module** | Create, update, cancel, and delete events | Admin |
+| **Event Browsing Module** | Display, search, and filter active events | Customer |
+| **Booking Module** | Ticket booking, cancellation, booking history, seat updates | Customer |
+| **User Management Module** | Manage customer and admin accounts | Admin |
+| **Admin Request Module** | Handle admin approval workflow | Admin |
 
-<tr>
-<td>Authentication</td>
-<td>Login, session handling, role validation</td>
-<td>All Users</td>
-</tr>
+---
 
-<tr>
-<td>Event Management</td>
-<td>Create, update, delete events</td>
-<td>Admin</td>
-</tr>
+## Project Highlights
 
-<tr>
-<td>Booking System</td>
-<td>Ticket booking, cancellation, seat tracking</td>
-<td>Customer</td>
-</tr>
+- Full-stack Java web application with a complete booking workflow
+- Role-based system for customers and administrators
+- Dynamic event listing with search and category filtering
+- Real-time seat availability tracking
+- Booking cancellation with seat restoration logic
+- Professional admin dashboard for system control
+- Database-driven event image storage and retrieval
+- Railway deployment with MySQL integration
+- Modern dark-themed UI with premium styling and consistent branding
 
-<tr>
-<td>User Management</td>
-<td>Manage accounts and roles</td>
-<td>Admin</td>
-</tr>
-</table>
+---
+
+## Booking and Event Management Logic
+
+The project is not just a basic CRUD application. It includes important real-world workflow logic such as:
+
+- Managing event availability through total seats and available seats
+- Automatically reducing available seats after booking
+- Restoring seats after cancellation
+- Showing only active events to customers
+- Maintaining separate admin controls for event operations
+- Supporting image upload and retrieval for event presentation
+
+These features make the system more practical and closer to a real production-style booking application.
+
+---
+
+## Deployment Details
+
+| Component | Configuration |
+|---|---|
+| **Hosting Platform** | Railway |
+| **Database** | Railway MySQL |
+| **Backend Runtime** | Java + Servlets |
+| **Server** | Apache Tomcat |
+| **Configuration** | Environment variables |
+| **Image Handling** | Stored and retrieved through the application database |
+| **Email Service** | Currently disabled due to SMTP limitations |
 
 ---
 
 ## Project Structure
 
 <p align="center">
-  <img src="https://github.com/sub2003/EventHorizon/blob/main/src/Screenshot%202026-04-11%20175107.png?raw=true" width="700"/>
+  <img src="https://github.com/sub2003/EventHorizon/blob/main/src/Screenshot%202026-04-11%20175107.png?raw=true" width="700" alt="Project Structure"/>
 </p>
-
----
-
-## Deployment Details
-
-<table>
-<tr>
-<th>Component</th>
-<th>Configuration</th>
-</tr>
-
-<tr>
-<td>Hosting</td>
-<td>Railway</td>
-</tr>
-
-<tr>
-<td>Database</td>
-<td>Railway MySQL</td>
-</tr>
-
-<tr>
-<td>Backend</td>
-<td>Java (Servlets)</td>
-</tr>
-
-<tr>
-<td>Environment</td>
-<td>Configured using environment variables</td>
-</tr>
-
-<tr>
-<td>Email</td>
-<td>Disabled (SMTP limitation)</td>
-</tr>
-</table>
 
 ---
 
 ## Future Improvements
 
-<table>
-<tr>
-<td width="50%">
+The project can be extended further with the following enhancements:
 
-- Password hashing (bcrypt)  
-- Email API integration  
-- Payment gateway  
-
-</td>
-<td width="50%">
-
-- React frontend upgrade  
-- Analytics dashboard  
-- Advanced filtering  
-
-</td>
-</tr>
-</table>
+- Password hashing with bcrypt
+- Email API integration
+- Payment gateway integration
+- Advanced analytics dashboard
+- Improved event recommendation system
+- React-based frontend upgrade
+- Enhanced filtering and sorting options
+- QR code ticket generation
+- Booking confirmation email support
 
 ---
 
 ## Author
 
-<table>
-<tr>
-<td width="30%"><b>Name</b></td>
-<td width="70%">Subhanu Ravisankha Aththanayaka</td>
-</tr>
-
-<tr>
-<td><b>Education</b></td>
-<td>SLIIT Undergraduate – BSc (Hons) IT</td>
-</tr>
-
-<tr>
-<td><b>Focus</b></td>
-<td>Software Engineering & AI Systems</td>
-</tr>
-</table>
+| Field | Details |
+|---|---|
+| **Name** | Subhanu Ravisankha Aththanayaka |
+| **Education** | SLIIT Undergraduate – BSc (Hons) in IT |
+| **Academic Focus** | Software Engineering and AI Systems |
 
 ---
 
 <p align="center">
-  <sub>Designed for real-world application development and learning</sub>
+  <sub>Designed as a practical full-stack application for real-world learning and system development.</sub>
 </p>
