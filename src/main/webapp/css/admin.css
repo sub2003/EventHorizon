@@ -1,0 +1,65 @@
+.table-container {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+thead {
+    background: linear-gradient(135deg, #7c3aed, #06b6d4);
+}
+
+th, td {
+    padding: 12px;
+    text-align: left;
+}
+
+th {
+    color: white;
+}
+
+td {
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+tr:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.btn {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: #7c3aed;
+    color: white;
+}
+
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.form-box {
+    background: rgba(255,255,255,0.05);
+    padding: 25px;
+    border-radius: 12px;
+    max-width: 500px;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 8px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: none;
+}
