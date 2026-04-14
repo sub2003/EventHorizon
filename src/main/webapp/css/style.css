@@ -1200,3 +1200,165 @@ tbody td {
         padding: 32px 18px;
     }
 }
+
+/* ============================================================
+   MY BOOKINGS PAGE - ADMIN DASHBOARD MATCHED THEME
+   Small clean footer only
+   ============================================================ */
+
+.bookings-page {
+    background:
+        radial-gradient(circle at top center, rgba(124, 58, 237, 0.10), transparent 24%),
+        linear-gradient(180deg, #060816 0%, #050816 100%);
+    color: var(--text-primary);
+}
+
+.bookings-container {
+    padding-top: 28px;
+    padding-bottom: 56px;
+    min-height: calc(100vh - 72px - 90px);
+}
+
+.bookings-header {
+    padding: 24px 0 18px;
+    margin-bottom: 10px;
+}
+
+.bookings-header .page-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #f8fafc;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bookings-table-wrap {
+    background: linear-gradient(180deg, rgba(12, 18, 36, 0.96), rgba(10, 15, 30, 0.96));
+    border: 1px solid rgba(120, 119, 198, 0.16);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(2, 6, 23, 0.38);
+}
+
+.bookings-table-wrap thead th {
+    background: rgba(124, 58, 237, 0.10);
+    color: #93a4c3;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.10);
+}
+
+.bookings-table-wrap tbody tr {
+    background: transparent;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+}
+
+.bookings-table-wrap tbody tr:hover {
+    background: rgba(124, 58, 237, 0.05);
+}
+
+.booking-id-cell {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.82rem;
+    color: #7dd3fc;
+}
+
+.booking-event-cell {
+    font-weight: 600;
+    color: #f8fafc;
+}
+
+.booking-price-cell {
+    font-weight: 700;
+    color: #7dd3fc;
+}
+
+.bookings-page .btn-outline {
+    background: rgba(8, 15, 30, 0.72);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.42);
+}
+
+.bookings-page .btn-outline:hover {
+    background: rgba(56, 189, 248, 0.08);
+    color: #dff7ff;
+}
+
+.bookings-page .badge-success {
+    background: rgba(16, 185, 129, 0.16);
+    color: #5eead4;
+}
+
+.bookings-page .badge-danger {
+    background: rgba(239, 68, 68, 0.16);
+    color: #fca5a5;
+}
+
+/* ---------- Small Footer ---------- */
+.mini-footer {
+    border-top: 1px solid rgba(148, 163, 184, 0.08);
+    background:
+        linear-gradient(90deg, rgba(11, 16, 35, 0.96), rgba(8, 12, 26, 0.96));
+    backdrop-filter: blur(10px);
+    padding: 16px 0 18px;
+}
+
+.mini-footer-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.mini-footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    line-height: 1;
+}
+
+.mini-footer-icon {
+    font-size: 1.05rem;
+    color: #8b5cf6;
+}
+
+.mini-footer-name {
+    font-family: 'Orbitron', monospace;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 1px;
+    background: linear-gradient(90deg, #8b5cf6, #38bdf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.mini-footer-text {
+    margin: 0;
+    font-size: 0.92rem;
+    color: #cbd5e1;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 768px) {
+    .bookings-header {
+        gap: 14px;
+    }
+
+    .bookings-header .page-title {
+        font-size: 1.55rem;
+    }
+
+    .mini-footer {
+        padding: 14px 0 16px;
+    }
+
+    .mini-footer-name {
+        font-size: 0.92rem;
+    }
+
+    .mini-footer-text {
+        font-size: 0.84rem;
+    }
+}
