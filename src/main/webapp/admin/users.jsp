@@ -43,8 +43,6 @@
             --success-soft: rgba(16, 185, 129, 0.18);
             --danger: #ef4444;
             --danger-soft: rgba(239, 68, 68, 0.16);
-            --warning: #f59e0b;
-            --warning-soft: rgba(245, 158, 11, 0.16);
             --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
             --radius-lg: 24px;
             --radius-md: 16px;
@@ -167,6 +165,68 @@
             background: var(--danger-soft);
             color: #fecaca;
             border-color: rgba(239, 68, 68, 0.35);
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            padding: 22px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .search-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .search-box,
+        .filter-box {
+            position: relative;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .search-input,
+        .filter-select {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(7, 13, 28, 0.9);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: 0.25s ease;
+        }
+
+        .filter-select {
+            min-width: 180px;
+        }
+
+        .search-input:focus,
+        .filter-select:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .search-input::placeholder {
+            color: #64748b;
+        }
+
+        .result-count {
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            white-space: nowrap;
         }
 
         .table-wrap {
@@ -394,6 +454,15 @@
             font-size: 17px;
         }
 
+        .no-results {
+            display: none;
+            padding: 28px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 16px;
+            border-top: 1px solid var(--border);
+        }
+
         @media (max-width: 1100px) {
             .form-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -424,6 +493,15 @@
             .top-actions a {
                 flex: 1;
             }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .result-count {
+                text-align: left;
+            }
         }
     </style>
 
@@ -446,6 +524,61 @@
         function confirmDelete(userId) {
             return confirm("Are you sure you want to delete user " + userId + "?");
         }
+
+        function filterUsers() {
+            var searchValue = document.getElementById("userSearch").value.toLowerCase().trim();
+            var roleValue = document.getElementById("roleFilter").value.toLowerCase();
+            var rows = document.querySelectorAll(".data-row");
+            var visibleCount = 0;
+
+            rows.forEach(function(row) {
+                var userId = (row.getAttribute("data-user-id") || "").toLowerCase();
+                var name = (row.getAttribute("data-name") || "").toLowerCase();
+                var email = (row.getAttribute("data-email") || "").toLowerCase();
+                var phone = (row.getAttribute("data-phone") || "").toLowerCase();
+                var role = (row.getAttribute("data-role") || "").toLowerCase();
+
+                var matchesSearch =
+                    userId.includes(searchValue) ||
+                    name.includes(searchValue) ||
+                    email.includes(searchValue) ||
+                    phone.includes(searchValue);
+
+                var matchesRole = (roleValue === "all" || role === roleValue);
+
+                var editRow = document.getElementById("edit-" + row.getAttribute("data-user-id"));
+
+                if (matchesSearch && matchesRole) {
+                    row.style.display = "";
+                    visibleCount++;
+                } else {
+                    row.style.display = "none";
+                    if (editRow) {
+                        editRow.style.display = "none";
+                        editRow.classList.remove("active");
+                    }
+                }
+            });
+
+            document.getElementById("resultCount").innerText = visibleCount + " user(s) found";
+
+            var noResults = document.getElementById("noResults");
+            if (visibleCount === 0) {
+                noResults.style.display = "block";
+            } else {
+                noResults.style.display = "none";
+            }
+        }
+
+        function clearFilters() {
+            document.getElementById("userSearch").value = "";
+            document.getElementById("roleFilter").value = "all";
+            filterUsers();
+        }
+
+        window.addEventListener("DOMContentLoaded", function() {
+            filterUsers();
+        });
     </script>
 </head>
 <body>
@@ -454,7 +587,7 @@
     <div class="topbar">
         <div class="title-block">
             <h1>Manage Users</h1>
-            <p>View, edit, and manage all registered system users</p>
+            <p>View, search, edit, and manage all registered system users</p>
         </div>
 
         <div class="top-actions">
@@ -478,6 +611,31 @@
     </div>
 
     <div class="panel">
+        <div class="toolbar">
+            <div class="search-group">
+                <div class="search-box">
+                    <input
+                        type="text"
+                        id="userSearch"
+                        class="search-input"
+                        placeholder="Search by User ID, name, email, or phone..."
+                        onkeyup="filterUsers()">
+                </div>
+
+                <div class="filter-box">
+                    <select id="roleFilter" class="filter-select" onchange="filterUsers()">
+                        <option value="all">All Roles</option>
+                        <option value="admin">Admins Only</option>
+                        <option value="customer">Customers Only</option>
+                    </select>
+                </div>
+
+                <button type="button" class="btn btn-outline" onclick="clearFilters()">Clear</button>
+            </div>
+
+            <div class="result-count" id="resultCount">0 user(s) found</div>
+        </div>
+
         <div class="table-wrap">
             <table>
                 <thead>
@@ -499,7 +657,12 @@
                     </tr>
                 <% } else { %>
                     <% for (User user : users) { %>
-                        <tr class="data-row">
+                        <tr class="data-row"
+                            data-user-id="<%= user.getUserId() %>"
+                            data-name="<%= user.getName() %>"
+                            data-email="<%= user.getEmail() %>"
+                            data-phone="<%= user.getPhone() %>"
+                            data-role="<%= user.getRole() %>">
                             <td class="user-id"><%= user.getUserId() %></td>
                             <td class="user-name"><%= user.getName() %></td>
                             <td class="user-email"><%= user.getEmail() %></td>
@@ -613,8 +776,11 @@
                 </tbody>
             </table>
         </div>
-    </div>
 
+        <div id="noResults" class="no-results">
+            No matching users found for your search.
+        </div>
+    </div>
 </div>
 </body>
 </html>
