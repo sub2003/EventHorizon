@@ -16,11 +16,18 @@
     <ul class="navbar-links">
         <li><a href="index.jsp">Home</a></li>
         <li><a href="event?action=list" class="active">Events</a></li>
-        <c:if test="${not empty sessionScope.userId}">
+
+        <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
             <li><a href="booking?action=myBookings">My Bookings</a></li>
             <li><a href="profile.jsp">Profile</a></li>
             <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
         </c:if>
+
+        <c:if test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
+            <li><a href="admin/dashboard.jsp">Dashboard</a></li>
+            <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
+        </c:if>
+
         <c:if test="${empty sessionScope.userId}">
             <li><a href="login.jsp">Login</a></li>
             <li><a href="register.jsp" class="btn-nav">Sign Up</a></li>
@@ -36,7 +43,6 @@
 
     <div style="display:grid;grid-template-columns:1fr 340px;gap:32px;margin-top:24px;align-items:start;">
 
-        <!-- ===== LEFT: Event Info ===== -->
         <div>
             <div class="event-detail-hero">
                 <div class="event-detail-icon">
@@ -86,7 +92,6 @@
             </div>
         </div>
 
-        <!-- ===== RIGHT: Booking Card ===== -->
         <div>
             <div class="booking-card">
                 <div class="booking-price">
@@ -107,23 +112,38 @@
                     <c:when test="${event.status == 'CANCELLED'}">
                         <div class="alert alert-danger">This event has been cancelled.</div>
                     </c:when>
+
                     <c:when test="${event.availableSeats == 0}">
                         <div class="alert alert-warning">Sold Out!</div>
                     </c:when>
-                    <c:when test="${not empty sessionScope.userId}">
-                        <form action="booking" method="post">
-                            <input type="hidden" name="action" value="create">
+
+                    <c:when test="${empty sessionScope.userId}">
+                        <div class="alert alert-info" style="margin-bottom:16px;">
+                            Please log in to book tickets.
+                        </div>
+                        <a href="login.jsp" class="btn btn-primary btn-block">
+                            🔑 Login to Book
+                        </a>
+                    </c:when>
+
+                    <c:when test="${sessionScope.role == 'CUSTOMER'}">
+                        <form action="booking" method="get">
+                            <input type="hidden" name="action" value="checkout">
                             <input type="hidden" name="eventId" value="${event.eventId}">
-                            <input type="hidden" id="pricePerTicket"
-                                   value="${event.ticketPrice}">
+                            <input type="hidden" id="pricePerTicket" value="${event.ticketPrice}">
 
                             <div class="form-group">
                                 <label class="form-label" for="numberOfTickets">
                                     Number of Tickets
                                 </label>
-                                <input type="number" id="numberOfTickets" name="numberOfTickets"
-                                       class="form-control" value="1" min="1"
-                                       max="${event.availableSeats}" required>
+                                <input type="number"
+                                       id="numberOfTickets"
+                                       name="tickets"
+                                       class="form-control"
+                                       value="1"
+                                       min="1"
+                                       max="${event.availableSeats}"
+                                       required>
                             </div>
 
                             <div style="background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);border-radius:8px;padding:14px;margin-bottom:16px;">
@@ -134,16 +154,26 @@
                             </div>
 
                             <button type="submit" class="btn btn-primary btn-block">
-                                🎟️ Book Now
+                                🎟️ Proceed to Checkout
                             </button>
                         </form>
                     </c:when>
+
+                    <c:when test="${sessionScope.role == 'ADMIN'}">
+                        <div class="alert alert-warning" style="margin-bottom:16px;">
+                            Admin accounts cannot book tickets.
+                        </div>
+                        <a href="admin/dashboard.jsp" class="btn btn-secondary btn-block">
+                            Go to Dashboard
+                        </a>
+                    </c:when>
+
                     <c:otherwise>
                         <div class="alert alert-info" style="margin-bottom:16px;">
-                            Please log in to book tickets.
+                            Please log in to continue.
                         </div>
                         <a href="login.jsp" class="btn btn-primary btn-block">
-                            🔑 Login to Book
+                            🔑 Login
                         </a>
                     </c:otherwise>
                 </c:choose>
@@ -153,11 +183,43 @@
                         ❌ Booking failed. Not enough seats available.
                     </div>
                 <% } %>
+
+                <% if ("inactive".equals(request.getParameter("error"))) { %>
+                    <div class="alert alert-warning" style="margin-top:12px;">
+                        ⚠ This event is not active for booking.
+                    </div>
+                <% } %>
+
+                <% if ("noSeats".equals(request.getParameter("error"))) { %>
+                    <div class="alert alert-danger" style="margin-top:12px;">
+                        ❌ Not enough seats available for your request.
+                    </div>
+                <% } %>
             </div>
         </div>
     </div>
 </div>
 
 <script src="js/main.js"></script>
+<script>
+    (function () {
+        const qtyInput = document.getElementById('numberOfTickets');
+        const totalAmount = document.getElementById('totalAmount');
+        const pricePerTicketInput = document.getElementById('pricePerTicket');
+
+        if (qtyInput && totalAmount && pricePerTicketInput) {
+            const price = parseFloat(pricePerTicketInput.value || '0');
+
+            function updateTotal() {
+                let qty = parseInt(qtyInput.value || '1', 10);
+                if (isNaN(qty) || qty < 1) qty = 1;
+                totalAmount.textContent = 'LKR ' + (price * qty).toFixed(2);
+            }
+
+            qtyInput.addEventListener('input', updateTotal);
+            updateTotal();
+        }
+    })();
+</script>
 </body>
 </html>

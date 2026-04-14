@@ -37,6 +37,15 @@
         <url-pattern>/booking</url-pattern>
     </servlet-mapping>
 
+    <servlet>
+        <servlet-name>TicketServlet</servlet-name>
+        <servlet-class>com.eventhorizon.servlet.TicketServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TicketServlet</servlet-name>
+        <url-pattern>/ticket</url-pattern>
+    </servlet-mapping>
+
     <session-config>
         <session-timeout>30</session-timeout>
     </session-config>

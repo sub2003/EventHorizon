@@ -2,6 +2,7 @@ package com.eventhorizon.service;
 
 import com.eventhorizon.model.Booking;
 import com.eventhorizon.model.Event;
+import com.eventhorizon.model.Ticket;
 import com.eventhorizon.util.DatabaseConnection;
 
 import java.sql.*;
@@ -19,34 +20,35 @@ import java.util.List;
  */
 public class BookingService {
 
-    private final EventService eventService = new EventService();
+    private final EventService  eventService  = new EventService();
+    private final TicketService ticketService = new TicketService();
 
     // ==================== CREATE ====================
 
     /**
-     * Create a new booking.
-     * Automatically deducts seats from the event.
-     * Returns booking ID or null if failed.
+     * Create a new booking (status = CONFIRMED, payment_status = PENDING).
+     * Seats are deducted immediately; they are restored if payment is rejected.
+     * Returns booking ID or null on failure.
      */
-    public String createBooking(String customerId, String eventId, int numberOfTickets) {
-        // Check event exists and has enough seats
+    public String createBooking(String customerId, String eventId,
+                                int numberOfTickets, String paymentReference) {
         Event event = eventService.getEventById(eventId);
-        if (event == null)                         return null;
-        if (!"ACTIVE".equals(event.getStatus()))   return null;
-        if (event.getAvailableSeats() < numberOfTickets) return null;
+        if (event == null)                                return null;
+        if (!"ACTIVE".equals(event.getStatus()))          return null;
+        if (event.getAvailableSeats() < numberOfTickets)  return null;
 
-        // Deduct seats from event
         boolean seated = eventService.reduceSeat(eventId, numberOfTickets);
         if (!seated) return null;
 
-        // Save booking
-        String id     = generateId();
-        double total  = event.getTicketPrice() * numberOfTickets;
-        String today  = LocalDate.now().toString();
+        String id    = generateId();
+        double total = event.getTicketPrice() * numberOfTickets;
+        String today = LocalDate.now().toString();
 
-        String sql = "INSERT INTO bookings (booking_id, customer_id, event_id, event_title, "
-                   + "number_of_tickets, total_amount, booking_date, status) "
-                   + "VALUES (?, ?, ?, ?, ?, ?, ?, 'CONFIRMED')";
+        String sql = "INSERT INTO bookings "
+                   + "(booking_id, customer_id, event_id, event_title, "
+                   + "number_of_tickets, total_amount, booking_date, status, "
+                   + "payment_status, payment_reference) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, 'CONFIRMED', 'PENDING', ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -58,15 +60,91 @@ public class BookingService {
             ps.setInt(5, numberOfTickets);
             ps.setDouble(6, total);
             ps.setString(7, today);
+            ps.setString(8, paymentReference != null ? paymentReference.trim() : "");
             ps.executeUpdate();
             return id;
 
         } catch (SQLException e) {
             System.err.println("createBooking error: " + e.getMessage());
-            // Restore seats if booking save failed
             eventService.restoreSeat(eventId, numberOfTickets);
             return null;
         }
+    }
+
+    /** Backward-compatible overload (no payment reference). */
+    public String createBooking(String customerId, String eventId, int numberOfTickets) {
+        return createBooking(customerId, eventId, numberOfTickets, "");
+    }
+
+    // ==================== APPROVE PAYMENT ====================
+
+    /**
+     * Admin approves a payment → payment_status = APPROVED → generate tickets.
+     * Returns true on success.
+     */
+    public boolean approveBooking(String bookingId) {
+        Booking booking = getBookingById(bookingId);
+        if (booking == null) return false;
+        if ("APPROVED".equals(booking.getPaymentStatus())) return false; // already done
+
+        String sql = "UPDATE bookings SET payment_status='APPROVED' WHERE booking_id=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, bookingId);
+            if (ps.executeUpdate() == 0) return false;
+
+        } catch (SQLException e) {
+            System.err.println("approveBooking error: " + e.getMessage());
+            return false;
+        }
+
+        // Generate individual tickets
+        List<Ticket> tickets = ticketService.generateTickets(
+                bookingId, booking.getEventId(),
+                booking.getCustomerId(), booking.getNumberOfTickets());
+        return !tickets.isEmpty();
+    }
+
+    /**
+     * Admin rejects a payment → payment_status = REJECTED, status = CANCELLED,
+     * seats restored.
+     */
+    public boolean rejectBooking(String bookingId) {
+        Booking booking = getBookingById(bookingId);
+        if (booking == null) return false;
+
+        eventService.restoreSeat(booking.getEventId(), booking.getNumberOfTickets());
+
+        String sql = "UPDATE bookings SET payment_status='REJECTED', status='CANCELLED' "
+                   + "WHERE booking_id=?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, bookingId);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("rejectBooking error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // ==================== PENDING BOOKINGS ====================
+
+    /** Get bookings where payment is still PENDING (admin approval queue). */
+    public List<Booking> getPendingBookings() {
+        List<Booking> list = new ArrayList<>();
+        String sql = "SELECT * FROM bookings WHERE payment_status='PENDING' "
+                   + "AND status='CONFIRMED' ORDER BY booking_date DESC";
+        try (Connection conn = DatabaseConnection.getConnection();
+             Statement st = conn.createStatement();
+             ResultSet rs = st.executeQuery(sql)) {
+            while (rs.next()) list.add(mapRowToBooking(rs));
+        } catch (SQLException e) {
+            System.err.println("getPendingBookings error: " + e.getMessage());
+        }
+        return list;
     }
 
     // ==================== READ ====================
@@ -170,6 +248,10 @@ public class BookingService {
     // ==================== HELPERS ====================
 
     private Booking mapRowToBooking(ResultSet rs) throws SQLException {
+        String payStatus = null;
+        String payRef    = null;
+        try { payStatus = rs.getString("payment_status"); } catch (SQLException ignored) {}
+        try { payRef    = rs.getString("payment_reference"); } catch (SQLException ignored) {}
         return new Booking(
             rs.getString("booking_id"),
             rs.getString("customer_id"),
@@ -178,7 +260,9 @@ public class BookingService {
             rs.getInt("number_of_tickets"),
             rs.getDouble("total_amount"),
             rs.getString("booking_date"),
-            rs.getString("status")
+            rs.getString("status"),
+            payStatus != null ? payStatus : "PENDING",
+            payRef
         );
     }
 

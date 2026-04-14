@@ -8,23 +8,35 @@ public class Booking {
     private String bookingId;
     private String customerId;
     private String eventId;
-    private String eventTitle;       // Stored for easy display
+    private String eventTitle;        // Stored for easy display
     private int    numberOfTickets;
     private double totalAmount;
-    private String bookingDate;      // Format: YYYY-MM-DD
-    private String status;           // "CONFIRMED" or "CANCELLED"
+    private String bookingDate;       // Format: YYYY-MM-DD
+    private String status;            // "CONFIRMED" or "CANCELLED"
+    private String paymentStatus;     // "PENDING", "APPROVED", "REJECTED"
+    private String paymentReference;  // Customer's bank transaction reference
 
     public Booking(String bookingId, String customerId, String eventId,
                    String eventTitle, int numberOfTickets, double totalAmount,
                    String bookingDate, String status) {
-        this.bookingId       = bookingId;
-        this.customerId      = customerId;
-        this.eventId         = eventId;
-        this.eventTitle      = eventTitle;
-        this.numberOfTickets = numberOfTickets;
-        this.totalAmount     = totalAmount;
-        this.bookingDate     = bookingDate;
-        this.status          = status;
+        this(bookingId, customerId, eventId, eventTitle,
+             numberOfTickets, totalAmount, bookingDate, status, "PENDING", null);
+    }
+
+    public Booking(String bookingId, String customerId, String eventId,
+                   String eventTitle, int numberOfTickets, double totalAmount,
+                   String bookingDate, String status,
+                   String paymentStatus, String paymentReference) {
+        this.bookingId        = bookingId;
+        this.customerId       = customerId;
+        this.eventId          = eventId;
+        this.eventTitle       = eventTitle;
+        this.numberOfTickets  = numberOfTickets;
+        this.totalAmount      = totalAmount;
+        this.bookingDate      = bookingDate;
+        this.status           = status;
+        this.paymentStatus    = paymentStatus;
+        this.paymentReference = paymentReference;
     }
 
     public Booking() {}
@@ -66,6 +78,12 @@ public class Booking {
     public String getBookingDate()                      { return bookingDate; }
     public void   setBookingDate(String date)           { this.bookingDate = date; }
 
-    public String getStatus()                           { return status; }
-    public void   setStatus(String status)              { this.status = status; }
+    public String getStatus()                                    { return status; }
+    public void   setStatus(String status)                       { this.status = status; }
+
+    public String getPaymentStatus()                             { return paymentStatus; }
+    public void   setPaymentStatus(String paymentStatus)         { this.paymentStatus = paymentStatus; }
+
+    public String getPaymentReference()                          { return paymentReference; }
+    public void   setPaymentReference(String paymentReference)   { this.paymentReference = paymentReference; }
 }
