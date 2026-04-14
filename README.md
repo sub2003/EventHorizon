@@ -61,24 +61,73 @@ The system also provides powerful admin tools for managing events, users, and bo
 
 <table>
 <tr>
-<td align="center">Java</td>
-<td align="center">JSP</td>
-<td align="center">Servlets</td>
-<td align="center">Tomcat</td>
-<td align="center">MySQL</td>
-<td align="center">JDBC</td>
-<td align="center">Maven</td>
+<th>Category</th>
+<th>Technologies</th>
 </tr>
 
 <tr>
-<td align="center"><img src="https://img.shields.io/badge/Java-ED8B00?style=flat-square"/></td>
-<td align="center"><img src="https://img.shields.io/badge/JSP-323330?style=flat-square"/></td>
-<td align="center"><img src="https://img.shields.io/badge/Servlets-6DB33F?style=flat-square"/></td>
-<td align="center"><img src="https://img.shields.io/badge/Tomcat-F8DC75?style=flat-square"/></td>
-<td align="center"><img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square"/></td>
-<td align="center"><img src="https://img.shields.io/badge/JDBC-000000?style=flat-square"/></td>
-<td align="center"><img src="https://img.shields.io/badge/Maven-C71A36?style=flat-square"/></td>
+<td><b>Backend</b></td>
+<td>
+
+<img src="https://img.shields.io/badge/Java-ED8B00?style=flat-square"/>
+<img src="https://img.shields.io/badge/Servlets-6DB33F?style=flat-square"/>
+<img src="https://img.shields.io/badge/JSP-323330?style=flat-square"/>
+
+</td>
 </tr>
+
+<tr>
+<td><b>Frontend</b></td>
+<td>
+
+<img src="https://img.shields.io/badge/HTML-000000?style=flat-square"/>
+<img src="https://img.shields.io/badge/CSS-1572B6?style=flat-square"/>
+<img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square"/>
+
+</td>
+</tr>
+
+<tr>
+<td><b>Server</b></td>
+<td>
+
+<img src="https://img.shields.io/badge/Tomcat-F8DC75?style=flat-square"/>
+
+</td>
+</tr>
+
+<tr>
+<td><b>Database</b></td>
+<td>
+
+<img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square"/>
+<img src="https://img.shields.io/badge/JDBC-000000?style=flat-square"/>
+
+</td>
+</tr>
+
+<tr>
+<td><b>Tools & Environment</b></td>
+<td>
+
+<img src="https://img.shields.io/badge/Maven-C71A36?style=flat-square"/>
+<img src="https://img.shields.io/badge/XAMPP-FB7A24?style=flat-square"/>
+<img src="https://img.shields.io/badge/Git-181717?style=flat-square"/>
+<img src="https://img.shields.io/badge/GitHub-000000?style=flat-square"/>
+
+</td>
+</tr>
+
+<tr>
+<td><b>Deployment</b></td>
+<td>
+
+<img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square"/>
+<img src="https://img.shields.io/badge/ngrok-1F1F1F?style=flat-square"/>
+
+</td>
+</tr>
+
 </table>
 
 ---
