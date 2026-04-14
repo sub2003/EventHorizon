@@ -7,17 +7,12 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * EventService - CRUD operations for Events using MySQL.
- */
 public class EventService {
 
-    // ==================== CREATE ====================
-
-    /** Add a new event. Returns the generated event ID. */
     public String addEvent(String title, String category, String date, String time,
                            String venue, double ticketPrice, int totalSeats,
                            String description, String imagePath) {
+
         String id = generateId();
 
         String sql = "INSERT INTO events (event_id, title, category, date, time, venue, " +
@@ -35,7 +30,7 @@ public class EventService {
             ps.setString(6, venue);
             ps.setDouble(7, ticketPrice);
             ps.setInt(8, totalSeats);
-            ps.setInt(9, totalSeats); // available = total at start
+            ps.setInt(9, totalSeats);
             ps.setString(10, description);
             ps.setString(11, imagePath);
 
@@ -48,12 +43,9 @@ public class EventService {
         }
     }
 
-    // ==================== READ ====================
-
-    /** Get all events. */
     public List<Event> getAllEvents() {
         List<Event> events = new ArrayList<>();
-        String sql = "SELECT * FROM events ORDER BY date ASC";
+        String sql = "SELECT * FROM events ORDER BY date ASC, time ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
@@ -66,13 +58,13 @@ public class EventService {
         } catch (SQLException e) {
             System.err.println("getAllEvents error: " + e.getMessage());
         }
+
         return events;
     }
 
-    /** Get only ACTIVE events (for public browsing). */
     public List<Event> getActiveEvents() {
         List<Event> events = new ArrayList<>();
-        String sql = "SELECT * FROM events WHERE status = 'ACTIVE' ORDER BY date ASC";
+        String sql = "SELECT * FROM events WHERE status = 'ACTIVE' ORDER BY date ASC, time ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
@@ -85,10 +77,10 @@ public class EventService {
         } catch (SQLException e) {
             System.err.println("getActiveEvents error: " + e.getMessage());
         }
+
         return events;
     }
 
-    /** Get a single event by ID. */
     public Event getEventById(String eventId) {
         String sql = "SELECT * FROM events WHERE event_id = ?";
 
@@ -105,14 +97,14 @@ public class EventService {
         } catch (SQLException e) {
             System.err.println("getEventById error: " + e.getMessage());
         }
+
         return null;
     }
 
-    /** Search events by title, category, or venue. */
     public List<Event> searchEvents(String keyword) {
         List<Event> events = new ArrayList<>();
         String sql = "SELECT * FROM events WHERE status = 'ACTIVE' AND " +
-                "(title LIKE ? OR category LIKE ? OR venue LIKE ?) ORDER BY date ASC";
+                "(title LIKE ? OR category LIKE ? OR venue LIKE ?) ORDER BY date ASC, time ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -130,15 +122,14 @@ public class EventService {
         } catch (SQLException e) {
             System.err.println("searchEvents error: " + e.getMessage());
         }
+
         return events;
     }
 
-    // ==================== UPDATE ====================
-
-    /** Update event details without changing image. */
     public boolean updateEvent(String eventId, String title, String category,
                                String date, String time, String venue,
                                double ticketPrice, String description) {
+
         String sql = "UPDATE events SET title=?, category=?, date=?, time=?, " +
                 "venue=?, ticket_price=?, description=? WHERE event_id=?";
 
@@ -162,11 +153,11 @@ public class EventService {
         }
     }
 
-    /** Update event details including image path. */
     public boolean updateEventWithImage(String eventId, String title, String category,
                                         String date, String time, String venue,
                                         double ticketPrice, String description,
                                         String imagePath) {
+
         String sql = "UPDATE events SET title=?, category=?, date=?, time=?, " +
                 "venue=?, ticket_price=?, description=?, image_path=? WHERE event_id=?";
 
@@ -191,7 +182,6 @@ public class EventService {
         }
     }
 
-    /** Cancel an event (set status to CANCELLED). */
     public boolean cancelEvent(String eventId) {
         String sql = "UPDATE events SET status='CANCELLED' WHERE event_id=?";
 
@@ -207,7 +197,6 @@ public class EventService {
         }
     }
 
-    /** Reduce available seats when a booking is made. */
     public boolean reduceSeat(String eventId, int count) {
         String sql = "UPDATE events SET available_seats = available_seats - ? " +
                 "WHERE event_id = ? AND available_seats >= ?";
@@ -227,10 +216,8 @@ public class EventService {
         }
     }
 
-    /** Restore seats when a booking is cancelled. */
     public boolean restoreSeat(String eventId, int count) {
-        String sql = "UPDATE events SET available_seats = available_seats + ? " +
-                "WHERE event_id = ?";
+        String sql = "UPDATE events SET available_seats = available_seats + ? WHERE event_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -246,9 +233,6 @@ public class EventService {
         }
     }
 
-    // ==================== DELETE ====================
-
-    /** Permanently delete an event. */
     public boolean deleteEvent(String eventId) {
         String sql = "DELETE FROM events WHERE event_id = ?";
 
@@ -263,8 +247,6 @@ public class EventService {
             return false;
         }
     }
-
-    // ==================== HELPERS ====================
 
     private Event mapRowToEvent(ResultSet rs) throws SQLException {
         return new Event(
@@ -284,20 +266,21 @@ public class EventService {
     }
 
     private String generateId() {
-        String sql = "SELECT COUNT(*) FROM events";
+        String sql = "SELECT MAX(CAST(SUBSTRING(event_id, 4) AS UNSIGNED)) FROM events WHERE event_id LIKE 'EVT%'";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
 
+            int next = 1;
             if (rs.next()) {
-                return String.format("EVT%03d", rs.getInt(1) + 1);
+                next = rs.getInt(1) + 1;
             }
+            return String.format("EVT%03d", next);
 
         } catch (SQLException e) {
             System.err.println("generateId error: " + e.getMessage());
+            return "EVT" + System.currentTimeMillis();
         }
-
-        return "EVT" + System.currentTimeMillis();
     }
 }
