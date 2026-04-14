@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.eventhorizon.model.User" %>
+<%@ page import="com.eventhorizon.model.Admin" %>
 <%@ page import="com.eventhorizon.service.UserService" %>
 <%
     Object roleObj = session.getAttribute("role");
@@ -49,6 +50,8 @@
             --success-soft: rgba(16, 185, 129, 0.18);
             --danger: #ef4444;
             --danger-soft: rgba(239, 68, 68, 0.16);
+            --warning-soft: rgba(245, 158, 11, 0.16);
+            --warning-text: #fde68a;
             --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
             --radius-lg: 24px;
             --radius-md: 16px;
@@ -197,7 +200,9 @@
         }
 
         .search-input,
-        .filter-select {
+        .filter-select,
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 14px 16px;
             border-radius: 14px;
@@ -214,12 +219,15 @@
         }
 
         .search-input:focus,
-        .filter-select:focus {
+        .filter-select:focus,
+        .form-group input:focus,
+        .form-group select:focus {
             border-color: rgba(99, 102, 241, 0.6);
             box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
         }
 
-        .search-input::placeholder {
+        .search-input::placeholder,
+        .form-group input::placeholder {
             color: #64748b;
         }
 
@@ -237,7 +245,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1180px;
+            min-width: 1320px;
         }
 
         thead th {
@@ -311,6 +319,26 @@
             border: 1px solid rgba(16, 185, 129, 0.28);
         }
 
+        .permission-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            color: var(--warning-text);
+            background: var(--warning-soft);
+            border: 1px solid rgba(245, 158, 11, 0.28);
+        }
+
+        .permission-muted {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
         .action-group {
             display: flex;
             align-items: center;
@@ -370,23 +398,13 @@
         }
 
         .form-group label {
+            display: block;
+            margin-bottom: 8px;
             font-size: 13px;
             font-weight: 800;
             color: #cbd5e1;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 13px 14px;
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            background: rgba(7, 13, 28, 0.9);
-            color: white;
-            font-size: 14px;
-            outline: none;
         }
 
         .form-actions {
@@ -428,6 +446,10 @@
             color: var(--text-secondary);
             font-size: 16px;
             border-top: 1px solid var(--border);
+        }
+
+        .permission-group {
+            display: block;
         }
 
         @media (max-width: 1100px) {
@@ -530,11 +552,7 @@
             document.getElementById("resultCount").innerText = visibleCount + " user(s) found";
 
             var noResults = document.getElementById("noResults");
-            if (visibleCount === 0) {
-                noResults.style.display = "block";
-            } else {
-                noResults.style.display = "none";
-            }
+            noResults.style.display = visibleCount === 0 ? "block" : "none";
         }
 
         function clearFilters() {
@@ -543,8 +561,27 @@
             filterUsers();
         }
 
+        function togglePermissionField(userId) {
+            var roleSelect = document.getElementById("role-" + userId);
+            var permissionWrap = document.getElementById("permission-wrap-" + userId);
+
+            if (!roleSelect || !permissionWrap) return;
+
+            if (roleSelect.value === "ADMIN") {
+                permissionWrap.style.display = "block";
+            } else {
+                permissionWrap.style.display = "none";
+            }
+        }
+
         window.addEventListener("DOMContentLoaded", function() {
             filterUsers();
+
+            var roleSelects = document.querySelectorAll(".role-select");
+            roleSelects.forEach(function(select) {
+                var userId = select.getAttribute("data-user-id");
+                togglePermissionField(userId);
+            });
         });
     </script>
 </head>
@@ -612,18 +649,31 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Role</th>
+                    <th>Permission</th>
                     <th style="min-width: 220px;">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 <% if (users == null || users.isEmpty()) { %>
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <div class="empty-state">No users found.</div>
                         </td>
                     </tr>
                 <% } else { %>
                     <% for (User user : users) { %>
+                        <%
+                            boolean isAdmin = "ADMIN".equals(user.getRole());
+                            String permissionValue = Admin.FULL_ACCESS;
+                            String permissionLabel = "Not Applicable";
+
+                            if (isAdmin && user instanceof Admin) {
+                                Admin adminUser = (Admin) user;
+                                permissionValue = adminUser.getAdminPermission();
+                                permissionLabel = adminUser.getPermissionLabel();
+                            }
+                        %>
+
                         <tr class="data-row"
                             data-user-id="<%= user.getUserId() %>"
                             data-name="<%= user.getName() %>"
@@ -635,10 +685,17 @@
                             <td class="user-email"><%= user.getEmail() %></td>
                             <td class="user-phone"><%= user.getPhone() %></td>
                             <td>
-                                <% if ("ADMIN".equals(user.getRole())) { %>
+                                <% if (isAdmin) { %>
                                     <span class="badge badge-admin">Admin</span>
                                 <% } else { %>
                                     <span class="badge badge-customer">Customer</span>
+                                <% } %>
+                            </td>
+                            <td>
+                                <% if (isAdmin) { %>
+                                    <span class="permission-badge"><%= permissionLabel %></span>
+                                <% } else { %>
+                                    <span class="permission-muted">Not Applicable</span>
                                 <% } %>
                             </td>
                             <td>
@@ -666,7 +723,7 @@
                         </tr>
 
                         <tr id="edit-<%= user.getUserId() %>" class="edit-row">
-                            <td colspan="6" class="edit-cell">
+                            <td colspan="7" class="edit-cell">
                                 <div class="edit-box">
                                     <div class="edit-title">Edit User - <%= user.getUserId() %></div>
 
@@ -708,7 +765,12 @@
 
                                             <div class="form-group">
                                                 <label>Role</label>
-                                                <select name="role" required
+                                                <select name="role"
+                                                        id="role-<%= user.getUserId() %>"
+                                                        class="role-select"
+                                                        data-user-id="<%= user.getUserId() %>"
+                                                        onchange="togglePermissionField('<%= user.getUserId() %>')"
+                                                        required
                                                     <%= user.getUserId().equals(currentAdminId) ? "disabled" : "" %>>
                                                     <option value="ADMIN" <%= "ADMIN".equals(user.getRole()) ? "selected" : "" %>>ADMIN</option>
                                                     <option value="CUSTOMER" <%= "CUSTOMER".equals(user.getRole()) ? "selected" : "" %>>CUSTOMER</option>
@@ -717,6 +779,19 @@
                                                 <% if (user.getUserId().equals(currentAdminId)) { %>
                                                     <input type="hidden" name="role" value="ADMIN">
                                                 <% } %>
+                                            </div>
+
+                                            <div class="form-group permission-group"
+                                                 id="permission-wrap-<%= user.getUserId() %>"
+                                                 style="<%= isAdmin ? "display:block;" : "display:none;" %>">
+                                                <label>Admin Permission</label>
+                                                <select name="adminPermission"
+                                                        <%= ("CUSTOMER".equals(user.getRole())) ? "" : "" %>>
+                                                    <option value="EVENTS_ONLY" <%= "EVENTS_ONLY".equals(permissionValue) ? "selected" : "" %>>Events only</option>
+                                                    <option value="BOOKINGS_ONLY" <%= "BOOKINGS_ONLY".equals(permissionValue) ? "selected" : "" %>>Bookings only</option>
+                                                    <option value="EVENTS_BOOKINGS" <%= "EVENTS_BOOKINGS".equals(permissionValue) ? "selected" : "" %>>Events + Bookings</option>
+                                                    <option value="FULL_ACCESS" <%= "FULL_ACCESS".equals(permissionValue) ? "selected" : "" %>>Full Access</option>
+                                                </select>
                                             </div>
                                         </div>
 
