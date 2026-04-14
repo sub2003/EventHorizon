@@ -18,6 +18,7 @@
 
     boolean canManageEvents = UserService.hasEventAccess(adminPermission);
     boolean canManageBookings = UserService.hasBookingAccess(adminPermission);
+    boolean hasFullAccess = UserService.hasFullAccess(adminPermission);
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,20 +50,12 @@
                     <span>Dashboard</span>
                 </a>
 
+                <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=list">
                     <i class="fa-solid fa-users"></i>
                     <span>Manage Users</span>
                 </a>
-
-                <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Request New Admin</span>
-                </a>
-
-                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
-                    <i class="fa-solid fa-user-check"></i>
-                    <span>Admin Requests</span>
-                </a>
+                <% } %>
 
                 <% if (canManageEvents) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList">
@@ -75,6 +68,18 @@
                 <a href="<%= request.getContextPath() %>/booking?action=allBookings">
                     <i class="fa-solid fa-ticket"></i>
                     <span>Bookings</span>
+                </a>
+                <% } %>
+
+                <% if (hasFullAccess) { %>
+                <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Request New Admin</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>Admin Requests</span>
                 </a>
                 <% } %>
             </nav>
@@ -120,6 +125,10 @@
             <div class="alert alert-danger" style="margin-bottom:16px;">You do not have permission to manage bookings.</div>
         <% } %>
 
+        <% if ("noFullAccess".equals(request.getParameter("error"))) { %>
+            <div class="alert alert-danger" style="margin-bottom:16px;">You do not have permission to access that admin section.</div>
+        <% } %>
+
         <section class="hero-panel">
             <div class="hero-text">
                 <h2>Control your platform from one place</h2>
@@ -142,10 +151,18 @@
                     <span>Review Bookings</span>
                 </a>
                 <% } %>
+
+                <% if (hasFullAccess) { %>
+                <a href="<%= request.getContextPath() %>/user?action=list" class="secondary-btn">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Manage Users</span>
+                </a>
+                <% } %>
             </div>
         </section>
 
         <section class="stats-grid">
+            <% if (hasFullAccess) { %>
             <div class="mini-card purple">
                 <div class="mini-icon"><i class="fa-solid fa-users"></i></div>
                 <div>
@@ -153,6 +170,7 @@
                     <p>View and manage registered users</p>
                 </div>
             </div>
+            <% } %>
 
             <% if (canManageEvents) { %>
             <div class="mini-card cyan">
@@ -174,12 +192,35 @@
             </div>
             <% } %>
 
+            <% if (hasFullAccess) { %>
             <div class="mini-card orange">
                 <div class="mini-icon"><i class="fa-solid fa-user-check"></i></div>
                 <div>
                     <h3>Admin Requests</h3>
                     <p>Approve or reject new admin access</p>
                 </div>
+            </div>
+            <% } %>
+        </section>
+
+        <section class="hero-panel" style="margin-top:20px;">
+            <div class="hero-text">
+                <h2>Your access summary</h2>
+                <p>Available modules for your current admin account.</p>
+            </div>
+
+            <div class="hero-actions" style="display:flex; gap:12px; flex-wrap:wrap;">
+                <% if (canManageEvents) { %>
+                    <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Events</span></span>
+                <% } %>
+
+                <% if (canManageBookings) { %>
+                    <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Bookings</span></span>
+                <% } %>
+
+                <% if (hasFullAccess) { %>
+                    <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Users & Admin Requests</span></span>
+                <% } %>
             </div>
         </section>
     </main>

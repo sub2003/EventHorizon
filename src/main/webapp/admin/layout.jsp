@@ -18,6 +18,7 @@
 
     boolean canManageEvents = UserService.hasEventAccess(adminPermission);
     boolean canManageBookings = UserService.hasBookingAccess(adminPermission);
+    boolean hasFullAccess = UserService.hasFullAccess(adminPermission);
 
     String pageTitle = (String) request.getAttribute("pageTitle");
     if (pageTitle == null) pageTitle = "Admin Panel";
@@ -53,11 +54,13 @@
                     <span>Dashboard</span>
                 </a>
 
+                <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=list"
                    class="<%= "Users".equals(pageTitle) ? "active" : "" %>">
                     <i class="fa-solid fa-users"></i>
                     <span>Users</span>
                 </a>
+                <% } %>
 
                 <% if (canManageEvents) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList"
@@ -75,6 +78,7 @@
                 </a>
                 <% } %>
 
+                <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=listAdminRequests"
                    class="<%= "Admin Requests".equals(pageTitle) ? "active" : "" %>">
                     <i class="fa-solid fa-user-check"></i>
@@ -86,6 +90,7 @@
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request Admin</span>
                 </a>
+                <% } %>
             </nav>
         </div>
 
