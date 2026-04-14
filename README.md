@@ -1,13 +1,13 @@
-<h1 align="center">EventHorizon</h1>
+# EventHorizon
 
 <p align="center">
-  <strong>Event Booking Web Application</strong><br>
-  A full-stack Java web platform for event discovery, ticket booking, and administrative management.
+  <strong>Full-Stack Event Booking and Administration Platform</strong><br>
+  A Java web application for event discovery, ticket booking, user management, and permission-based administrative control.
 </p>
 
 <p align="center">
   <a href="https://glistening-light-production-f277.up.railway.app/">
-    <img src="https://img.shields.io/badge/Live%20App-Railway-6C63FF?style=for-the-badge" alt="Live App on Railway"/>
+    <img src="https://img.shields.io/badge/Live%20Application-Railway-6C63FF?style=for-the-badge" alt="Live Application"/>
   </a>
 </p>
 
@@ -15,18 +15,18 @@
 
 ## Overview
 
-**EventHorizon** is a full-stack event booking and management system developed using **Java, JSP, Servlets, JDBC, and MySQL**. It is designed to provide a complete workflow for both customers and administrators within a single platform.
+**EventHorizon** is a full-stack web-based event booking system built using **Java, JSP, Servlets, JDBC, and MySQL**. It delivers a complete workflow for both customers and administrators within a single platform, combining event discovery, booking management, and secure administrative control.
 
-The application enables users to discover events, view event details, make bookings, and manage their own activity. On the administrative side, it provides structured tools for managing events, users, bookings, and system operations through a professional dashboard environment.
+The system was designed to simulate a real-world booking environment rather than a basic academic CRUD project. It includes session-based authentication, role-based permissions, event lifecycle management, booking and cancellation workflows, admin request approval, and a structured dashboard experience.
 
 ---
 
 ## Live Deployment
 
-| Environment | Access | Status |
+| Environment | URL | Status |
 |---|---|---|
-| **Railway (Production)** | `https://glistening-light-production-f277.up.railway.app/` | Active |
-| **ngrok (Temporary)** | `https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon` | Occasional |
+| **Production** | `https://glistening-light-production-f277.up.railway.app/` | Active |
+| **Temporary Preview** | `https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon` | Occasionally used |
 
 ---
 
@@ -46,14 +46,15 @@ The application enables users to discover events, view event details, make booki
 ### Database
 - MySQL
 
-### Server
+### Server & Runtime
 - Apache Tomcat
 
-### Build & Development Tools
+### Build and Development Tools
 - Maven
 - Git
 - GitHub
 - XAMPP
+- IntelliJ IDEA
 
 ### Deployment
 - Railway
@@ -63,98 +64,155 @@ The application enables users to discover events, view event details, make booki
 
 ## System Architecture
 
-The project follows a layered web application structure:
+The application follows a structured layered architecture to separate business logic, presentation, and data access responsibilities.
 
 | Layer | Description |
 |---|---|
-| **Model** | Java classes such as `Event`, `User`, `Booking`, and `Admin` for representing system entities |
-| **View** | JSP pages used to render the user interface |
-| **Controller** | Servlets responsible for request handling, business flow, and navigation |
-| **Database** | MySQL database accessed through JDBC |
+| **Model Layer** | Java classes such as `User`, `Admin`, `Customer`, `Event`, and `Booking` that represent core system entities |
+| **View Layer** | JSP pages responsible for rendering customer and admin interfaces |
+| **Controller Layer** | Servlets that handle routing, validation, permissions, and request flow |
+| **Service Layer** | Business logic for users, events, bookings, and system operations |
+| **Database Layer** | MySQL accessed via JDBC for persistent storage |
 
-This structure helps separate data handling, interface rendering, and request processing, making the system easier to maintain and extend.
+This design improves maintainability, readability, and scalability while keeping the project organized for future expansion.
 
 ---
 
-## Core Features
+## Core Functional Areas
 
-### Customer Features
-- User registration and login
-- Secure session-based access
-- Browse available events
-- Search events by title or venue
+### Customer Module
+Customers can interact with the public-facing booking experience and manage their own activity.
+
+**Capabilities**
+- Register and log in securely
+- Browse active events
+- Search events by title and venue
 - Filter events by category
 - View detailed event information
-- Book tickets online
+- Book event tickets
+- View booking history
 - Cancel bookings
-- View personal booking history
-- Manage user profile information
-
-### Admin Features
-- Access dedicated admin dashboard
-- Add new events
-- Update existing events
-- Cancel or delete events
-- Upload and manage event images
-- Manage registered users
-- View all customer bookings
-- Review and approve admin requests
-- Monitor overall system activity
+- Update personal profile information
 
 ---
 
-## Key Functional Modules
+### Admin Module
+Administrators operate through a dedicated management dashboard with permission-based access.
 
-| Module | Responsibilities | Access Level |
+**Capabilities**
+- Access a dedicated admin dashboard
+- Create new events
+- Edit event details
+- Cancel or delete events
+- Upload and manage event images
+- View and manage bookings
+- Manage registered users
+- Review and process admin access requests
+- Operate under categorized permission levels
+
+---
+
+## Permission-Based Admin Access Control
+
+A major system highlight is the introduction of categorized admin permissions.  
+This allows the dashboard and accessible modules to adapt based on the assigned permission level.
+
+| Permission Type | Access Scope |
+|---|---|
+| **Events Only** | Event management features only |
+| **Bookings Only** | Booking management features only |
+| **Events + Bookings** | Access to both event and booking modules |
+| **Full Access** | Full administrative control including users and admin request management |
+
+This permission model improves security, supports responsibility separation, and makes the admin environment more realistic and production-oriented.
+
+---
+
+## Key Features
+
+### Customer Features
+- Account registration and login
+- Session-based authentication
+- Event browsing and filtering
+- Detailed event viewing
+- Ticket booking workflow
+- Booking history management
+- Booking cancellation
+- Profile update support
+
+### Admin Features
+- Professional admin dashboard
+- Permission-aware navigation and module visibility
+- Event creation, editing, cancellation, and deletion
+- Booking viewing and management
+- User administration
+- Admin request approval workflow
+- Dynamic dashboard experience based on assigned access level
+
+---
+
+## Booking and Event Workflow Logic
+
+EventHorizon includes real application logic beyond simple CRUD operations.
+
+### Event Handling
+- Events store total seats and available seats separately
+- Only active events are visible to customers
+- Event images are stored and served through the application
+
+### Booking Handling
+- Seat counts are reduced at booking time
+- Seats are restored when a booking is cancelled or rejected
+- Booking records are stored and linked to users and events
+- Customers can track their own booking history
+
+### Admin Workflow
+- New admin accounts can be requested through a controlled process
+- Requests remain pending until reviewed
+- Approval creates a new admin account with the assigned permission type
+- Self-approval restrictions improve workflow integrity
+
+---
+
+## Functional Modules
+
+| Module | Responsibilities | Access |
 |---|---|---|
-| **Authentication Module** | Login, logout, session handling, role validation | All Users |
-| **Event Management Module** | Create, update, cancel, and delete events | Admin |
-| **Event Browsing Module** | Display, search, and filter active events | Customer |
-| **Booking Module** | Ticket booking, cancellation, booking history, seat updates | Customer |
-| **User Management Module** | Manage customer and admin accounts | Admin |
-| **Admin Request Module** | Handle admin approval workflow | Admin |
+| **Authentication Module** | Login, logout, registration, session management, role validation | All Users |
+| **Event Browsing Module** | View, search, and filter active events | Customers |
+| **Booking Module** | Booking creation, cancellation, history, seat updates | Customers |
+| **Event Management Module** | Create, edit, cancel, delete events | Admin |
+| **Booking Management Module** | View and manage all customer bookings | Admin |
+| **User Management Module** | Manage user accounts and admin permission setup | Full Access Admin |
+| **Admin Request Module** | Submit, review, approve, reject admin requests | Full Access Admin |
 
 ---
 
 ## Project Highlights
 
-- Full-stack Java web application with a complete booking workflow
-- Role-based system for customers and administrators
-- Dynamic event listing with search and category filtering
+- Full-stack Java web application with real booking flow
+- Layered architecture with clear separation of concerns
+- Role-based and permission-based access control
+- Dynamic dashboard and sidebar adaptation by admin type
 - Real-time seat availability tracking
 - Booking cancellation with seat restoration logic
-- Professional admin dashboard for system control
-- Database-driven event image storage and retrieval
+- Database-integrated event image support
 - Railway deployment with MySQL integration
-- Modern dark-themed UI with premium styling and consistent branding
-
----
-
-## Booking and Event Management Logic
-
-The project is not just a basic CRUD application. It includes important real-world workflow logic such as:
-
-- Managing event availability through total seats and available seats
-- Automatically reducing available seats after booking
-- Restoring seats after cancellation
-- Showing only active events to customers
-- Maintaining separate admin controls for event operations
-- Supporting image upload and retrieval for event presentation
-
-These features make the system more practical and closer to a real production-style booking application.
+- Modern dark-themed UI with consistent branding
+- More realistic business workflow than a standard CRUD academic project
 
 ---
 
 ## Deployment Details
 
-| Component | Configuration |
+| Component | Description |
 |---|---|
 | **Hosting Platform** | Railway |
 | **Database** | Railway MySQL |
-| **Backend Runtime** | Java + Servlets |
 | **Server** | Apache Tomcat |
-| **Configuration** | Environment variables |
-| **Image Handling** | Stored and retrieved through the application database |
+| **Backend Runtime** | Java Servlets + JSP |
+| **Configuration Management** | Environment variables |
+| **Image Handling** | Stored in database and served by the application |
 | **Email Service** | Currently disabled due to SMTP limitations |
 
 ---
@@ -162,24 +220,39 @@ These features make the system more practical and closer to a real production-st
 ## Project Structure
 
 <p align="center">
-  <img src="https://github.com/sub2003/EventHorizon/blob/main/src/Screenshot%202026-04-11%20175107.png?raw=true" width="700" alt="Project Structure"/>
+  <img src="https://github.com/sub2003/EventHorizon/blob/main/src/Screenshot%202026-04-11%20175107.png?raw=true" width="760" alt="Project Structure"/>
 </p>
 
 ---
 
-## Future Improvements
+## Development Focus
 
-The project can be extended further with the following enhancements:
+This project demonstrates practical learning in:
 
-- Password hashing with bcrypt
-- Email API integration
+- Java web application development
+- MVC-style design thinking
+- Servlet-based request handling
+- JDBC database interaction
+- Access control and permission enforcement
+- UI structuring for admin systems
+- Deployment and configuration on cloud platforms
+
+---
+
+## Future Enhancements
+
+The project can be extended with more advanced features such as:
+
+- Password hashing using BCrypt
+- OTP or email verification
 - Payment gateway integration
+- QR-based digital ticket generation
+- Email notifications for bookings and approvals
 - Advanced analytics dashboard
-- Improved event recommendation system
-- React-based frontend upgrade
-- Enhanced filtering and sorting options
-- QR code ticket generation
-- Booking confirmation email support
+- Event recommendation engine
+- Better sorting and filtering controls
+- REST API layer for future integrations
+- React or modern frontend migration
 
 ---
 
@@ -188,11 +261,18 @@ The project can be extended further with the following enhancements:
 | Field | Details |
 |---|---|
 | **Name** | Subhanu Ravisankha Aththanayaka |
-| **Education** | SLIIT Undergraduate – BSc (Hons) in IT |
-| **Academic Focus** | Software Engineering and AI Systems |
+| **Institution** | SLIIT |
+| **Program** | BSc (Hons) in IT |
+| **Focus Areas** | Software Engineering, Web Systems, and AI-Oriented Development |
 
 ---
 
+## Conclusion
+
+**EventHorizon** is a practical and professionally structured event booking platform that combines customer operations, event lifecycle control, booking workflows, and permission-based administration in one complete system.
+
+It reflects hands-on experience in building, debugging, deploying, and improving a real-world style Java web application.
+
 <p align="center">
-  <sub>Designed as a practical full-stack application for real-world learning and system development.</sub>
+  <sub>Built as a full-stack learning project with a strong focus on practical system design, workflow logic, and professional implementation.</sub>
 </p>
