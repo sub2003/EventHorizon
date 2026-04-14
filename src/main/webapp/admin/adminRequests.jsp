@@ -1,76 +1,115 @@
 <%@ page import="java.util.List" %>
-<%@ page import="com.eventhorizon.model.AdminRequest" %>
+<%@ page import="java.util.Map" %>
+<%
+    request.setAttribute("pageTitle", "Admin Requests");
+%>
+<%@ include file="layout.jsp" %>
 
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Requests</title>
-    <link rel="stylesheet" href="../css/admin.css">
-</head>
+<div class="panel">
+    <div class="panel-header">
+        <h2>Pending Admin Requests</h2>
+        <p>Review and approve or reject admin access requests.</p>
+    </div>
 
-<body class="admin-body">
+    <%
+        String msg = request.getParameter("msg");
+        String error = request.getParameter("error");
 
-<div class="layout">
+        if ("approved".equals(msg)) {
+    %>
+        <div class="alert success">Admin request approved successfully.</div>
+    <%
+        } else if ("rejected".equals(msg)) {
+    %>
+        <div class="alert success">Admin request rejected successfully.</div>
+    <%
+        }
 
-    <aside class="sidebar">
-        <h2 class="logo">EVENTHORIZON</h2>
+        if ("approveFailed".equals(error)) {
+    %>
+        <div class="alert error">Failed to approve request. You may be approving your own request or the email already exists.</div>
+    <%
+        } else if ("rejectFailed".equals(error)) {
+    %>
+        <div class="alert error">Failed to reject request. You may be rejecting your own request.</div>
+    <%
+        }
+    %>
 
-        <nav>
-            <a href="dashboard.jsp">Dashboard</a>
-            <a href="users.jsp">Users</a>
-            <a href="../event?action=list">Events</a>
-            <a href="../booking?action=list">Bookings</a>
-            <a class="active">Admin Requests</a>
-        </nav>
-    </aside>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th>Request ID</th>
+                <th>Requested By</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Requested At</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <%
+                String currentAdminId = (String) session.getAttribute("userId");
+                List<Map<String, String>> list =
+                        (List<Map<String, String>>) request.getAttribute("adminRequests");
 
-    <main class="main">
+                if (list != null && !list.isEmpty()) {
+                    for (Map<String, String> r : list) {
+                        boolean ownRequest = currentAdminId != null &&
+                                currentAdminId.equals(r.get("requesterAdminId"));
+            %>
+            <tr>
+                <td><%= r.get("requestId") %></td>
+                <td><%= r.get("requesterAdminId") %></td>
+                <td><%= r.get("requestedName") %></td>
+                <td><%= r.get("requestedEmail") %></td>
+                <td><%= r.get("requestedPhone") %></td>
+                <td><%= r.get("requestedAt") %></td>
+                <td>
+                    <div class="action-group">
+                        <%
+                            if (ownRequest) {
+                        %>
+                            <button class="btn disabled" disabled>Approve</button>
+                            <button class="btn disabled" disabled>Reject</button>
+                        <%
+                            } else {
+                        %>
+                            <form action="<%= request.getContextPath() %>/user" method="post" style="display:inline;">
+                                <input type="hidden" name="action" value="approveAdminRequest">
+                                <input type="hidden" name="requestId" value="<%= r.get("requestId") %>">
+                                <button type="submit" class="btn primary">Approve</button>
+                            </form>
 
-        <h1 class="page-title">Admin Requests</h1>
-
-        <div class="card">
-            <table class="modern-table">
-
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Time</th>
-                    <th>Action</th>
-                </tr>
-                </thead>
-
-                <tbody>
-                <%
-                    List<AdminRequest> list = (List<AdminRequest>) request.getAttribute("adminRequests");
-                    if (list != null) {
-                        for (AdminRequest r : list) {
-                %>
-                <tr>
-                    <td><%= r.getRequestId() %></td>
-                    <td><%= r.getName() %></td>
-                    <td><%= r.getEmail() %></td>
-                    <td><%= r.getPhone() %></td>
-                    <td><%= r.getRequestedAt() %></td>
-
-                    <td>
-                        <a href="../user?action=approveAdmin&id=<%= r.getRequestId() %>"
-                           class="btn-success">Approve</a>
-
-                        <a href="../user?action=rejectAdmin&id=<%= r.getRequestId() %>"
-                           class="btn-danger">Reject</a>
-                    </td>
-                </tr>
-                <% }} %>
-                </tbody>
-
-            </table>
-        </div>
+                            <form action="<%= request.getContextPath() %>/user" method="post" style="display:inline;">
+                                <input type="hidden" name="action" value="rejectAdminRequest">
+                                <input type="hidden" name="requestId" value="<%= r.get("requestId") %>">
+                                <button type="submit" class="btn danger">Reject</button>
+                            </form>
+                        <%
+                            }
+                        %>
+                    </div>
+                </td>
+            </tr>
+            <%
+                    }
+                } else {
+            %>
+            <tr>
+                <td colspan="7" class="empty-cell">No pending admin requests.</td>
+            </tr>
+            <%
+                }
+            %>
+            </tbody>
+        </table>
+    </div>
+</div>
 
     </main>
 </div>
-
 </body>
 </html>
