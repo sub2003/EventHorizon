@@ -1,56 +1,76 @@
 <%@ page import="java.util.List" %>
 <%@ page import="com.eventhorizon.model.User" %>
-<%
-    request.setAttribute("pageTitle", "Users");
-%>
-<%@ include file="layout.jsp" %>
 
-<div class="panel">
-    <div class="panel-header">
-        <h2>Registered Users</h2>
-        <p>Manage customers and admin accounts from one place.</p>
-    </div>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Users - EventHorizon</title>
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
 
-    <div class="table-wrap">
-        <table class="data-table">
-            <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Role</th>
-            </tr>
-            </thead>
-            <tbody>
-            <%
-                List<User> users = (List<User>) request.getAttribute("users");
-                if (users != null && !users.isEmpty()) {
-                    for (User u : users) {
-            %>
-            <tr>
-                <td><%= u.getUserId() %></td>
-                <td><%= u.getName() %></td>
-                <td><%= u.getEmail() %></td>
-                <td><%= u.getPhone() %></td>
-                <td><span class="badge-role"><%= u.getRole() %></span></td>
-            </tr>
-            <%
-                    }
-                } else {
-            %>
-            <tr>
-                <td colspan="5" class="empty-cell">No users found.</td>
-            </tr>
-            <%
-                }
-            %>
-            </tbody>
-        </table>
-    </div>
-</div>
+<body class="admin-body">
+
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <h2 class="logo">EVENTHORIZON</h2>
+
+        <nav>
+            <a href="dashboard.jsp">Dashboard</a>
+            <a class="active">Users</a>
+            <a href="../event?action=list">Events</a>
+            <a href="../booking?action=list">Bookings</a>
+            <a href="../user?action=listAdminRequests">Admin Requests</a>
+        </nav>
+
+        <form action="../user" method="post">
+            <input type="hidden" name="action" value="logout"/>
+            <button class="logout-btn">Logout</button>
+        </form>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+
+        <h1 class="page-title">Users</h1>
+
+        <div class="card">
+            <table class="modern-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <%
+                    List<User> users = (List<User>) request.getAttribute("users");
+                    if (users != null) {
+                        for (User u : users) {
+                %>
+                <tr>
+                    <td><%= u.getUserId() %></td>
+                    <td><%= u.getName() %></td>
+                    <td><%= u.getEmail() %></td>
+                    <td><%= u.getPhone() %></td>
+                    <td>
+                        <span class="badge <%= u.getRole() %>">
+                            <%= u.getRole() %>
+                        </span>
+                    </td>
+                </tr>
+                <% }} %>
+                </tbody>
+            </table>
+        </div>
 
     </main>
 </div>
+
 </body>
 </html>

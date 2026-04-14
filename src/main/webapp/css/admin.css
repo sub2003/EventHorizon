@@ -1,65 +1,106 @@
-.table-container {
-    background: rgba(255,255,255,0.05);
-    padding: 20px;
-    border-radius: 12px;
-    backdrop-filter: blur(10px);
+body.admin-body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a, #020617);
+    color: white;
 }
 
-table {
+.layout {
+    display: flex;
+}
+
+/* Sidebar */
+.sidebar {
+    width: 240px;
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(20px);
+    padding: 20px;
+    height: 100vh;
+}
+
+.sidebar .logo {
+    font-size: 20px;
+    margin-bottom: 30px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 12px;
+    margin-bottom: 10px;
+    color: #ccc;
+    text-decoration: none;
+    border-radius: 10px;
+    transition: 0.3s;
+}
+
+.sidebar a:hover,
+.sidebar a.active {
+    background: linear-gradient(45deg, #6366f1, #06b6d4);
+    color: white;
+}
+
+/* Main */
+.main {
+    flex: 1;
+    padding: 40px;
+}
+
+.page-title {
+    font-size: 32px;
+    margin-bottom: 20px;
+}
+
+/* Card */
+.card {
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 20px;
+}
+
+/* Table */
+.modern-table {
     width: 100%;
     border-collapse: collapse;
 }
 
-thead {
-    background: linear-gradient(135deg, #7c3aed, #06b6d4);
-}
-
-th, td {
-    padding: 12px;
+.modern-table th {
     text-align: left;
+    padding: 12px;
+    background: linear-gradient(90deg, #6366f1, #06b6d4);
 }
 
-th {
-    color: white;
-}
-
-td {
+.modern-table td {
+    padding: 12px;
     border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
-tr:hover {
-    background: rgba(255,255,255,0.05);
-}
-
-.btn {
-    padding: 6px 12px;
+/* Buttons */
+.btn-success {
+    background: #22c55e;
+    padding: 6px 10px;
     border-radius: 6px;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-primary {
-    background: #7c3aed;
     color: white;
+    text-decoration: none;
 }
 
 .btn-danger {
     background: #ef4444;
-    color: white;
-}
-
-.form-box {
-    background: rgba(255,255,255,0.05);
-    padding: 25px;
-    border-radius: 12px;
-    max-width: 500px;
-}
-
-input, select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 8px;
-    margin-bottom: 15px;
+    padding: 6px 10px;
     border-radius: 6px;
-    border: none;
+    color: white;
+    text-decoration: none;
+}
+
+/* Badge */
+.badge {
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.badge.ADMIN {
+    background: #6366f1;
+}
+
+.badge.CUSTOMER {
+    background: #06b6d4;
 }
