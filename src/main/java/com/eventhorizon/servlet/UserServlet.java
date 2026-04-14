@@ -35,21 +35,31 @@ public class UserServlet extends HttpServlet {
                 handleUpdateProfile(req, resp);
                 break;
             case "adminUpdate":
+                requireFullAccessAdmin(req, resp);
+                if (resp.isCommitted()) return;
                 handleAdminUpdate(req, resp);
                 break;
             case "delete":
+                requireFullAccessAdmin(req, resp);
+                if (resp.isCommitted()) return;
                 handleDelete(req, resp);
                 break;
             case "requestAdmin":
+                requireFullAccessAdmin(req, resp);
+                if (resp.isCommitted()) return;
                 handleRequestAdmin(req, resp);
                 break;
             case "requestPublicAdmin":
                 resp.sendRedirect(req.getContextPath() + "/register.jsp?error=notAllowed");
                 break;
             case "approveAdminRequest":
+                requireFullAccessAdmin(req, resp);
+                if (resp.isCommitted()) return;
                 handleApproveAdminRequest(req, resp);
                 break;
             case "rejectAdminRequest":
+                requireFullAccessAdmin(req, resp);
+                if (resp.isCommitted()) return;
                 handleRejectAdminRequest(req, resp);
                 break;
             default:
@@ -69,11 +79,8 @@ public class UserServlet extends HttpServlet {
         }
 
         if ("list".equals(action)) {
-            HttpSession session = req.getSession(false);
-            if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-                resp.sendRedirect(req.getContextPath() + "/login.jsp");
-                return;
-            }
+            requireFullAccessAdmin(req, resp);
+            if (resp.isCommitted()) return;
 
             req.setAttribute("users", userService.getAllUsers());
             req.getRequestDispatcher("/admin/users.jsp").forward(req, resp);
@@ -81,22 +88,16 @@ public class UserServlet extends HttpServlet {
         }
 
         if ("addAdminForm".equals(action)) {
-            HttpSession session = req.getSession(false);
-            if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-                resp.sendRedirect(req.getContextPath() + "/login.jsp");
-                return;
-            }
+            requireFullAccessAdmin(req, resp);
+            if (resp.isCommitted()) return;
 
             req.getRequestDispatcher("/admin/addAdmin.jsp").forward(req, resp);
             return;
         }
 
         if ("listAdminRequests".equals(action)) {
-            HttpSession session = req.getSession(false);
-            if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-                resp.sendRedirect(req.getContextPath() + "/login.jsp");
-                return;
-            }
+            requireFullAccessAdmin(req, resp);
+            if (resp.isCommitted()) return;
 
             req.setAttribute("adminRequests", userService.getPendingAdminRequests());
             req.getRequestDispatcher("/admin/adminRequests.jsp").forward(req, resp);
@@ -142,13 +143,17 @@ public class UserServlet extends HttpServlet {
 
             if ("ADMIN".equals(user.getRole()) && user instanceof Admin) {
                 Admin admin = (Admin) user;
-                session.setAttribute("adminPermission", admin.getAdminPermission());
+                String permission = admin.getAdminPermission();
+
+                session.setAttribute("adminPermission", permission);
                 session.setAttribute("canManageEvents", admin.canManageEvents());
                 session.setAttribute("canManageBookings", admin.canManageBookings());
+                session.setAttribute("hasFullAccess", UserService.hasFullAccess(permission));
             } else {
                 session.removeAttribute("adminPermission");
                 session.removeAttribute("canManageEvents");
                 session.removeAttribute("canManageBookings");
+                session.removeAttribute("hasFullAccess");
             }
 
             session.setMaxInactiveInterval(30 * 60);
@@ -207,11 +212,6 @@ public class UserServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = req.getSession(false);
-        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
-            return;
-        }
-
         String currentAdminId = (String) session.getAttribute("userId");
 
         String userId = trim(req.getParameter("userId"));
@@ -238,10 +238,12 @@ public class UserServlet extends HttpServlet {
                     session.setAttribute("adminPermission", normalizedPermission);
                     session.setAttribute("canManageEvents", UserService.hasEventAccess(normalizedPermission));
                     session.setAttribute("canManageBookings", UserService.hasBookingAccess(normalizedPermission));
+                    session.setAttribute("hasFullAccess", UserService.hasFullAccess(normalizedPermission));
                 } else {
                     session.removeAttribute("adminPermission");
                     session.removeAttribute("canManageEvents");
                     session.removeAttribute("canManageBookings");
+                    session.removeAttribute("hasFullAccess");
                 }
             }
             resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=updated");
@@ -254,11 +256,6 @@ public class UserServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = req.getSession(false);
-        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
-            return;
-        }
-
         String currentAdminId = (String) session.getAttribute("userId");
         String userId = trim(req.getParameter("userId"));
 
@@ -275,10 +272,6 @@ public class UserServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = req.getSession(false);
-        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
-            return;
-        }
 
         String requesterAdminId = (String) session.getAttribute("userId");
         String name = trim(req.getParameter("name"));
@@ -302,11 +295,6 @@ public class UserServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = req.getSession(false);
-        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
-            return;
-        }
-
         String approverAdminId = (String) session.getAttribute("userId");
         String requestId = trim(req.getParameter("requestId"));
 
@@ -323,11 +311,6 @@ public class UserServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = req.getSession(false);
-        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
-            return;
-        }
-
         String approverAdminId = (String) session.getAttribute("userId");
         String requestId = trim(req.getParameter("requestId"));
 
@@ -337,6 +320,21 @@ public class UserServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&msg=rejected");
         } else {
             resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&error=rejectFailed");
+        }
+    }
+
+    private void requireFullAccessAdmin(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        HttpSession session = req.getSession(false);
+        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String permission = (String) session.getAttribute("adminPermission");
+        if (!UserService.hasFullAccess(permission)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noFullAccess");
         }
     }
 

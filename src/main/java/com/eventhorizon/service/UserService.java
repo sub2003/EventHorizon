@@ -792,6 +792,11 @@ public class UserService {
                 || Admin.EVENTS_BOOKINGS.equals(p);
     }
 
+    public static boolean hasFullAccess(String permission) {
+        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
+        return Admin.FULL_ACCESS.equals(p);
+    }
+
     public static String permissionLabel(String permission) {
         String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
         switch (p) {
