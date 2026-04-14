@@ -223,6 +223,23 @@
             resize: vertical;
         }
 
+        .upload-preview {
+            width: 130px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            display: none;
+            margin-top: 10px;
+        }
+
+        .preview-text {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
         .form-actions {
             display: flex;
             gap: 12px;
@@ -527,6 +544,24 @@
             return confirm("Cancel this event?");
         }
 
+        function previewNewEventImage(input) {
+            const preview = document.getElementById("newEventPreview");
+            const previewText = document.getElementById("previewText");
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                    previewText.innerText = "Selected image preview";
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = "none";
+                previewText.innerText = "Choose an image to preview before saving.";
+            }
+        }
+
         window.onload = function () {
             filterEvents();
         };
@@ -567,7 +602,7 @@
     <div class="panel">
         <div class="panel-head">
             <h2>Add New Event</h2>
-            <p>This form matches your current servlet field names.</p>
+            <p>This form matches your servlet field names and saves images to the database.</p>
         </div>
 
         <div class="panel-body">
@@ -624,7 +659,9 @@
 
                     <div class="form-group">
                         <label>Event Image</label>
-                        <input type="file" name="eventImage" accept="image/*">
+                        <input type="file" name="eventImage" accept="image/*" onchange="previewNewEventImage(this)">
+                        <img id="newEventPreview" class="upload-preview" alt="New event preview">
+                        <div id="previewText" class="preview-text">Choose an image to preview before saving.</div>
                     </div>
 
                     <div class="form-group span-3">
@@ -706,7 +743,6 @@
                 <% } else { %>
                     <% for (Event event : events) { %>
                         <%
-                            String imagePath = event.getImagePath();
                             String description = event.getDescription() == null ? "" : event.getDescription();
                             String shortDescription = description.length() > 70 ? description.substring(0, 70) + "..." : description;
                         %>
@@ -723,13 +759,11 @@
                             <td class="event-id"><%= event.getEventId() %></td>
 
                             <td>
-                                <% if (imagePath != null && !imagePath.trim().isEmpty()) { %>
-                                    <img class="event-image"
-                                         src="<%=request.getContextPath()%>/<%= imagePath %>"
-                                         alt="event image">
-                                <% } else { %>
-                                    <div class="image-placeholder">No Image</div>
-                                <% } %>
+                                <img class="event-image"
+                                     src="<%=request.getContextPath()%>/event?action=image&id=<%= event.getEventId() %>"
+                                     alt="event image"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="image-placeholder" style="display:none;">No Image</div>
                             </td>
 
                             <td>

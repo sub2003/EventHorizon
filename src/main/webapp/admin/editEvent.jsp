@@ -23,8 +23,6 @@
         response.sendRedirect(request.getContextPath() + "/event?action=adminList");
         return;
     }
-
-    String imagePath = event.getImagePath();
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -114,9 +112,18 @@
             border: 1px solid var(--border-strong);
         }
 
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
         .btn-primary {
             color: white;
             background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            box-shadow: 0 12px 28px rgba(109, 40, 217, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
         }
 
         .panel {
@@ -191,6 +198,7 @@
             border-radius: 14px;
             border: 1px solid rgba(255,255,255,0.08);
             background: rgba(255,255,255,0.04);
+            display: block;
         }
 
         .placeholder {
@@ -204,6 +212,12 @@
             justify-content: center;
             color: #94a3b8;
             font-weight: 700;
+        }
+
+        .preview-note {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 6px;
         }
 
         .info-box {
@@ -230,14 +244,40 @@
             .span-2 {
                 grid-column: span 1;
             }
+
+            .current-image,
+            .placeholder {
+                width: 100%;
+                max-width: 240px;
+            }
         }
     </style>
+
+    <script>
+        function previewSelectedImage(input) {
+            const preview = document.getElementById("selectedImagePreview");
+            const placeholder = document.getElementById("selectedImagePlaceholder");
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = "block";
+                    placeholder.style.display = "none";
+                };
+                reader.readAsDataURL(input.files[0]);
+            } else {
+                preview.style.display = "none";
+                placeholder.style.display = "flex";
+            }
+        }
+    </script>
 </head>
 <body>
 <div class="page">
     <div class="hero">
         <h1>Edit Event</h1>
-        <p>Update event details using the same premium admin style.</p>
+        <p>Update event details with the same admin dashboard style.</p>
 
         <div class="actions">
             <a href="<%=request.getContextPath()%>/event?action=adminList" class="btn btn-outline">Back to Events</a>
@@ -299,16 +339,26 @@
 
                     <div class="form-group span-2">
                         <label>Current Image</label>
-                        <% if (imagePath != null && !imagePath.trim().isEmpty()) { %>
-                            <img src="<%=request.getContextPath()%>/<%= imagePath %>" alt="event image" class="current-image">
-                        <% } else { %>
-                            <div class="placeholder">No Image</div>
-                        <% } %>
+
+                        <img
+                            src="<%=request.getContextPath()%>/event?action=image&id=<%= event.getEventId() %>"
+                            alt="Current event image"
+                            class="current-image"
+                            onerror="this.style.display='none'; document.getElementById('currentImagePlaceholder').style.display='flex';">
+
+                        <div id="currentImagePlaceholder" class="placeholder" style="display:none;">
+                            No Image
+                        </div>
+
+                        <div class="preview-note">This image is loaded from the database.</div>
                     </div>
 
                     <div class="form-group span-2">
                         <label>Replace Image</label>
-                        <input type="file" name="eventImage" accept="image/*">
+                        <input type="file" name="eventImage" accept="image/*" onchange="previewSelectedImage(this)">
+
+                        <img id="selectedImagePreview" class="current-image" style="display:none; margin-top:12px;" alt="Selected image preview">
+                        <div id="selectedImagePlaceholder" class="preview-note">Choose a new image only if you want to replace the current one.</div>
                     </div>
 
                     <div class="form-group span-2">
