@@ -1,162 +1,144 @@
 <h1 align="center">EventHorizon</h1>
-<h3 align="center">Event Booking Web Application</h3>
 
 <p align="center">
-A full-stack Java web application for discovering events, booking tickets, and managing event operations with role-based access, admin approval workflows, and real-time seat updates.
+  <b>Event Booking Web Application</b><br>
+  A full-stack Java web application for event discovery, ticket booking, and admin management.
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white"/>
-  <img src="https://img.shields.io/badge/JSP-323330?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/Servlets-6DB33F?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/Tomcat-F8DC75?style=for-the-badge&logo=apachetomcat&logoColor=black"/>
-  <img src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white"/>
-  <img src="https://img.shields.io/badge/JDBC-000000?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/Maven-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white"/>
+  <a href="https://glistening-light-production-f277.up.railway.app/">
+    <img src="https://img.shields.io/badge/Live%20App-Railway-6C63FF?style=for-the-badge"/>
+  </a>
 </p>
 
 ---
 
-## Live Demo
+## Overview
 
-**Railway Deployment (Primary)**  
-https://glistening-light-production-f277.up.railway.app/
-
-**Temporary Demo (ngrok)**  
-https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon  
-
-> Note: ngrok link may not always be active.
+EventHorizon is a complete web-based event management and booking system built using Java (JSP & Servlets).  
+It provides a structured platform for customers to explore and book events, while administrators manage events, users, and system operations.
 
 ---
 
-## Features
+## Live Deployment
 
-### Authentication & Access Control
-- Secure login for Admins and Customers
-- Session-based authentication
-- Role-based access control
-- Separate registration flow for customers
-- Admin request system with approval workflow
+| Environment | Link |
+|------------|------|
+| **Railway (Production)** | https://glistening-light-production-f277.up.railway.app/ |
+| **ngrok (Temporary)** | https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon |
 
 ---
 
-### Admin Approval Workflow
-- Users can request admin access  
-- Existing admins can create admin requests  
-- Pending requests can be approved or rejected  
-- Admins cannot approve their own requests  
-- Approved requests create new admin accounts  
+## Technology Stack
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-ED8B00?style=flat-square&logo=java&logoColor=white"/>
+  <img src="https://img.shields.io/badge/JSP-323330?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Servlets-6DB33F?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Tomcat-F8DC75?style=flat-square&logo=apachetomcat&logoColor=black"/>
+  <img src="https://img.shields.io/badge/MySQL-4479A1?style=flat-square&logo=mysql&logoColor=white"/>
+  <img src="https://img.shields.io/badge/JDBC-000000?style=flat-square"/>
+  <img src="https://img.shields.io/badge/Maven-C71A36?style=flat-square&logo=apachemaven&logoColor=white"/>
+</p>
+
+---
+
+## Architecture
+
+| Layer        | Description |
+|-------------|------------|
+| **Model**    | Java classes (Event, User, Booking) |
+| **View**     | JSP pages |
+| **Controller** | Servlets |
+| **Database** | MySQL via JDBC |
+
+Follows the **MVC pattern** for clear separation of concerns.
+
+---
+
+## Core Features
+
+### Authentication & Access
+- Session-based login system  
+- Role-based authorization (Admin / Customer)  
+- Separate registration flows  
+- Admin request approval system  
 
 ---
 
 ### Event Management
-- View all active events  
-- View event details (date, time, venue, seats)  
-- Search events by title or venue  
-- Filter events by category  
-- Admin capabilities:
-  - Add events  
-  - Update events  
-  - Cancel or delete events  
-- Event image upload support  
+- View and explore events  
+- Search by title or venue  
+- Filter by category  
+- Event image upload  
+- Admin CRUD operations  
 
 ---
 
 ### Booking System
-- Book tickets for events  
-- Real-time seat availability updates  
-- Cancel bookings with seat restoration  
-- View personal bookings  
+- Ticket booking  
+- Live seat availability updates  
+- Booking cancellation with seat restoration  
+- Personal booking history  
 
 ---
 
-### User Management
-- Customer profile management  
-- Admin user management  
-- Role-based dashboards  
-
----
-
-### UI / UX
-- Dark-themed interface  
-- Smooth animations and transitions  
-- Search and category filtering  
-- Responsive layout  
-
----
-
-## System Architecture
-
-Follows the **MVC (Model-View-Controller)** pattern:
-
-- **Model** → Java classes (Event, User, Booking, Admin)
-- **View** → JSP pages  
-- **Controller** → Servlets  
-- **Database Layer** → JDBC with MySQL  
-
----
-
-## Technologies Used
-
-- Java (Core + OOP)
-- JSP & Servlets
-- Apache Tomcat
-- MySQL
-- JDBC
-- HTML / CSS / JavaScript
-- Maven
+### Admin Controls
+- Manage users  
+- Manage events  
+- View bookings  
+- Approve or reject admin requests  
 
 ---
 
 ## Modules
 
 ### Customer
-- Register and log in  
-- Browse and search events  
-- Book tickets  
-- Manage bookings  
+- Register and login  
+- Browse and filter events  
+- Book and manage tickets  
 
 ### Admin
-- Manage events  
-- Manage users  
-- View bookings  
+- Manage events and users  
+- Handle bookings  
 - Approve admin requests  
 
 ---
 
-## Notes
+## Project Structure
 
-- Email verification is disabled in deployment due to SMTP limitations  
-- Railway deployment uses environment variables  
-- Database hosted on Railway MySQL  
-- Designed for learning and real-world practice  
+<p align="center">
+  <img src="https://github.com/sub2003/EventHorizon/blob/main/src/Screenshot%202026-04-11%20175107.png?raw=true" width="700"/>
+</p>
 
 ---
 
-## Future Improvements
+## Deployment Notes
 
-- Add password hashing (bcrypt)  
-- Integrate email API (Resend / SendGrid)  
-- Add payment gateway  
-- Improve frontend (React / SPA)  
-- Add analytics dashboard  
+- Hosted on **Railway (Java + MySQL)**
+- Environment variables used for database connection
+- Email verification disabled in production environment
+
+---
+
+## Future Enhancements
+
+- Password hashing (bcrypt)  
+- Email integration (Resend / SendGrid)  
+- Payment gateway integration  
+- Frontend modernization (React)  
+- Analytics dashboard  
 
 ---
 
 ## Author
 
-Subhanu Ravisankha Aththanayaka  
+**Subhanu Ravisankha Aththanayaka**  
 SLIIT Undergraduate  
 BSc (Hons) in IT  
 
 ---
 
-## Final Note
-
-EventHorizon demonstrates a complete **full-stack Java web application**, including authentication, admin workflows, booking systems, and database integration in a real-world project.
-
----
-
 <p align="center">
-Built for learning, innovation, and real-world application development.
+  <sub>Built for learning and real-world application development</sub>
 </p>
