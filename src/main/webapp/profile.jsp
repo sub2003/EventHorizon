@@ -10,6 +10,8 @@
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
+
+    String role = (String) session.getAttribute("role");
 %>
 
 <!DOCTYPE html>
@@ -29,7 +31,15 @@
     <ul class="navbar-links">
         <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
         <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
+
+        <% if ("CUSTOMER".equals(role)) { %>
+            <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
+        <% } %>
+
+        <% if ("ADMIN".equals(role)) { %>
+            <li><a href="${pageContext.request.contextPath}/admin/dashboard.jsp">Dashboard</a></li>
+        <% } %>
+
         <li><a href="${pageContext.request.contextPath}/profile.jsp" class="active">Profile</a></li>
         <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
     </ul>
@@ -40,7 +50,7 @@
 
     <c:if test="${param.msg == 'updated'}">
         <div class="alert alert-success" data-auto-dismiss>
-            ✅ Profile updated successfully!
+            ✅ Profile updated successfully.
         </div>
     </c:if>
 
@@ -99,7 +109,7 @@
                        id="password"
                        name="password"
                        class="form-control"
-                       placeholder="Leave blank to keep current">
+                       placeholder="Enter a new password">
             </div>
 
             <button type="submit" class="btn btn-primary btn-block">
@@ -109,9 +119,15 @@
     </div>
 
     <div style="text-align:center;margin-top:24px;">
-        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="btn btn-outline">
-            🎟️ View My Bookings
-        </a>
+        <% if ("CUSTOMER".equals(role)) { %>
+            <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="btn btn-outline">
+                🎟️ View My Bookings
+            </a>
+        <% } else if ("ADMIN".equals(role)) { %>
+            <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="btn btn-outline">
+                🛠 Go to Dashboard
+            </a>
+        <% } %>
     </div>
 </div>
 

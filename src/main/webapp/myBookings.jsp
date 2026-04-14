@@ -6,7 +6,10 @@
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
 
-    if (session.getAttribute("userId") == null) {
+    Object userId = session.getAttribute("userId");
+    Object role = session.getAttribute("role");
+
+    if (userId == null || role == null || !"CUSTOMER".equals(role.toString())) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
@@ -44,15 +47,21 @@
         </a>
     </div>
 
-    <c:if test="${param.msg == 'booked'}">
-        <div class="alert alert-success" data-auto-dismiss>
-            ✅ Booking confirmed! Your tickets are reserved.
+    <c:if test="${param.msg == 'paymentPending'}">
+        <div class="alert alert-info" data-auto-dismiss>
+            ⏳ Payment submitted successfully. Your booking is waiting for admin approval.
         </div>
     </c:if>
 
     <c:if test="${param.msg == 'cancelled'}">
         <div class="alert alert-info" data-auto-dismiss>
             🔄 Booking has been cancelled successfully.
+        </div>
+    </c:if>
+
+    <c:if test="${param.error == 'unauthorized'}">
+        <div class="alert alert-danger" data-auto-dismiss>
+            ❌ You are not allowed to modify that booking.
         </div>
     </c:if>
 
@@ -65,9 +74,10 @@
                         <th>Booking ID</th>
                         <th>Event</th>
                         <th>Tickets</th>
-                        <th>Total Paid</th>
+                        <th>Total Amount</th>
                         <th>Date</th>
-                        <th>Status</th>
+                        <th>Booking Status</th>
+                        <th>Payment</th>
                         <th>Action</th>
                     </tr>
                     </thead>
@@ -75,20 +85,10 @@
                     <tbody>
                     <c:forEach var="b" items="${bookings}">
                         <tr>
-                            <td class="booking-id-cell">
-                                ${b.bookingId}
-                            </td>
-
-                            <td class="booking-event-cell">
-                                ${b.eventTitle}
-                            </td>
-
+                            <td class="booking-id-cell">${b.bookingId}</td>
+                            <td class="booking-event-cell">${b.eventTitle}</td>
                             <td>${b.numberOfTickets}</td>
-
-                            <td class="booking-price-cell">
-                                LKR ${b.totalAmount}
-                            </td>
-
+                            <td class="booking-price-cell">LKR ${b.totalAmount}</td>
                             <td>${b.bookingDate}</td>
 
                             <td>
@@ -104,6 +104,27 @@
 
                             <td>
                                 <c:choose>
+                                    <c:when test="${b.paymentStatus == 'APPROVED'}">
+                                        <span class="badge badge-success">APPROVED</span>
+                                    </c:when>
+                                    <c:when test="${b.paymentStatus == 'REJECTED'}">
+                                        <span class="badge badge-danger">REJECTED</span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span class="badge badge-warning">PENDING</span>
+                                    </c:otherwise>
+                                </c:choose>
+                            </td>
+
+                            <td>
+                                <c:choose>
+                                    <c:when test="${b.status == 'CONFIRMED' and b.paymentStatus == 'APPROVED'}">
+                                        <a href="${pageContext.request.contextPath}/ticket?action=myTickets&bookingId=${b.bookingId}"
+                                           class="btn btn-primary btn-sm">
+                                            View Tickets
+                                        </a>
+                                    </c:when>
+
                                     <c:when test="${b.status == 'CONFIRMED'}">
                                         <form action="${pageContext.request.contextPath}/booking"
                                               method="post"

@@ -302,14 +302,18 @@
         <li><a href="${pageContext.request.contextPath}/event?action=list" class="active">Events</a></li>
 
         <c:choose>
-            <c:when test="${not empty sessionScope.userId}">
-                <c:if test="${sessionScope.role == 'ADMIN'}">
-                    <li><a href="${pageContext.request.contextPath}/event?action=adminList">Admin Panel</a></li>
-                </c:if>
+            <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
+                <li><a href="${pageContext.request.contextPath}/admin/dashboard.jsp">Dashboard</a></li>
+                <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
+                <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
+            </c:when>
+
+            <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
                 <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
                 <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
                 <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
             </c:when>
+
             <c:otherwise>
                 <li><a href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
                 <li><a href="${pageContext.request.contextPath}/register.jsp" class="btn-nav">Sign Up</a></li>

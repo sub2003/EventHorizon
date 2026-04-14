@@ -3,7 +3,13 @@
 
 <%
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    if (session.getAttribute("userId") == null) {
+    response.setHeader("Pragma", "no-cache");
+    response.setDateHeader("Expires", 0);
+
+    Object userId = session.getAttribute("userId");
+    Object role = session.getAttribute("role");
+
+    if (userId == null || role == null || !"CUSTOMER".equals(role.toString())) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
@@ -17,7 +23,6 @@
     <title>My Tickets – EventHorizon</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <!-- QR Code generation library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body { background: #020617; min-height: 100vh; }
@@ -56,7 +61,6 @@
         }
         .btn-back:hover { background: rgba(255,255,255,0.1); color: #f1f5f9; }
 
-        /* Pending state */
         .pending-box {
             background: rgba(250,204,21,0.07);
             border: 1px solid rgba(250,204,21,0.22);
@@ -68,7 +72,6 @@
         .pending-box h2 { color: #fde68a; font-size: 1.5rem; margin: 0 0 10px; }
         .pending-box p  { color: #94a3b8; max-width: 460px; margin: 0 auto; line-height: 1.6; }
 
-        /* Ticket grid */
         .tickets-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -130,7 +133,6 @@
             font-weight: 700;
         }
 
-        /* QR code container */
         .qr-wrapper {
             display: flex;
             justify-content: center;
@@ -203,6 +205,7 @@
         <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
         <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
         <li><a href="${pageContext.request.contextPath}/booking?action=myBookings" class="active">My Bookings</a></li>
+        <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
         <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
     </ul>
 </nav>
@@ -215,7 +218,6 @@
         </a>
     </div>
 
-    <%-- Payment still pending --%>
     <c:if test="${paymentPending}">
         <div class="pending-box">
             <div class="pending-icon">⏳</div>
@@ -232,7 +234,6 @@
         </div>
     </c:if>
 
-    <%-- Tickets available --%>
     <c:if test="${not paymentPending}">
         <c:choose>
             <c:when test="${not empty tickets}">
@@ -251,7 +252,6 @@
                                 </c:choose>
                             </div>
 
-                            <%-- QR Code rendered by JS --%>
                             <div class="qr-wrapper">
                                 <div class="qr-box">
                                     <div class="qr-canvas"
@@ -298,7 +298,6 @@
 
 <script src="${pageContext.request.contextPath}/js/main.js"></script>
 <script>
-    // Generate a QR code for each ticket using its unique qrToken
     document.querySelectorAll('.qr-canvas').forEach(function (el) {
         var token = el.getAttribute('data-token');
         new QRCode(el, {

@@ -14,8 +14,6 @@
         <div class="auth-logo">⬡ EVENTHORIZON</div>
         <p class="auth-subtitle">Sign in to your account</p>
 
-        <!-- ================= FLASH MESSAGES ================= -->
-
         <% if ("invalid".equals(request.getParameter("error"))) { %>
             <div class="alert alert-danger" data-auto-dismiss>
                 ❌ Invalid email or password.
@@ -42,13 +40,13 @@
 
         <% if ("registered".equals(request.getParameter("msg"))) { %>
             <div class="alert alert-success" data-auto-dismiss>
-                ✅ Account created! Please log in.
+                ✅ Account created successfully. Please log in.
             </div>
         <% } %>
 
         <% if ("checkEmail".equals(request.getParameter("msg"))) { %>
             <div class="alert alert-info" data-auto-dismiss>
-                📧 Registration successful! Check your email to verify your account.
+                📧 Registration successful. Check your email to verify your account.
             </div>
         <% } %>
 
@@ -64,14 +62,20 @@
             </div>
         <% } %>
 
-        <!-- ================= LOGIN FORM ================= -->
+        <% if ("notAllowed".equals(request.getParameter("error"))) { %>
+            <div class="alert alert-danger" data-auto-dismiss>
+                ❌ That action is not allowed.
+            </div>
+        <% } %>
 
         <form action="user" method="post" class="needs-validation">
             <input type="hidden" name="action" value="login">
 
             <div class="form-group">
                 <label class="form-label" for="email">Email Address</label>
-                <input type="email" id="email" name="email"
+                <input type="email"
+                       id="email"
+                       name="email"
                        class="form-control"
                        placeholder="you@example.com"
                        required>
@@ -79,7 +83,9 @@
 
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>
-                <input type="password" id="password" name="password"
+                <input type="password"
+                       id="password"
+                       name="password"
                        class="form-control"
                        placeholder="••••••••"
                        required>
@@ -89,8 +95,6 @@
                 🚀 Sign In
             </button>
         </form>
-
-        <!-- ================= EXTRA LINKS ================= -->
 
         <p style="text-align:center;margin-top:24px;color:var(--text-muted);font-size:0.9rem;">
             Don't have an account?
@@ -105,13 +109,10 @@
             </a>
         </p>
 
-        <!-- ================= DEMO INFO ================= -->
-
         <div class="alert alert-info" style="margin-top:24px;font-size:0.82rem;">
             <div><strong>Demo Admin:</strong> admin@eventhorizon.com / admin123</div>
-            <div style="margin-top:4px;"><strong>Demo User:</strong> bob@gmail.com / pass123</div>
+            <div style="margin-top:4px;"><strong>Demo Customer:</strong> bob@gmail.com / pass123</div>
         </div>
-
     </div>
 </div>
 

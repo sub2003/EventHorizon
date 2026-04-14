@@ -10,7 +10,6 @@
 </head>
 <body>
 
-<!-- ===== NAVBAR ===== -->
 <nav class="navbar">
     <a href="index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
 
@@ -23,14 +22,18 @@
         <li><a href="event?action=list">Events</a></li>
 
         <c:choose>
-            <c:when test="${not empty sessionScope.userId}">
-                <c:if test="${sessionScope.role == 'ADMIN'}">
-                    <li><a href="admin/dashboard.jsp">Admin Panel</a></li>
-                </c:if>
+            <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
+                <li><a href="admin/dashboard.jsp">Dashboard</a></li>
+                <li><a href="profile.jsp">Profile</a></li>
+                <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
+            </c:when>
+
+            <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
                 <li><a href="booking?action=myBookings">My Bookings</a></li>
                 <li><a href="profile.jsp">Profile</a></li>
                 <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
             </c:when>
+
             <c:otherwise>
                 <li><a href="login.jsp">Login</a></li>
                 <li><a href="register.jsp" class="btn-nav">Sign Up</a></li>
@@ -39,7 +42,6 @@
     </ul>
 </nav>
 
-<!-- ===== HERO ===== -->
 <section class="hero">
     <div class="hero-content">
         <span class="hero-badge">Premium Event Booking Platform</span>
@@ -60,7 +62,6 @@
     </div>
 </section>
 
-<!-- ===== FEATURES ===== -->
 <section class="features-section">
     <div class="container">
         <div class="section-header">
@@ -99,7 +100,6 @@
     </div>
 </section>
 
-<!-- ===== CTA ===== -->
 <section class="home-cta">
     <div class="container">
         <div class="cta-box">
@@ -110,7 +110,6 @@
     </div>
 </section>
 
-<!-- ===== PREMIUM FOOTER ===== -->
 <footer class="footer">
     <div class="container footer-container">
         <div class="footer-col footer-brand-col">
@@ -126,8 +125,12 @@
             <ul>
                 <li><a href="index.jsp">Home</a></li>
                 <li><a href="event?action=list">Events</a></li>
-                <li><a href="booking?action=myBookings">My Bookings</a></li>
-                <li><a href="profile.jsp">Profile</a></li>
+                <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
+                    <li><a href="booking?action=myBookings">My Bookings</a></li>
+                </c:if>
+                <c:if test="${not empty sessionScope.userId}">
+                    <li><a href="profile.jsp">Profile</a></li>
+                </c:if>
             </ul>
         </div>
 

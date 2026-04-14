@@ -25,6 +25,7 @@
 
         <c:if test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
             <li><a href="admin/dashboard.jsp">Dashboard</a></li>
+            <li><a href="profile.jsp">Profile</a></li>
             <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
         </c:if>
 
