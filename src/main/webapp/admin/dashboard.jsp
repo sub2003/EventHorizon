@@ -1,13 +1,23 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="com.eventhorizon.model.Admin" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
 <%
     HttpSession currentSession = request.getSession(false);
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
     String userName = currentSession != null ? (String) currentSession.getAttribute("userName") : null;
+    String adminPermission = currentSession != null ? (String) currentSession.getAttribute("adminPermission") : null;
 
     if (currentSession == null || role == null || !"ADMIN".equals(role)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
+
+    if (adminPermission == null || adminPermission.trim().isEmpty()) {
+        adminPermission = Admin.FULL_ACCESS;
+    }
+
+    boolean canManageEvents = UserService.hasEventAccess(adminPermission);
+    boolean canManageBookings = UserService.hasBookingAccess(adminPermission);
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -54,19 +64,28 @@
                     <span>Admin Requests</span>
                 </a>
 
+                <% if (canManageEvents) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList">
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Manage Events</span>
                 </a>
+                <% } %>
 
-                <a href="<%= request.getContextPath() %>/admin/bookings.jsp">
+                <% if (canManageBookings) { %>
+                <a href="<%= request.getContextPath() %>/booking?action=allBookings">
                     <i class="fa-solid fa-ticket"></i>
                     <span>Bookings</span>
                 </a>
+                <% } %>
             </nav>
         </div>
 
         <div class="sidebar-footer">
+            <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
+                <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
+                <strong><%= UserService.permissionLabel(adminPermission) %></strong>
+            </div>
+
             <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
                 <i class="fa-solid fa-globe"></i>
                 <span>Open Website</span>
@@ -89,28 +108,40 @@
 
             <div class="topbar-badge">
                 <i class="fa-solid fa-shield-halved"></i>
-                <span>Admin Access</span>
+                <span><%= UserService.permissionLabel(adminPermission) %></span>
             </div>
         </section>
+
+        <% if ("noEventPermission".equals(request.getParameter("error"))) { %>
+            <div class="alert alert-danger" style="margin-bottom:16px;">You do not have permission to manage events.</div>
+        <% } %>
+
+        <% if ("noBookingPermission".equals(request.getParameter("error"))) { %>
+            <div class="alert alert-danger" style="margin-bottom:16px;">You do not have permission to manage bookings.</div>
+        <% } %>
 
         <section class="hero-panel">
             <div class="hero-text">
                 <h2>Control your platform from one place</h2>
                 <p>
-                    Manage users, events, bookings, and admin approvals with a cleaner and more professional workflow.
+                    Your dashboard automatically adapts to your assigned admin permission category.
                 </p>
             </div>
 
             <div class="hero-actions">
+                <% if (canManageEvents) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList" class="primary-btn">
                     <i class="fa-solid fa-calendar-plus"></i>
                     <span>Manage Events</span>
                 </a>
+                <% } %>
 
-                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="secondary-btn">
+                <% if (canManageBookings) { %>
+                <a href="<%= request.getContextPath() %>/booking?action=allBookings" class="secondary-btn">
                     <i class="fa-solid fa-list-check"></i>
-                    <span>Review Requests</span>
+                    <span>Review Bookings</span>
                 </a>
+                <% } %>
             </div>
         </section>
 
@@ -123,70 +154,35 @@
                 </div>
             </div>
 
+            <% if (canManageEvents) { %>
             <div class="mini-card cyan">
-                <div class="mini-icon"><i class="fa-solid fa-user-shield"></i></div>
-                <div>
-                    <h3>Admin Workflow</h3>
-                    <p>Handle pending admin approval requests</p>
-                </div>
-            </div>
-
-            <div class="mini-card pink">
                 <div class="mini-icon"><i class="fa-solid fa-calendar-days"></i></div>
                 <div>
-                    <h3>Event Control</h3>
-                    <p>Create, update, cancel, or delete events</p>
+                    <h3>Event Management</h3>
+                    <p>Create, update and organize events</p>
                 </div>
             </div>
-        </section>
+            <% } %>
 
-        <section class="dashboard-grid">
+            <% if (canManageBookings) { %>
+            <div class="mini-card green">
+                <div class="mini-icon"><i class="fa-solid fa-ticket"></i></div>
+                <div>
+                    <h3>Booking Control</h3>
+                    <p>Track customer reservations and approvals</p>
+                </div>
+            </div>
+            <% } %>
 
-            <a href="<%= request.getContextPath() %>/user?action=list" class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-users"></i></div>
-                <h3>Manage Users</h3>
-                <p>Open the user management panel to review customers and admins.</p>
-                <span class="feature-link">Open Users <i class="fa-solid fa-arrow-right"></i></span>
-            </a>
-
-            <a href="<%= request.getContextPath() %>/user?action=addAdminForm" class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-user-plus"></i></div>
-                <h3>Request New Admin</h3>
-                <p>Create a new admin request that must be approved by another admin.</p>
-                <span class="feature-link">Open Request Form <i class="fa-solid fa-arrow-right"></i></span>
-            </a>
-
-            <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-user-check"></i></div>
-                <h3>Pending Admin Requests</h3>
-                <p>Approve or reject incoming admin access requests from one screen.</p>
-                <span class="feature-link">View Requests <i class="fa-solid fa-arrow-right"></i></span>
-            </a>
-
-            <a href="<%= request.getContextPath() %>/event?action=adminList" class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-calendar-days"></i></div>
-                <h3>Manage Events</h3>
-                <p>Access the event management area to update live event listings.</p>
-                <span class="feature-link">Open Events <i class="fa-solid fa-arrow-right"></i></span>
-            </a>
-
-            <a href="<%= request.getContextPath() %>/admin/addEvent.jsp" class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-plus-circle"></i></div>
-                <h3>Add Event</h3>
-                <p>Create a brand-new event with venue, date, seats, pricing, and image.</p>
-                <span class="feature-link">Add Event <i class="fa-solid fa-arrow-right"></i></span>
-            </a>
-
-            <a href="<%= request.getContextPath() %>/admin/bookings.jsp" class="feature-card">
-                <div class="feature-icon"><i class="fa-solid fa-ticket"></i></div>
-                <h3>Bookings</h3>
-                <p>Review customer booking records and monitor system activity.</p>
-                <span class="feature-link">Open Bookings <i class="fa-solid fa-arrow-right"></i></span>
-            </a>
-
+            <div class="mini-card orange">
+                <div class="mini-icon"><i class="fa-solid fa-user-check"></i></div>
+                <div>
+                    <h3>Admin Requests</h3>
+                    <p>Approve or reject new admin access</p>
+                </div>
+            </div>
         </section>
     </main>
 </div>
-
 </body>
 </html>

@@ -1,39 +1,79 @@
 package com.eventhorizon.model;
 
 /**
- * Admin class - INHERITS from User.
- * Admins can create/update/delete events and manage bookings.
+ * Admin class - inherits from User.
+ * Supports permission categories for admin access control.
  */
 public class Admin extends User {
 
-    private String adminLevel;   // e.g., "SUPER" or "STANDARD"
+    public static final String EVENTS_ONLY = "EVENTS_ONLY";
+    public static final String BOOKINGS_ONLY = "BOOKINGS_ONLY";
+    public static final String EVENTS_BOOKINGS = "EVENTS_BOOKINGS";
+    public static final String FULL_ACCESS = "FULL_ACCESS";
+
+    private String adminPermission;
 
     public Admin(String userId, String name, String email,
-                 String password, String phone, String adminLevel) {
+                 String password, String phone, String adminPermission) {
         super(userId, name, email, password, phone);
-        this.adminLevel = adminLevel;
+        setAdminPermission(adminPermission);
     }
 
-    public Admin() { super(); }
+    public Admin() {
+        super();
+        this.adminPermission = FULL_ACCESS;
+    }
 
-    // POLYMORPHISM - overrides abstract method from User
     @Override
     public String getRole() {
         return "ADMIN";
     }
 
-    @Override
-    public String toFileString() {
-        return super.toFileString() + "," + adminLevel;
+    public String getAdminPermission() {
+        return adminPermission;
     }
 
-    // Build Admin from a CSV line in users.txt
-    public static Admin fromFileString(String line) {
-        String[] parts = line.split(",");
-        String level = parts.length > 6 ? parts[6] : "STANDARD";
-        return new Admin(parts[0], parts[1], parts[2], parts[3], parts[4], level);
+    public void setAdminPermission(String adminPermission) {
+        if (adminPermission == null || adminPermission.trim().isEmpty()) {
+            this.adminPermission = FULL_ACCESS;
+            return;
+        }
+
+        String normalized = adminPermission.trim().toUpperCase();
+        switch (normalized) {
+            case EVENTS_ONLY:
+            case BOOKINGS_ONLY:
+            case EVENTS_BOOKINGS:
+            case FULL_ACCESS:
+                this.adminPermission = normalized;
+                break;
+            default:
+                this.adminPermission = FULL_ACCESS;
+        }
     }
 
-    public String getAdminLevel()              { return adminLevel; }
-    public void   setAdminLevel(String level)  { this.adminLevel = level; }
+    public boolean canManageEvents() {
+        return FULL_ACCESS.equals(adminPermission)
+                || EVENTS_ONLY.equals(adminPermission)
+                || EVENTS_BOOKINGS.equals(adminPermission);
+    }
+
+    public boolean canManageBookings() {
+        return FULL_ACCESS.equals(adminPermission)
+                || BOOKINGS_ONLY.equals(adminPermission)
+                || EVENTS_BOOKINGS.equals(adminPermission);
+    }
+
+    public String getPermissionLabel() {
+        switch (adminPermission) {
+            case EVENTS_ONLY:
+                return "Events only";
+            case BOOKINGS_ONLY:
+                return "Bookings only";
+            case EVENTS_BOOKINGS:
+                return "Events + Bookings";
+            default:
+                return "Full Access";
+        }
+    }
 }

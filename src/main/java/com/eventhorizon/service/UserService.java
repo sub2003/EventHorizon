@@ -51,11 +51,13 @@ public class UserService {
         }
     }
 
-    public boolean registerAdmin(String name, String email, String password, String phone) {
+    public boolean registerAdmin(String name, String email, String password,
+                                 String phone, String adminPermission) {
         name = safeTrim(name);
         email = normalizeEmail(email);
         password = safeTrim(password);
         phone = safeTrim(phone);
+        adminPermission = normalizeAdminPermission(adminPermission);
 
         if (isBlank(name) || isBlank(email) || isBlank(password) || isBlank(phone)) {
             return false;
@@ -67,8 +69,8 @@ public class UserService {
 
         String id = generateUserId("ADM");
 
-        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) " +
-                "VALUES (?, ?, ?, ?, ?, 'ADMIN')";
+        String sql = "INSERT INTO users (user_id, name, email, password, phone, role, admin_permission) " +
+                "VALUES (?, ?, ?, ?, ?, 'ADMIN', ?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -78,6 +80,7 @@ public class UserService {
             ps.setString(3, email);
             ps.setString(4, password);
             ps.setString(5, phone);
+            ps.setString(6, adminPermission);
 
             return ps.executeUpdate() > 0;
 
@@ -93,15 +96,18 @@ public class UserService {
                                       String name,
                                       String email,
                                       String password,
-                                      String phone) {
+                                      String phone,
+                                      String adminPermission) {
 
         requesterAdminId = safeTrim(requesterAdminId);
         name = safeTrim(name);
         email = normalizeEmail(email);
         password = safeTrim(password);
         phone = safeTrim(phone);
+        adminPermission = normalizeAdminPermission(adminPermission);
 
-        if (isBlank(requesterAdminId) || isBlank(name) || isBlank(email) || isBlank(password) || isBlank(phone)) {
+        if (isBlank(requesterAdminId) || isBlank(name) || isBlank(email)
+                || isBlank(password) || isBlank(phone)) {
             return false;
         }
 
@@ -114,8 +120,8 @@ public class UserService {
 
         String insertSql =
                 "INSERT INTO admin_requests " +
-                        "(request_id, requester_admin_id, requested_name, requested_email, requested_password, requested_phone, status) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, 'PENDING')";
+                        "(request_id, requester_admin_id, requested_name, requested_email, requested_password, requested_phone, requested_permission, status) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING')";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement checkPs = conn.prepareStatement(pendingCheckSql);
@@ -136,6 +142,7 @@ public class UserService {
             insertPs.setString(4, email);
             insertPs.setString(5, password);
             insertPs.setString(6, phone);
+            insertPs.setString(7, adminPermission);
 
             return insertPs.executeUpdate() > 0;
 
@@ -161,6 +168,15 @@ public class UserService {
                 row.put("requestedName", rs.getString("requested_name"));
                 row.put("requestedEmail", rs.getString("requested_email"));
                 row.put("requestedPhone", rs.getString("requested_phone"));
+
+                String requestedPermission;
+                try {
+                    requestedPermission = rs.getString("requested_permission");
+                } catch (SQLException e) {
+                    requestedPermission = Admin.FULL_ACCESS;
+                }
+                row.put("requestedPermission", normalizeAdminPermission(requestedPermission));
+
                 row.put("status", rs.getString("status"));
                 row.put("requestedAt", rs.getString("requested_at"));
                 requests.add(row);
@@ -178,8 +194,8 @@ public class UserService {
                 "SELECT * FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
 
         String insertAdminSql =
-                "INSERT INTO users (user_id, name, email, password, phone, role) " +
-                        "VALUES (?, ?, ?, ?, ?, 'ADMIN')";
+                "INSERT INTO users (user_id, name, email, password, phone, role, admin_permission) " +
+                        "VALUES (?, ?, ?, ?, ?, 'ADMIN', ?)";
 
         String updateRequestSql =
                 "UPDATE admin_requests " +
@@ -207,6 +223,14 @@ public class UserService {
                     String password = rs.getString("requested_password");
                     String phone = rs.getString("requested_phone");
 
+                    String permission;
+                    try {
+                        permission = rs.getString("requested_permission");
+                    } catch (SQLException e) {
+                        permission = Admin.FULL_ACCESS;
+                    }
+                    permission = normalizeAdminPermission(permission);
+
                     if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
                         conn.rollback();
                         return false;
@@ -227,6 +251,7 @@ public class UserService {
                         insertPs.setString(3, email);
                         insertPs.setString(4, password);
                         insertPs.setString(5, phone);
+                        insertPs.setString(6, permission);
                         insertPs.executeUpdate();
 
                         updatePs.setString(1, approverAdminId);
@@ -413,6 +438,27 @@ public class UserService {
         return null;
     }
 
+    public String getAdminPermission(String userId) {
+        String sql = "SELECT admin_permission FROM users WHERE user_id = ? AND role = 'ADMIN'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, safeTrim(userId));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return normalizeAdminPermission(rs.getString("admin_permission"));
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("getAdminPermission error: " + e.getMessage());
+        }
+
+        return Admin.FULL_ACCESS;
+    }
+
     // ======================== UPDATE ========================
 
     public boolean updateUser(String userId, String newName, String newPhone, String newPassword) {
@@ -421,19 +467,27 @@ public class UserService {
         newPhone = safeTrim(newPhone);
         newPassword = safeTrim(newPassword);
 
-        if (isBlank(userId) || isBlank(newName) || isBlank(newPhone) || isBlank(newPassword)) {
+        if (isBlank(userId) || isBlank(newName) || isBlank(newPhone)) {
             return false;
         }
 
-        String sql = "UPDATE users SET name = ?, phone = ?, password = ? WHERE user_id = ?";
+        boolean updatePassword = !isBlank(newPassword);
+        String sql = updatePassword
+                ? "UPDATE users SET name = ?, phone = ?, password = ? WHERE user_id = ?"
+                : "UPDATE users SET name = ?, phone = ? WHERE user_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, newName);
             ps.setString(2, newPhone);
-            ps.setString(3, newPassword);
-            ps.setString(4, userId);
+
+            if (updatePassword) {
+                ps.setString(3, newPassword);
+                ps.setString(4, userId);
+            } else {
+                ps.setString(3, userId);
+            }
 
             return ps.executeUpdate() > 0;
 
@@ -449,7 +503,8 @@ public class UserService {
                                      String phone,
                                      String password,
                                      String role,
-                                     String currentAdminId) {
+                                     String currentAdminId,
+                                     String adminPermission) {
 
         targetUserId = safeTrim(targetUserId);
         name = safeTrim(name);
@@ -458,8 +513,10 @@ public class UserService {
         password = safeTrim(password);
         role = safeTrim(role);
         currentAdminId = safeTrim(currentAdminId);
+        adminPermission = normalizeAdminPermission(adminPermission);
 
-        if (isBlank(targetUserId) || isBlank(name) || isBlank(email) || isBlank(phone) || isBlank(role)) {
+        if (isBlank(targetUserId) || isBlank(name) || isBlank(email)
+                || isBlank(phone) || isBlank(role)) {
             return false;
         }
 
@@ -481,13 +538,22 @@ public class UserService {
             return false;
         }
 
-        String sql;
         boolean updatePassword = !isBlank(password);
+        boolean targetIsAdmin = "ADMIN".equalsIgnoreCase(role);
 
-        if (updatePassword) {
-            sql = "UPDATE users SET name = ?, email = ?, phone = ?, password = ?, role = ? WHERE user_id = ?";
+        String sql;
+        if (targetIsAdmin) {
+            if (updatePassword) {
+                sql = "UPDATE users SET name = ?, email = ?, phone = ?, password = ?, role = ?, admin_permission = ? WHERE user_id = ?";
+            } else {
+                sql = "UPDATE users SET name = ?, email = ?, phone = ?, role = ?, admin_permission = ? WHERE user_id = ?";
+            }
         } else {
-            sql = "UPDATE users SET name = ?, email = ?, phone = ?, role = ? WHERE user_id = ?";
+            if (updatePassword) {
+                sql = "UPDATE users SET name = ?, email = ?, phone = ?, password = ?, role = ?, admin_permission = NULL WHERE user_id = ?";
+            } else {
+                sql = "UPDATE users SET name = ?, email = ?, phone = ?, role = ?, admin_permission = NULL WHERE user_id = ?";
+            }
         }
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -497,13 +563,26 @@ public class UserService {
             ps.setString(2, email);
             ps.setString(3, phone);
 
-            if (updatePassword) {
-                ps.setString(4, password);
-                ps.setString(5, role.toUpperCase());
-                ps.setString(6, targetUserId);
+            if (targetIsAdmin) {
+                if (updatePassword) {
+                    ps.setString(4, password);
+                    ps.setString(5, role.toUpperCase());
+                    ps.setString(6, adminPermission);
+                    ps.setString(7, targetUserId);
+                } else {
+                    ps.setString(4, role.toUpperCase());
+                    ps.setString(5, adminPermission);
+                    ps.setString(6, targetUserId);
+                }
             } else {
-                ps.setString(4, role.toUpperCase());
-                ps.setString(5, targetUserId);
+                if (updatePassword) {
+                    ps.setString(4, password);
+                    ps.setString(5, role.toUpperCase());
+                    ps.setString(6, targetUserId);
+                } else {
+                    ps.setString(4, role.toUpperCase());
+                    ps.setString(5, targetUserId);
+                }
             }
 
             return ps.executeUpdate() > 0;
@@ -538,16 +617,13 @@ public class UserService {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // Delete related bookings first if they exist
             try (PreparedStatement bookingPs =
                          conn.prepareStatement("DELETE FROM bookings WHERE customer_id = ?")) {
                 bookingPs.setString(1, userId);
                 bookingPs.executeUpdate();
             } catch (SQLException ignored) {
-                // Ignore if no FK / no matching rows / schema differs
             }
 
-            // Clean admin requests related to this user if possible
             try (PreparedStatement requestByApproverPs =
                          conn.prepareStatement("DELETE FROM admin_requests WHERE reviewed_by = ?")) {
                 requestByApproverPs.setString(1, userId);
@@ -636,7 +712,14 @@ public class UserService {
         String phone = rs.getString("phone");
 
         if ("ADMIN".equalsIgnoreCase(role)) {
-            return new Admin(id, name, email, pass, phone, "STANDARD");
+            String permission;
+            try {
+                permission = rs.getString("admin_permission");
+            } catch (SQLException e) {
+                permission = Admin.FULL_ACCESS;
+            }
+
+            return new Admin(id, name, email, pass, phone, normalizeAdminPermission(permission));
         }
 
         int bookingCount = getBookingCount(id, conn);
@@ -692,6 +775,60 @@ public class UserService {
         } catch (SQLException e) {
             System.err.println("generateAdminRequestId error: " + e.getMessage());
             return "ARQ" + System.currentTimeMillis();
+        }
+    }
+
+    public static boolean hasEventAccess(String permission) {
+        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
+        return Admin.FULL_ACCESS.equals(p)
+                || Admin.EVENTS_ONLY.equals(p)
+                || Admin.EVENTS_BOOKINGS.equals(p);
+    }
+
+    public static boolean hasBookingAccess(String permission) {
+        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
+        return Admin.FULL_ACCESS.equals(p)
+                || Admin.BOOKINGS_ONLY.equals(p)
+                || Admin.EVENTS_BOOKINGS.equals(p);
+    }
+
+    public static String permissionLabel(String permission) {
+        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
+        switch (p) {
+            case Admin.EVENTS_ONLY:
+                return "Events only";
+            case Admin.BOOKINGS_ONLY:
+                return "Bookings only";
+            case Admin.EVENTS_BOOKINGS:
+                return "Events + Bookings";
+            default:
+                return "Full Access";
+        }
+    }
+
+    private String normalizeAdminPermission(String permission) {
+        if (permission == null || permission.trim().isEmpty()) {
+            return Admin.FULL_ACCESS;
+        }
+
+        String p = permission.trim().toUpperCase();
+
+        switch (p) {
+            case "EVENTS":
+            case "EVENTS_ONLY":
+                return Admin.EVENTS_ONLY;
+            case "BOOKINGS":
+            case "BOOKINGS_ONLY":
+                return Admin.BOOKINGS_ONLY;
+            case "EVENTS_BOOKINGS":
+            case "EVENTS+BOOKINGS":
+            case "EVENTS_AND_BOOKINGS":
+                return Admin.EVENTS_BOOKINGS;
+            case "FULL":
+            case "FULL_ACCESS":
+                return Admin.FULL_ACCESS;
+            default:
+                return Admin.FULL_ACCESS;
         }
     }
 

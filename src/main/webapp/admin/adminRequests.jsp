@@ -1,5 +1,6 @@
 <%@ page import="java.util.List" %>
 <%@ page import="java.util.Map" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
 <%
     request.setAttribute("pageTitle", "Admin Requests");
 %>
@@ -45,6 +46,7 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Permission</th>
                 <th>Requested At</th>
                 <th>Actions</th>
             </tr>
@@ -66,6 +68,7 @@
                 <td><%= r.get("requestedName") %></td>
                 <td><%= r.get("requestedEmail") %></td>
                 <td><%= r.get("requestedPhone") %></td>
+                <td><%= UserService.permissionLabel(r.get("requestedPermission")) %></td>
                 <td><%= r.get("requestedAt") %></td>
                 <td>
                     <div class="action-group">
@@ -99,7 +102,7 @@
                 } else {
             %>
             <tr>
-                <td colspan="7" class="empty-cell">No pending admin requests.</td>
+                <td colspan="8" class="empty-cell">No pending admin requests.</td>
             </tr>
             <%
                 }
@@ -109,7 +112,7 @@
     </div>
 </div>
 
-    </main>
+</main>
 </div>
 </body>
 </html>

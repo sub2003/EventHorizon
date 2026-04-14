@@ -1,13 +1,23 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="com.eventhorizon.model.Admin" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
 <%
     HttpSession currentSession = request.getSession(false);
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
     String userName = currentSession != null ? (String) currentSession.getAttribute("userName") : null;
+    String adminPermission = currentSession != null ? (String) currentSession.getAttribute("adminPermission") : null;
 
     if (currentSession == null || role == null || !"ADMIN".equals(role)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
+
+    if (adminPermission == null || adminPermission.trim().isEmpty()) {
+        adminPermission = Admin.FULL_ACCESS;
+    }
+
+    boolean canManageEvents = UserService.hasEventAccess(adminPermission);
+    boolean canManageBookings = UserService.hasBookingAccess(adminPermission);
 
     String pageTitle = (String) request.getAttribute("pageTitle");
     if (pageTitle == null) pageTitle = "Admin Panel";
@@ -49,17 +59,21 @@
                     <span>Users</span>
                 </a>
 
+                <% if (canManageEvents) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList"
                    class="<%= "Events".equals(pageTitle) ? "active" : "" %>">
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Events</span>
                 </a>
+                <% } %>
 
-                <a href="<%= request.getContextPath() %>/admin/bookings.jsp"
+                <% if (canManageBookings) { %>
+                <a href="<%= request.getContextPath() %>/booking?action=allBookings"
                    class="<%= "Bookings".equals(pageTitle) ? "active" : "" %>">
                     <i class="fa-solid fa-ticket"></i>
                     <span>Bookings</span>
                 </a>
+                <% } %>
 
                 <a href="<%= request.getContextPath() %>/user?action=listAdminRequests"
                    class="<%= "Admin Requests".equals(pageTitle) ? "active" : "" %>">
@@ -76,6 +90,11 @@
         </div>
 
         <div class="sidebar-footer">
+            <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
+                <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
+                <strong><%= UserService.permissionLabel(adminPermission) %></strong>
+            </div>
+
             <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
                 <i class="fa-solid fa-globe"></i>
                 <span>Open Website</span>

@@ -1,37 +1,24 @@
 package com.eventhorizon.servlet;
 
-import com.eventhorizon.service.BookingService;
+import com.eventhorizon.model.Admin;
+import com.eventhorizon.model.Booking;
 import com.eventhorizon.model.Event;
+import com.eventhorizon.service.BookingService;
 import com.eventhorizon.service.EventService;
+import com.eventhorizon.service.UserService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-
 import java.io.IOException;
 
-/**
- * BookingServlet – orchestrates the booking + payment lifecycle.
- *
- * GET  /booking?action=myBookings             -> customer: my bookings list
- * GET  /booking?action=allBookings            -> admin:    all bookings
- * GET  /booking?action=eventBookings&eventId  -> admin bookings per event
- * GET  /booking?action=checkout&eventId=X&tickets=N -> customer checkout page
- * GET  /booking?action=pendingPayments        -> admin: pending payment queue
- *
- * POST /booking?action=confirmPayment         -> customer: save booking + payment reference
- * POST /booking?action=cancel                 -> customer/admin: cancel booking
- * POST /booking?action=approvePayment         -> admin: approve payment → issue tickets
- * POST /booking?action=rejectPayment          -> admin: reject payment → restore seats
- */
 public class BookingServlet extends HttpServlet {
 
     private final BookingService bookingService = new BookingService();
     private final EventService eventService = new EventService();
 
-    // ==================== GET ====================
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -47,7 +34,7 @@ public class BookingServlet extends HttpServlet {
         switch (action == null ? "" : action) {
 
             case "myBookings":
-                requireCustomer(session, resp, req);
+                requireCustomer(session, req, resp);
                 if (resp.isCommitted()) return;
 
                 String customerId = (String) session.getAttribute("userId");
@@ -56,7 +43,7 @@ public class BookingServlet extends HttpServlet {
                 break;
 
             case "allBookings":
-                requireAdmin(session, resp, req);
+                requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
                 req.setAttribute("bookings", bookingService.getAllBookings());
@@ -64,7 +51,7 @@ public class BookingServlet extends HttpServlet {
                 break;
 
             case "eventBookings":
-                requireAdmin(session, resp, req);
+                requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
                 req.setAttribute("bookings", bookingService.getBookingsByEvent(req.getParameter("eventId")));
@@ -72,14 +59,14 @@ public class BookingServlet extends HttpServlet {
                 break;
 
             case "checkout":
-                requireCustomer(session, resp, req);
+                requireCustomer(session, req, resp);
                 if (resp.isCommitted()) return;
 
-                handleCheckoutPage(req, resp, session);
+                handleCheckoutPage(req, resp);
                 break;
 
             case "pendingPayments":
-                requireAdmin(session, resp, req);
+                requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
                 req.setAttribute("pendingBookings", bookingService.getPendingBookings());
@@ -91,7 +78,6 @@ public class BookingServlet extends HttpServlet {
         }
     }
 
-    // ==================== POST ====================
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
@@ -107,7 +93,7 @@ public class BookingServlet extends HttpServlet {
         switch (action == null ? "" : action) {
 
             case "confirmPayment":
-                requireCustomer(session, resp, req);
+                requireCustomer(session, req, resp);
                 if (resp.isCommitted()) return;
 
                 handleConfirmPayment(req, resp, session);
@@ -118,17 +104,17 @@ public class BookingServlet extends HttpServlet {
                 break;
 
             case "approvePayment":
-                requireAdmin(session, resp, req);
+                requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
-                handleApprovePayment(req, resp, session);
+                handleApprovePayment(req, resp);
                 break;
 
             case "rejectPayment":
-                requireAdmin(session, resp, req);
+                requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
-                handleRejectPayment(req, resp, session);
+                handleRejectPayment(req, resp);
                 break;
 
             default:
@@ -136,9 +122,8 @@ public class BookingServlet extends HttpServlet {
         }
     }
 
-    // -------------------- Checkout page (GET) --------------------
-    private void handleCheckoutPage(HttpServletRequest req, HttpServletResponse resp,
-                                    HttpSession session) throws ServletException, IOException {
+    private void handleCheckoutPage(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
 
         String eventId = req.getParameter("eventId");
         String ticketsParam = req.getParameter("tickets");
@@ -174,7 +159,6 @@ public class BookingServlet extends HttpServlet {
         req.getRequestDispatcher("/checkout.jsp").forward(req, resp);
     }
 
-    // -------------------- Confirm payment (POST) --------------------
     private void handleConfirmPayment(HttpServletRequest req, HttpServletResponse resp,
                                       HttpSession session) throws IOException {
 
@@ -196,12 +180,7 @@ public class BookingServlet extends HttpServlet {
             return;
         }
 
-        String bookingId = bookingService.createBooking(
-                customerId,
-                eventId,
-                tickets,
-                paymentReference
-        );
+        String bookingId = bookingService.createBooking(customerId, eventId, tickets, paymentReference);
 
         if (bookingId != null) {
             resp.sendRedirect(req.getContextPath() + "/booking?action=myBookings&msg=paymentPending&id=" + bookingId);
@@ -210,7 +189,6 @@ public class BookingServlet extends HttpServlet {
         }
     }
 
-    // -------------------- Cancel booking (POST) --------------------
     private void handleCancel(HttpServletRequest req, HttpServletResponse resp,
                               HttpSession session) throws IOException {
 
@@ -227,10 +205,14 @@ public class BookingServlet extends HttpServlet {
             return;
         }
 
-        // Optional security improvement:
-        // Customer should only cancel own bookings
-        if (!"ADMIN".equals(role)) {
-            com.eventhorizon.model.Booking booking = bookingService.getBookingById(bookingId);
+        if ("ADMIN".equals(role)) {
+            String permission = (String) session.getAttribute("adminPermission");
+            if (!UserService.hasBookingAccess(permission)) {
+                resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
+                return;
+            }
+        } else {
+            Booking booking = bookingService.getBookingById(bookingId);
             if (booking == null || !currentUserId.equals(booking.getCustomerId())) {
                 resp.sendRedirect(req.getContextPath() + "/booking?action=myBookings&error=unauthorized");
                 return;
@@ -246,34 +228,43 @@ public class BookingServlet extends HttpServlet {
         }
     }
 
-    // -------------------- Admin: Approve payment (POST) --------------------
-    private void handleApprovePayment(HttpServletRequest req, HttpServletResponse resp,
-                                      HttpSession session) throws IOException {
+    private void handleApprovePayment(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
 
         String bookingId = req.getParameter("bookingId");
         boolean ok = bookingService.approveBooking(bookingId);
-        resp.sendRedirect(req.getContextPath() + "/booking?action=pendingPayments&msg=" + (ok ? "approved" : "error"));
+        resp.sendRedirect(req.getContextPath() + "/booking?action=allBookings&msg=" + (ok ? "approved" : "error"));
     }
 
-    // -------------------- Admin: Reject payment (POST) --------------------
-    private void handleRejectPayment(HttpServletRequest req, HttpServletResponse resp,
-                                     HttpSession session) throws IOException {
+    private void handleRejectPayment(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
 
         String bookingId = req.getParameter("bookingId");
         boolean ok = bookingService.rejectBooking(bookingId);
-        resp.sendRedirect(req.getContextPath() + "/booking?action=pendingPayments&msg=" + (ok ? "rejected" : "error"));
+        resp.sendRedirect(req.getContextPath() + "/booking?action=allBookings&msg=" + (ok ? "rejected" : "error"));
     }
 
-    // -------------------- Helpers --------------------
-    private void requireAdmin(HttpSession session, HttpServletResponse resp, HttpServletRequest req) throws IOException {
-        if (!"ADMIN".equals(session.getAttribute("role"))) {
+    private void requireCustomer(HttpSession session, HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        if (!"CUSTOMER".equals(session.getAttribute("role"))) {
             resp.sendRedirect(req.getContextPath() + "/login.jsp");
         }
     }
 
-    private void requireCustomer(HttpSession session, HttpServletResponse resp, HttpServletRequest req) throws IOException {
-        if (!"CUSTOMER".equals(session.getAttribute("role"))) {
+    private void requireBookingAdmin(HttpSession session, HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        if (!"ADMIN".equals(session.getAttribute("role"))) {
             resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String permission = (String) session.getAttribute("adminPermission");
+        if (permission == null) permission = Admin.FULL_ACCESS;
+
+        if (!UserService.hasBookingAccess(permission)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
         }
     }
 }

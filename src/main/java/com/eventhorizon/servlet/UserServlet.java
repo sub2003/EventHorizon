@@ -1,5 +1,6 @@
 package com.eventhorizon.servlet;
 
+import com.eventhorizon.model.Admin;
 import com.eventhorizon.model.User;
 import com.eventhorizon.service.UserService;
 
@@ -43,7 +44,7 @@ public class UserServlet extends HttpServlet {
                 handleRequestAdmin(req, resp);
                 break;
             case "requestPublicAdmin":
-                handleRequestPublicAdmin(req, resp);
+                resp.sendRedirect(req.getContextPath() + "/register.jsp?error=notAllowed");
                 break;
             case "approveAdminRequest":
                 handleApproveAdminRequest(req, resp);
@@ -118,30 +119,7 @@ public class UserServlet extends HttpServlet {
         if (created) {
             resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=registered");
         } else {
-            resp.sendRedirect(req.getContextPath() + "/registerCustomer.jsp?error=registerFailed");
-        }
-    }
-
-    private void handleRequestPublicAdmin(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-
-        String name = trim(req.getParameter("name"));
-        String email = trim(req.getParameter("email"));
-        String password = trim(req.getParameter("password"));
-        String phone = trim(req.getParameter("phone"));
-
-        boolean created = userService.submitAdminRequest(
-                "PUBLIC",
-                name,
-                email,
-                password,
-                phone
-        );
-
-        if (created) {
-            resp.sendRedirect(req.getContextPath() + "/registerAdminRequest.jsp?msg=requestSubmitted");
-        } else {
-            resp.sendRedirect(req.getContextPath() + "/registerAdminRequest.jsp?error=requestFailed");
+            resp.sendRedirect(req.getContextPath() + "/register.jsp?error=registerFailed");
         }
     }
 
@@ -161,6 +139,17 @@ public class UserServlet extends HttpServlet {
             session.setAttribute("userEmail", user.getEmail());
             session.setAttribute("userPhone", user.getPhone());
             session.setAttribute("role", user.getRole());
+
+            if ("ADMIN".equals(user.getRole()) && user instanceof Admin) {
+                Admin admin = (Admin) user;
+                session.setAttribute("adminPermission", admin.getAdminPermission());
+                session.setAttribute("canManageEvents", admin.canManageEvents());
+                session.setAttribute("canManageBookings", admin.canManageBookings());
+            } else {
+                session.removeAttribute("adminPermission");
+                session.removeAttribute("canManageEvents");
+                session.removeAttribute("canManageBookings");
+            }
 
             session.setMaxInactiveInterval(30 * 60);
 
@@ -231,9 +220,10 @@ public class UserServlet extends HttpServlet {
         String phone = trim(req.getParameter("phone"));
         String password = trim(req.getParameter("password"));
         String role = trim(req.getParameter("role"));
+        String adminPermission = trim(req.getParameter("adminPermission"));
 
         boolean success = userService.updateUserByAdmin(
-                userId, name, email, phone, password, role, currentAdminId
+                userId, name, email, phone, password, role, currentAdminId, adminPermission
         );
 
         if (success) {
@@ -242,6 +232,17 @@ public class UserServlet extends HttpServlet {
                 session.setAttribute("userEmail", email);
                 session.setAttribute("userPhone", phone);
                 session.setAttribute("role", role.toUpperCase());
+
+                if ("ADMIN".equalsIgnoreCase(role)) {
+                    String normalizedPermission = userService.getAdminPermission(userId);
+                    session.setAttribute("adminPermission", normalizedPermission);
+                    session.setAttribute("canManageEvents", UserService.hasEventAccess(normalizedPermission));
+                    session.setAttribute("canManageBookings", UserService.hasBookingAccess(normalizedPermission));
+                } else {
+                    session.removeAttribute("adminPermission");
+                    session.removeAttribute("canManageEvents");
+                    session.removeAttribute("canManageBookings");
+                }
             }
             resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=updated");
         } else {
@@ -284,9 +285,10 @@ public class UserServlet extends HttpServlet {
         String email = trim(req.getParameter("email"));
         String password = trim(req.getParameter("password"));
         String phone = trim(req.getParameter("phone"));
+        String permission = trim(req.getParameter("adminPermission"));
 
         boolean created = userService.submitAdminRequest(
-                requesterAdminId, name, email, password, phone
+                requesterAdminId, name, email, password, phone, permission
         );
 
         if (created) {
