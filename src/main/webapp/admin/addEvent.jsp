@@ -27,28 +27,19 @@
 
         :root {
             --bg-primary: #0b1020;
-            --bg-secondary: #121a2f;
             --bg-card: rgba(18, 26, 47, 0.94);
             --bg-hover: rgba(255, 255, 255, 0.03);
             --border: rgba(255, 255, 255, 0.08);
             --border-strong: rgba(255, 255, 255, 0.16);
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
-            --text-muted: #64748b;
             --accent: #6d28d9;
             --accent-light: #8b5cf6;
-            --cyan: #06b6d4;
-            --success: #10b981;
             --success-soft: rgba(16, 185, 129, 0.16);
-            --warning: #f59e0b;
-            --warning-soft: rgba(245, 158, 11, 0.16);
-            --danger: #ef4444;
             --danger-soft: rgba(239, 68, 68, 0.16);
             --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
             --radius-xl: 26px;
             --radius-lg: 20px;
-            --radius-md: 16px;
-            --radius-sm: 12px;
         }
 
         body {
@@ -121,7 +112,6 @@
             color: var(--text-primary);
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border-strong);
-            backdrop-filter: blur(12px);
         }
 
         .btn-outline:hover {
@@ -135,16 +125,11 @@
             box-shadow: 0 12px 28px rgba(109, 40, 217, 0.35);
         }
 
-        .btn-primary:hover {
-            transform: translateY(-1px);
-        }
-
         .panel {
             background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: var(--radius-xl);
             box-shadow: var(--shadow);
-            backdrop-filter: blur(16px);
             overflow: hidden;
             margin-bottom: 24px;
         }
@@ -231,24 +216,11 @@
             color: white;
             font-size: 14px;
             outline: none;
-            transition: 0.25s ease;
         }
 
         .form-group textarea {
             min-height: 120px;
             resize: vertical;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: rgba(139, 92, 246, 0.6);
-            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
-        }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: #64748b;
         }
 
         .form-actions {
@@ -262,10 +234,6 @@
             color: white;
             background: linear-gradient(135deg, var(--accent), var(--accent-light));
             box-shadow: 0 12px 28px rgba(109, 40, 217, 0.30);
-        }
-
-        .btn-save:hover {
-            transform: translateY(-1px);
         }
 
         .toolbar {
@@ -301,13 +269,6 @@
             color: white;
             font-size: 14px;
             outline: none;
-            transition: 0.25s ease;
-        }
-
-        .search-input:focus,
-        .filter-select:focus {
-            border-color: rgba(139, 92, 246, 0.6);
-            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
         }
 
         .result-count {
@@ -344,10 +305,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.06);
             vertical-align: middle;
             color: var(--text-primary);
-        }
-
-        tbody tr.data-row {
-            transition: 0.25s ease;
         }
 
         tbody tr.data-row:hover {
@@ -438,10 +395,6 @@
             background: rgba(6, 182, 212, 0.14);
             border: 1px solid rgba(6, 182, 212, 0.28);
             min-width: 88px;
-        }
-
-        .btn-edit:hover {
-            background: rgba(6, 182, 212, 0.24);
         }
 
         .btn-cancel-event {
@@ -549,11 +502,9 @@
                 var matchesCategory = (categoryValue === "all" || category === categoryValue);
                 var matchesStatus = (statusValue === "all" || status === statusValue);
 
+                row.style.display = (matchesSearch && matchesCategory && matchesStatus) ? "" : "none";
                 if (matchesSearch && matchesCategory && matchesStatus) {
-                    row.style.display = "";
                     visibleCount++;
-                } else {
-                    row.style.display = "none";
                 }
             });
 
@@ -576,9 +527,9 @@
             return confirm("Cancel this event?");
         }
 
-        window.addEventListener("DOMContentLoaded", function() {
+        window.onload = function () {
             filterEvents();
-        });
+        };
     </script>
 </head>
 <body>
@@ -790,7 +741,7 @@
                             <td class="muted"><%= event.getDate() %></td>
                             <td class="muted"><%= event.getTime() %></td>
                             <td class="muted"><%= event.getVenue() %></td>
-                            <td class="muted">LKR <%= event.getPrice() %></td>
+                            <td class="muted">LKR <%= event.getTicketPrice() %></td>
                             <td class="muted"><%= event.getTotalSeats() %></td>
                             <td class="muted"><%= event.getAvailableSeats() %></td>
 

@@ -1,218 +1,335 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ page import="com.eventhorizon.service.EventService, com.eventhorizon.model.Event" %>
-
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="com.eventhorizon.service.EventService" %>
+<%@ page import="com.eventhorizon.model.Event" %>
 <%
-    // Prevent browser cache after logout
     response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
 
-    // Admin security check
-    if (session.getAttribute("userId") == null ||
-        !"ADMIN".equals(session.getAttribute("role"))) {
+    if (session.getAttribute("userId") == null || !"ADMIN".equals(session.getAttribute("role"))) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
 
-    String eventId = request.getParameter("id");
-    EventService es = new EventService();
-    Event event = es.getEventById(eventId);
+    String eventId = request.getParameter("eventId");
+    if (eventId == null || eventId.trim().isEmpty()) {
+        eventId = request.getParameter("id");
+    }
+
+    EventService eventService = new EventService();
+    Event event = eventService.getEventById(eventId);
 
     if (event == null) {
         response.sendRedirect(request.getContextPath() + "/event?action=adminList");
         return;
     }
 
-    pageContext.setAttribute("ev", event);
+    String imagePath = event.getImagePath();
 %>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Event – EventHorizon Admin</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <title>Edit Event - EventHorizon Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0b1020;
+            --bg-card: rgba(18, 26, 47, 0.94);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.16);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #6d28d9;
+            --accent-light: #8b5cf6;
+            --cyan: #06b6d4;
+            --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+            --radius-xl: 26px;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+            background:
+                radial-gradient(circle at top left, rgba(109, 40, 217, 0.22), transparent 28%),
+                radial-gradient(circle at top right, rgba(6, 182, 212, 0.12), transparent 24%),
+                linear-gradient(135deg, #060914 0%, #0b1120 45%, #101826 100%);
+            min-height: 100vh;
+        }
+
+        .page {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 22px 48px;
+        }
+
+        .hero {
+            margin-bottom: 24px;
+        }
+
+        .hero h1 {
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .hero p {
+            color: var(--text-secondary);
+            font-size: 17px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 18px;
+        }
+
+        .btn,
+        button {
+            border: none;
+            outline: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-size: 14px;
+            font-weight: 700;
+            transition: 0.25s ease;
+        }
+
+        .btn-outline {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-strong);
+        }
+
+        .btn-primary {
+            color: white;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .panel-head {
+            padding: 22px 24px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .panel-head h2 {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .panel-body {
+            padding: 24px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .span-2 {
+            grid-column: span 2;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 800;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(7, 13, 28, 0.92);
+            color: white;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .current-image {
+            width: 240px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+        }
+
+        .placeholder {
+            width: 240px;
+            height: 150px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-weight: 700;
+        }
+
+        .info-box {
+            margin-top: 20px;
+            background: rgba(6,182,212,0.08);
+            border: 1px solid rgba(6,182,212,0.2);
+            border-radius: 12px;
+            padding: 14px;
+            color: var(--text-secondary);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+        }
+
+        @media (max-width: 720px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .span-2 {
+                grid-column: span 1;
+            }
+        }
+    </style>
 </head>
 <body>
+<div class="page">
+    <div class="hero">
+        <h1>Edit Event</h1>
+        <p>Update event details using the same premium admin style.</p>
 
-<nav class="navbar">
-    <a href="${pageContext.request.contextPath}/index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
-    <ul class="navbar-links">
-        <li><a href="${pageContext.request.contextPath}/index.jsp">← Public Site</a></li>
-        <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
-    </ul>
-</nav>
+        <div class="actions">
+            <a href="<%=request.getContextPath()%>/event?action=adminList" class="btn btn-outline">Back to Events</a>
+            <a href="<%=request.getContextPath()%>/admin/dashboard.jsp" class="btn btn-outline">Dashboard</a>
+        </div>
+    </div>
 
-<div class="admin-wrapper">
-    <aside class="sidebar">
-        <div class="sidebar-title">Admin Panel</div>
-
-        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="sidebar-link">
-            <span>📊</span> Dashboard
-        </a>
-
-        <a href="${pageContext.request.contextPath}/event?action=adminList" class="sidebar-link active">
-            <span>🎟️</span> Manage Events
-        </a>
-
-        <a href="${pageContext.request.contextPath}/admin/bookings.jsp" class="sidebar-link">
-            <span>📋</span> All Bookings
-        </a>
-
-        <a href="${pageContext.request.contextPath}/user?action=list" class="sidebar-link">
-            <span>👥</span> Manage Users
-        </a>
-
-        <a href="${pageContext.request.contextPath}/event?action=adminList" class="sidebar-link">
-            <span>➕</span> Add New Event
-        </a>
-    </aside>
-
-    <main class="admin-content">
-        <div class="page-header">
-            <h1 class="page-title">✏️ Edit Event</h1>
-            <a href="${pageContext.request.contextPath}/event?action=adminList" class="btn btn-outline">
-                ← Back to Events
-            </a>
+    <div class="panel">
+        <div class="panel-head">
+            <h2>Edit <%= event.getTitle() %></h2>
         </div>
 
-        <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:36px;max-width:720px;">
-
-            <form action="${pageContext.request.contextPath}/event"
-                  method="post"
-                  enctype="multipart/form-data"
-                  class="needs-validation">
-
+        <div class="panel-body">
+            <form action="<%=request.getContextPath()%>/event" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="update">
-                <input type="hidden" name="eventId" value="${ev.eventId}">
+                <input type="hidden" name="eventId" value="<%= event.getEventId() %>">
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-
-                    <div class="form-group" style="grid-column:1/-1;">
-                        <label class="form-label" for="title">Event Title *</label>
-                        <input type="text"
-                               id="title"
-                               name="title"
-                               class="form-control"
-                               value="${ev.title}"
-                               required>
+                <div class="form-grid">
+                    <div class="form-group span-2">
+                        <label>Event Title</label>
+                        <input type="text" name="title" value="<%= event.getTitle() %>" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="category">Category *</label>
-                        <select id="category" name="category" class="form-control" required>
-                            <option value="Concert" ${ev.category=='Concert' ? 'selected' : ''}>Concert</option>
-                            <option value="Sports" ${ev.category=='Sports' ? 'selected' : ''}>Sports</option>
-                            <option value="Technology" ${ev.category=='Technology' ? 'selected' : ''}>Technology</option>
-                            <option value="Cultural" ${ev.category=='Cultural' ? 'selected' : ''}>Cultural</option>
-                            <option value="Theater" ${ev.category=='Theater' ? 'selected' : ''}>Theater</option>
-                            <option value="Comedy" ${ev.category=='Comedy' ? 'selected' : ''}>Comedy</option>
-                            <option value="Art" ${ev.category=='Art' ? 'selected' : ''}>Art</option>
-                            <option value="Food" ${ev.category=='Food' ? 'selected' : ''}>Food & Dining</option>
+                        <label>Category</label>
+                        <select name="category" required>
+                            <option value="Concert" <%= "Concert".equals(event.getCategory()) ? "selected" : "" %>>Concert</option>
+                            <option value="Sports" <%= "Sports".equals(event.getCategory()) ? "selected" : "" %>>Sports</option>
+                            <option value="Technology" <%= "Technology".equals(event.getCategory()) ? "selected" : "" %>>Technology</option>
+                            <option value="Cultural" <%= "Cultural".equals(event.getCategory()) ? "selected" : "" %>>Cultural</option>
+                            <option value="Music" <%= "Music".equals(event.getCategory()) ? "selected" : "" %>>Music</option>
+                            <option value="Conference" <%= "Conference".equals(event.getCategory()) ? "selected" : "" %>>Conference</option>
+                            <option value="Workshop" <%= "Workshop".equals(event.getCategory()) ? "selected" : "" %>>Workshop</option>
+                            <option value="Exhibition" <%= "Exhibition".equals(event.getCategory()) ? "selected" : "" %>>Exhibition</option>
+                            <option value="Festival" <%= "Festival".equals(event.getCategory()) ? "selected" : "" %>>Festival</option>
+                            <option value="Seminar" <%= "Seminar".equals(event.getCategory()) ? "selected" : "" %>>Seminar</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="venue">Venue *</label>
-                        <input type="text"
-                               id="venue"
-                               name="venue"
-                               class="form-control"
-                               value="${ev.venue}"
-                               required>
+                        <label>Venue</label>
+                        <input type="text" name="venue" value="<%= event.getVenue() %>" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="date">Date *</label>
-                        <input type="date"
-                               id="date"
-                               name="date"
-                               class="form-control"
-                               value="${ev.date}"
-                               required>
+                        <label>Date</label>
+                        <input type="date" name="date" value="<%= event.getDate() %>" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="time">Time *</label>
-                        <input type="time"
-                               id="time"
-                               name="time"
-                               class="form-control"
-                               value="${ev.time}"
-                               required>
+                        <label>Time</label>
+                        <input type="time" name="time" value="<%= event.getTime() %>" required>
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label" for="ticketPrice">Ticket Price (LKR) *</label>
-                        <input type="number"
-                               id="ticketPrice"
-                               name="ticketPrice"
-                               class="form-control"
-                               value="${ev.ticketPrice}"
-                               step="0.01"
-                               min="0"
-                               required>
+                        <label>Ticket Price</label>
+                        <input type="number" name="ticketPrice" value="<%= event.getTicketPrice() %>" step="0.01" min="0" required>
                     </div>
 
-                    <div class="form-group" style="grid-column:1/-1;">
-                        <label class="form-label">Current Image</label>
-                        <div style="margin-top:8px;">
-                            <c:choose>
-                                <c:when test="${not empty ev.imagePath}">
-                                    <img src="${pageContext.request.contextPath}/${ev.imagePath}"
-                                         alt="${ev.title}"
-                                         style="width:220px;height:140px;object-fit:cover;border-radius:10px;border:1px solid var(--border);">
-                                </c:when>
-                                <c:otherwise>
-                                    <div style="width:220px;height:140px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,0.03);font-size:2rem;">
-                                        🎟️
-                                    </div>
-                                </c:otherwise>
-                            </c:choose>
-                        </div>
+                    <div class="form-group span-2">
+                        <label>Current Image</label>
+                        <% if (imagePath != null && !imagePath.trim().isEmpty()) { %>
+                            <img src="<%=request.getContextPath()%>/<%= imagePath %>" alt="event image" class="current-image">
+                        <% } else { %>
+                            <div class="placeholder">No Image</div>
+                        <% } %>
                     </div>
 
-                    <div class="form-group" style="grid-column:1/-1;">
-                        <label class="form-label" for="eventImage">Replace Image (optional)</label>
-                        <input type="file"
-                               id="eventImage"
-                               name="eventImage"
-                               class="form-control"
-                               accept="image/*">
+                    <div class="form-group span-2">
+                        <label>Replace Image</label>
+                        <input type="file" name="eventImage" accept="image/*">
                     </div>
 
-                    <div class="form-group" style="grid-column:1/-1;">
-                        <label class="form-label" for="description">Description *</label>
-                        <textarea id="description"
-                                  name="description"
-                                  class="form-control"
-                                  rows="4"
-                                  required>${ev.description}</textarea>
+                    <div class="form-group span-2">
+                        <label>Description</label>
+                        <textarea name="description" required><%= event.getDescription() == null ? "" : event.getDescription() %></textarea>
                     </div>
                 </div>
 
-                <div style="background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);border-radius:8px;padding:14px;margin-bottom:20px;">
-                    <span style="font-size:0.85rem;color:var(--text-muted);">
-                        💺 Current seats:
-                        <strong style="color:var(--accent-teal);">
-                            ${ev.availableSeats} available / ${ev.totalSeats} total
-                        </strong>
-                        &nbsp;|&nbsp;
-                        Status: <strong>${ev.status}</strong>
-                    </span>
+                <div class="info-box">
+                    Current seats: <strong><%= event.getAvailableSeats() %> available / <%= event.getTotalSeats() %> total</strong>
+                    &nbsp;|&nbsp;
+                    Status: <strong><%= event.getStatus() %></strong>
                 </div>
 
-                <div style="display:flex;gap:12px;">
-                    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
-                    <a href="${pageContext.request.contextPath}/event?action=adminList" class="btn btn-outline">Cancel</a>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a href="<%=request.getContextPath()%>/event?action=adminList" class="btn btn-outline">Cancel</a>
                 </div>
             </form>
         </div>
-    </main>
+    </div>
 </div>
-
-<script src="${pageContext.request.contextPath}/js/main.js"></script>
 </body>
 </html>
