@@ -28,8 +28,7 @@
         :root {
             --bg-primary: #0b1020;
             --bg-secondary: #121a2f;
-            --bg-card: rgba(18, 26, 47, 0.92);
-            --bg-card-2: rgba(12, 19, 36, 0.95);
+            --bg-card: rgba(18, 26, 47, 0.94);
             --bg-hover: rgba(255, 255, 255, 0.03);
             --border: rgba(255, 255, 255, 0.08);
             --border-strong: rgba(255, 255, 255, 0.16);
@@ -39,7 +38,6 @@
             --accent: #6d28d9;
             --accent-light: #8b5cf6;
             --cyan: #06b6d4;
-            --cyan-soft: rgba(6, 182, 212, 0.14);
             --success: #10b981;
             --success-soft: rgba(16, 185, 129, 0.16);
             --warning: #f59e0b;
@@ -210,10 +208,6 @@
             gap: 8px;
         }
 
-        .form-group.span-2 {
-            grid-column: span 2;
-        }
-
         .form-group.span-3 {
             grid-column: span 3;
         }
@@ -310,18 +304,10 @@
             transition: 0.25s ease;
         }
 
-        .filter-select {
-            min-width: 180px;
-        }
-
         .search-input:focus,
         .filter-select:focus {
             border-color: rgba(139, 92, 246, 0.6);
             box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
-        }
-
-        .search-input::placeholder {
-            color: #64748b;
         }
 
         .result-count {
@@ -465,19 +451,11 @@
             min-width: 88px;
         }
 
-        .btn-cancel-event:hover {
-            background: rgba(245, 158, 11, 0.22);
-        }
-
         .btn-delete {
             color: #fecaca;
             background: rgba(239, 68, 68, 0.16);
             border: 1px solid rgba(239, 68, 68, 0.28);
             min-width: 88px;
-        }
-
-        .btn-delete:hover {
-            background: rgba(239, 68, 68, 0.26);
         }
 
         .empty-state,
@@ -498,7 +476,6 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .form-group.span-2,
             .form-group.span-3 {
                 grid-column: span 2;
             }
@@ -521,7 +498,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .form-group.span-2,
             .form-group.span-3 {
                 grid-column: span 1;
             }
@@ -561,14 +537,14 @@
                 var description = (row.getAttribute("data-description") || "").toLowerCase();
 
                 var matchesSearch =
-                    title.includes(searchValue) ||
-                    category.includes(searchValue) ||
-                    date.includes(searchValue) ||
-                    time.includes(searchValue) ||
-                    venue.includes(searchValue) ||
-                    status.includes(searchValue) ||
-                    eventId.includes(searchValue) ||
-                    description.includes(searchValue);
+                    title.indexOf(searchValue) !== -1 ||
+                    category.indexOf(searchValue) !== -1 ||
+                    date.indexOf(searchValue) !== -1 ||
+                    time.indexOf(searchValue) !== -1 ||
+                    venue.indexOf(searchValue) !== -1 ||
+                    status.indexOf(searchValue) !== -1 ||
+                    eventId.indexOf(searchValue) !== -1 ||
+                    description.indexOf(searchValue) !== -1;
 
                 var matchesCategory = (categoryValue === "all" || category === categoryValue);
                 var matchesStatus = (statusValue === "all" || status === statusValue);
@@ -592,12 +568,12 @@
             filterEvents();
         }
 
-        function confirmDelete(title) {
-            return confirm("Delete event: " + title + " ?");
+        function confirmDelete() {
+            return confirm("Delete this event?");
         }
 
-        function confirmCancel(title) {
-            return confirm("Cancel event: " + title + " ?");
+        function confirmCancel() {
+            return confirm("Cancel this event?");
         }
 
         window.addEventListener("DOMContentLoaded", function() {
@@ -632,9 +608,7 @@
             <div class="alert alert-success">Event deleted successfully.</div>
         <% } else if ("cancelled".equals(msg)) { %>
             <div class="alert alert-success">Event cancelled successfully.</div>
-        <% } %>
-
-        <% if ("error".equals(error)) { %>
+        <% } else if ("error".equals(msg) || "error".equals(error)) { %>
             <div class="alert alert-error">Something went wrong. Please check the form values and try again.</div>
         <% } %>
     </div>
@@ -642,7 +616,7 @@
     <div class="panel">
         <div class="panel-head">
             <h2>Add New Event</h2>
-            <p>This form matches your current servlet field names and upload flow.</p>
+            <p>This form matches your current servlet field names.</p>
         </div>
 
         <div class="panel-body">
@@ -780,6 +754,11 @@
                     </tr>
                 <% } else { %>
                     <% for (Event event : events) { %>
+                        <%
+                            String imagePath = event.getImagePath();
+                            String description = event.getDescription() == null ? "" : event.getDescription();
+                            String shortDescription = description.length() > 70 ? description.substring(0, 70) + "..." : description;
+                        %>
                         <tr class="data-row"
                             data-event-id="<%= event.getEventId() %>"
                             data-title="<%= event.getTitle() %>"
@@ -788,15 +767,15 @@
                             data-time="<%= event.getTime() %>"
                             data-venue="<%= event.getVenue() %>"
                             data-status="<%= event.getStatus() %>"
-                            data-description="<%= event.getDescription() == null ? "" : event.getDescription() %>">
+                            data-description="<%= description %>">
 
                             <td class="event-id"><%= event.getEventId() %></td>
 
                             <td>
-                                <% if (event.getImagePath() != null && !event.getImagePath().trim().isEmpty()) { %>
+                                <% if (imagePath != null && !imagePath.trim().isEmpty()) { %>
                                     <img class="event-image"
-                                         src="<%=request.getContextPath()%>/<%= event.getImagePath() %>"
-                                         alt="<%= event.getTitle() %>">
+                                         src="<%=request.getContextPath()%>/<%= imagePath %>"
+                                         alt="event image">
                                 <% } else { %>
                                     <div class="image-placeholder">No Image</div>
                                 <% } %>
@@ -804,12 +783,7 @@
 
                             <td>
                                 <div class="event-title"><%= event.getTitle() %></div>
-                                <div class="event-desc">
-                                    <%= event.getDescription() == null ? "" :
-                                        (event.getDescription().length() > 70
-                                            ? event.getDescription().substring(0, 70) + "..."
-                                            : event.getDescription()) %>
-                                </div>
+                                <div class="event-desc"><%= shortDescription %></div>
                             </td>
 
                             <td class="muted"><%= event.getCategory() %></td>
@@ -838,7 +812,7 @@
                                     <form method="post"
                                           action="<%=request.getContextPath()%>/event"
                                           style="margin:0;"
-                                          onsubmit="return confirmCancel('<%= event.getTitle().replace("'", "\\'") %>');">
+                                          onsubmit="return confirmCancel();">
                                         <input type="hidden" name="action" value="cancel">
                                         <input type="hidden" name="eventId" value="<%= event.getEventId() %>">
                                         <button type="submit" class="btn btn-cancel-event">Cancel</button>
@@ -847,7 +821,7 @@
                                     <form method="post"
                                           action="<%=request.getContextPath()%>/event"
                                           style="margin:0;"
-                                          onsubmit="return confirmDelete('<%= event.getTitle().replace("'", "\\'") %>');">
+                                          onsubmit="return confirmDelete();">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="eventId" value="<%= event.getEventId() %>">
                                         <button type="submit" class="btn btn-delete">Delete</button>
