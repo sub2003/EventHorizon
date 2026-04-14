@@ -15,14 +15,24 @@ public class UserService {
 
     // ======================== CREATE ========================
 
-    public boolean registerCustomer(String name, String email,
-                                    String password, String phone) {
-        if (getUserByEmail(email) != null) return false;
+    public boolean registerCustomer(String name, String email, String password, String phone) {
+        name = safeTrim(name);
+        email = normalizeEmail(email);
+        password = safeTrim(password);
+        phone = safeTrim(phone);
+
+        if (isBlank(name) || isBlank(email) || isBlank(password) || isBlank(phone)) {
+            return false;
+        }
+
+        if (getUserByEmail(email) != null) {
+            return false;
+        }
 
         String id = generateUserId("USR");
 
-        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) "
-                + "VALUES (?, ?, ?, ?, ?, 'CUSTOMER')";
+        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) " +
+                "VALUES (?, ?, ?, ?, ?, 'CUSTOMER')";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -33,8 +43,7 @@ public class UserService {
             ps.setString(4, password);
             ps.setString(5, phone);
 
-            ps.executeUpdate();
-            return true;
+            return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
             System.err.println("registerCustomer error: " + e.getMessage());
@@ -42,14 +51,24 @@ public class UserService {
         }
     }
 
-    public boolean registerAdmin(String name, String email,
-                                 String password, String phone) {
-        if (getUserByEmail(email) != null) return false;
+    public boolean registerAdmin(String name, String email, String password, String phone) {
+        name = safeTrim(name);
+        email = normalizeEmail(email);
+        password = safeTrim(password);
+        phone = safeTrim(phone);
+
+        if (isBlank(name) || isBlank(email) || isBlank(password) || isBlank(phone)) {
+            return false;
+        }
+
+        if (getUserByEmail(email) != null) {
+            return false;
+        }
 
         String id = generateUserId("ADM");
 
-        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) "
-                + "VALUES (?, ?, ?, ?, ?, 'ADMIN')";
+        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) " +
+                "VALUES (?, ?, ?, ?, ?, 'ADMIN')";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -60,8 +79,7 @@ public class UserService {
             ps.setString(4, password);
             ps.setString(5, phone);
 
-            ps.executeUpdate();
-            return true;
+            return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
             System.err.println("registerAdmin error: " + e.getMessage());
@@ -76,23 +94,38 @@ public class UserService {
                                       String email,
                                       String password,
                                       String phone) {
-        if (requesterAdminId == null || requesterAdminId.trim().isEmpty()) return false;
 
-        if (getUserByEmail(email) != null) return false;
+        requesterAdminId = safeTrim(requesterAdminId);
+        name = safeTrim(name);
+        email = normalizeEmail(email);
+        password = safeTrim(password);
+        phone = safeTrim(phone);
 
-        String pendingCheckSql = "SELECT request_id FROM admin_requests WHERE requested_email = ? AND status = 'PENDING'";
-        String insertSql = "INSERT INTO admin_requests "
-                + "(request_id, requester_admin_id, requested_name, requested_email, requested_password, requested_phone, status) "
-                + "VALUES (?, ?, ?, ?, ?, ?, 'PENDING')";
+        if (isBlank(requesterAdminId) || isBlank(name) || isBlank(email) || isBlank(password) || isBlank(phone)) {
+            return false;
+        }
+
+        if (getUserByEmail(email) != null) {
+            return false;
+        }
+
+        String pendingCheckSql =
+                "SELECT request_id FROM admin_requests WHERE requested_email = ? AND status = 'PENDING'";
+
+        String insertSql =
+                "INSERT INTO admin_requests " +
+                        "(request_id, requester_admin_id, requested_name, requested_email, requested_password, requested_phone, status) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, 'PENDING')";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement checkPs = conn.prepareStatement(pendingCheckSql);
              PreparedStatement insertPs = conn.prepareStatement(insertSql)) {
 
             checkPs.setString(1, email);
-            ResultSet rs = checkPs.executeQuery();
-            if (rs.next()) {
-                return false;
+            try (ResultSet rs = checkPs.executeQuery()) {
+                if (rs.next()) {
+                    return false;
+                }
             }
 
             String requestId = generateAdminRequestId();
@@ -141,12 +174,17 @@ public class UserService {
     }
 
     public boolean approveAdminRequest(String requestId, String approverAdminId) {
-        String selectSql = "SELECT * FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
-        String insertAdminSql = "INSERT INTO users (user_id, name, email, password, phone, role) "
-                + "VALUES (?, ?, ?, ?, ?, 'ADMIN')";
-        String updateRequestSql = "UPDATE admin_requests "
-                + "SET status = 'APPROVED', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP "
-                + "WHERE request_id = ?";
+        String selectSql =
+                "SELECT * FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
+
+        String insertAdminSql =
+                "INSERT INTO users (user_id, name, email, password, phone, role) " +
+                        "VALUES (?, ?, ?, ?, ?, 'ADMIN')";
+
+        String updateRequestSql =
+                "UPDATE admin_requests " +
+                        "SET status = 'APPROVED', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP " +
+                        "WHERE request_id = ?";
 
         Connection conn = null;
 
@@ -156,44 +194,45 @@ public class UserService {
 
             try (PreparedStatement selectPs = conn.prepareStatement(selectSql)) {
                 selectPs.setString(1, requestId);
-                ResultSet rs = selectPs.executeQuery();
 
-                if (!rs.next()) {
-                    conn.rollback();
-                    return false;
-                }
+                try (ResultSet rs = selectPs.executeQuery()) {
+                    if (!rs.next()) {
+                        conn.rollback();
+                        return false;
+                    }
 
-                String requesterAdminId = rs.getString("requester_admin_id");
-                String name = rs.getString("requested_name");
-                String email = rs.getString("requested_email");
-                String password = rs.getString("requested_password");
-                String phone = rs.getString("requested_phone");
+                    String requesterAdminId = rs.getString("requester_admin_id");
+                    String name = rs.getString("requested_name");
+                    String email = normalizeEmail(rs.getString("requested_email"));
+                    String password = rs.getString("requested_password");
+                    String phone = rs.getString("requested_phone");
 
-                if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
-                    conn.rollback();
-                    return false;
-                }
+                    if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
+                        conn.rollback();
+                        return false;
+                    }
 
-                if (getUserByEmail(email) != null) {
-                    conn.rollback();
-                    return false;
-                }
+                    if (getUserByEmail(email) != null) {
+                        conn.rollback();
+                        return false;
+                    }
 
-                String newAdminId = generateUserId("ADM", conn);
+                    String newAdminId = generateUserId("ADM", conn);
 
-                try (PreparedStatement insertPs = conn.prepareStatement(insertAdminSql);
-                     PreparedStatement updatePs = conn.prepareStatement(updateRequestSql)) {
+                    try (PreparedStatement insertPs = conn.prepareStatement(insertAdminSql);
+                         PreparedStatement updatePs = conn.prepareStatement(updateRequestSql)) {
 
-                    insertPs.setString(1, newAdminId);
-                    insertPs.setString(2, name);
-                    insertPs.setString(3, email);
-                    insertPs.setString(4, password);
-                    insertPs.setString(5, phone);
-                    insertPs.executeUpdate();
+                        insertPs.setString(1, newAdminId);
+                        insertPs.setString(2, name);
+                        insertPs.setString(3, email);
+                        insertPs.setString(4, password);
+                        insertPs.setString(5, phone);
+                        insertPs.executeUpdate();
 
-                    updatePs.setString(1, approverAdminId);
-                    updatePs.setString(2, requestId);
-                    updatePs.executeUpdate();
+                        updatePs.setString(1, approverAdminId);
+                        updatePs.setString(2, requestId);
+                        updatePs.executeUpdate();
+                    }
                 }
             }
 
@@ -202,6 +241,7 @@ public class UserService {
 
         } catch (SQLException e) {
             System.err.println("approveAdminRequest error: " + e.getMessage());
+
             if (conn != null) {
                 try {
                     conn.rollback();
@@ -209,6 +249,7 @@ public class UserService {
                 }
             }
             return false;
+
         } finally {
             if (conn != null) {
                 try {
@@ -221,26 +262,30 @@ public class UserService {
     }
 
     public boolean rejectAdminRequest(String requestId, String approverAdminId) {
-        String selectSql = "SELECT requester_admin_id FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
-        String updateSql = "UPDATE admin_requests "
-                + "SET status = 'REJECTED', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP "
-                + "WHERE request_id = ? AND status = 'PENDING'";
+        String selectSql =
+                "SELECT requester_admin_id FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
+
+        String updateSql =
+                "UPDATE admin_requests " +
+                        "SET status = 'REJECTED', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP " +
+                        "WHERE request_id = ? AND status = 'PENDING'";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement selectPs = conn.prepareStatement(selectSql);
              PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
 
             selectPs.setString(1, requestId);
-            ResultSet rs = selectPs.executeQuery();
 
-            if (!rs.next()) {
-                return false;
-            }
+            try (ResultSet rs = selectPs.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
 
-            String requesterAdminId = rs.getString("requester_admin_id");
+                String requesterAdminId = rs.getString("requester_admin_id");
 
-            if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
-                return false;
+                if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
+                    return false;
+                }
             }
 
             updatePs.setString(1, approverAdminId);
@@ -258,7 +303,7 @@ public class UserService {
 
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users";
+        String sql = "SELECT * FROM users ORDER BY role DESC, name ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
@@ -277,7 +322,7 @@ public class UserService {
 
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE role = 'CUSTOMER'";
+        String sql = "SELECT * FROM users WHERE role = 'CUSTOMER' ORDER BY name ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
@@ -310,11 +355,12 @@ public class UserService {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, userId);
-            ResultSet rs = ps.executeQuery();
+            ps.setString(1, safeTrim(userId));
 
-            if (rs.next()) {
-                return mapRowToUser(rs, conn);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRowToUser(rs, conn);
+                }
             }
 
         } catch (SQLException e) {
@@ -325,16 +371,17 @@ public class UserService {
     }
 
     public User getUserByEmail(String email) {
-        String sql = "SELECT * FROM users WHERE email = ?";
+        String sql = "SELECT * FROM users WHERE LOWER(email) = LOWER(?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, email);
-            ResultSet rs = ps.executeQuery();
+            ps.setString(1, normalizeEmail(email));
 
-            if (rs.next()) {
-                return mapRowToUser(rs, conn);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRowToUser(rs, conn);
+                }
             }
 
         } catch (SQLException e) {
@@ -345,18 +392,18 @@ public class UserService {
     }
 
     public User login(String email, String password) {
-        String sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+        String sql = "SELECT * FROM users WHERE LOWER(email) = LOWER(?) AND password = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, email);
-            ps.setString(2, password);
+            ps.setString(1, normalizeEmail(email));
+            ps.setString(2, safeTrim(password));
 
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return mapRowToUser(rs, conn);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRowToUser(rs, conn);
+                }
             }
 
         } catch (SQLException e) {
@@ -368,9 +415,17 @@ public class UserService {
 
     // ======================== UPDATE ========================
 
-    public boolean updateUser(String userId, String newName,
-                              String newPhone, String newPassword) {
-        String sql = "UPDATE users SET name=?, phone=?, password=? WHERE user_id=?";
+    public boolean updateUser(String userId, String newName, String newPhone, String newPassword) {
+        userId = safeTrim(userId);
+        newName = safeTrim(newName);
+        newPhone = safeTrim(newPhone);
+        newPassword = safeTrim(newPassword);
+
+        if (isBlank(userId) || isBlank(newName) || isBlank(newPhone) || isBlank(newPassword)) {
+            return false;
+        }
+
+        String sql = "UPDATE users SET name = ?, phone = ?, password = ? WHERE user_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -388,30 +443,161 @@ public class UserService {
         }
     }
 
-    // ======================== DELETE ========================
+    public boolean updateUserByAdmin(String targetUserId,
+                                     String name,
+                                     String email,
+                                     String phone,
+                                     String password,
+                                     String role,
+                                     String currentAdminId) {
 
-    public boolean deleteUser(String userId) {
-        String sql = "DELETE FROM users WHERE user_id = ?";
+        targetUserId = safeTrim(targetUserId);
+        name = safeTrim(name);
+        email = normalizeEmail(email);
+        phone = safeTrim(phone);
+        password = safeTrim(password);
+        role = safeTrim(role);
+        currentAdminId = safeTrim(currentAdminId);
+
+        if (isBlank(targetUserId) || isBlank(name) || isBlank(email) || isBlank(phone) || isBlank(role)) {
+            return false;
+        }
+
+        if (!"ADMIN".equalsIgnoreCase(role) && !"CUSTOMER".equalsIgnoreCase(role)) {
+            return false;
+        }
+
+        User existing = getUserById(targetUserId);
+        if (existing == null) {
+            return false;
+        }
+
+        User userWithSameEmail = getUserByEmail(email);
+        if (userWithSameEmail != null && !targetUserId.equals(userWithSameEmail.getUserId())) {
+            return false;
+        }
+
+        if (targetUserId.equals(currentAdminId) && !"ADMIN".equalsIgnoreCase(role)) {
+            return false;
+        }
+
+        String sql;
+        boolean updatePassword = !isBlank(password);
+
+        if (updatePassword) {
+            sql = "UPDATE users SET name = ?, email = ?, phone = ?, password = ?, role = ? WHERE user_id = ?";
+        } else {
+            sql = "UPDATE users SET name = ?, email = ?, phone = ?, role = ? WHERE user_id = ?";
+        }
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, userId);
+            ps.setString(1, name);
+            ps.setString(2, email);
+            ps.setString(3, phone);
+
+            if (updatePassword) {
+                ps.setString(4, password);
+                ps.setString(5, role.toUpperCase());
+                ps.setString(6, targetUserId);
+            } else {
+                ps.setString(4, role.toUpperCase());
+                ps.setString(5, targetUserId);
+            }
+
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
-            System.err.println("deleteUser error: " + e.getMessage());
+            System.err.println("updateUserByAdmin error: " + e.getMessage());
             return false;
         }
     }
 
+    // ======================== DELETE ========================
+
+    public boolean deleteUser(String userId) {
+        return deleteUser(userId, null);
+    }
+
+    public boolean deleteUser(String userId, String currentAdminId) {
+        userId = safeTrim(userId);
+        currentAdminId = safeTrim(currentAdminId);
+
+        if (isBlank(userId)) {
+            return false;
+        }
+
+        if (userId.equals(currentAdminId)) {
+            return false;
+        }
+
+        Connection conn = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            // Delete related bookings first if they exist
+            try (PreparedStatement bookingPs =
+                         conn.prepareStatement("DELETE FROM bookings WHERE customer_id = ?")) {
+                bookingPs.setString(1, userId);
+                bookingPs.executeUpdate();
+            } catch (SQLException ignored) {
+                // Ignore if no FK / no matching rows / schema differs
+            }
+
+            // Clean admin requests related to this user if possible
+            try (PreparedStatement requestByApproverPs =
+                         conn.prepareStatement("DELETE FROM admin_requests WHERE reviewed_by = ?")) {
+                requestByApproverPs.setString(1, userId);
+                requestByApproverPs.executeUpdate();
+            } catch (SQLException ignored) {
+            }
+
+            try (PreparedStatement deletePs =
+                         conn.prepareStatement("DELETE FROM users WHERE user_id = ?")) {
+                deletePs.setString(1, userId);
+
+                boolean success = deletePs.executeUpdate() > 0;
+                if (!success) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            System.err.println("deleteUser error: " + e.getMessage());
+
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            return false;
+
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
+        }
+    }
+
     public boolean deleteUserByEmail(String email) {
-        String sql = "DELETE FROM users WHERE email = ?";
+        String sql = "DELETE FROM users WHERE LOWER(email) = LOWER(?)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, email);
+            ps.setString(1, normalizeEmail(email));
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
@@ -427,10 +613,11 @@ public class UserService {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, customerId);
-            ResultSet rs = ps.executeQuery();
 
-            if (rs.next()) {
-                return rs.getInt(1);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
 
         } catch (SQLException e) {
@@ -448,12 +635,12 @@ public class UserService {
         String pass = rs.getString("password");
         String phone = rs.getString("phone");
 
-        if ("ADMIN".equals(role)) {
+        if ("ADMIN".equalsIgnoreCase(role)) {
             return new Admin(id, name, email, pass, phone, "STANDARD");
-        } else {
-            int bookingCount = getBookingCount(id, conn);
-            return new Customer(id, name, email, pass, phone, bookingCount);
         }
+
+        int bookingCount = getBookingCount(id, conn);
+        return new Customer(id, name, email, pass, phone, bookingCount);
     }
 
     private String generateUserId(String prefix) {
@@ -466,42 +653,57 @@ public class UserService {
     }
 
     private String generateUserId(String prefix, Connection conn) {
-        String sql = "SELECT COUNT(*) FROM users WHERE role = ?";
+        String sql =
+                "SELECT MAX(CAST(SUBSTRING(user_id, 4) AS UNSIGNED)) " +
+                        "FROM users WHERE user_id LIKE ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            if ("ADM".equals(prefix)) {
-                ps.setString(1, "ADMIN");
-            } else {
-                ps.setString(1, "CUSTOMER");
-            }
+            ps.setString(1, prefix + "%");
 
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return String.format("%s%03d", prefix, rs.getInt(1) + 1);
+            try (ResultSet rs = ps.executeQuery()) {
+                int next = 1;
+                if (rs.next()) {
+                    next = rs.getInt(1) + 1;
+                }
+                return String.format("%s%03d", prefix, next);
             }
 
         } catch (SQLException e) {
             System.err.println("generateUserId(conn) error: " + e.getMessage());
+            return prefix + System.currentTimeMillis();
         }
-
-        return prefix + System.currentTimeMillis();
     }
 
     private String generateAdminRequestId() {
-        String sql = "SELECT COUNT(*) FROM admin_requests";
+        String sql =
+                "SELECT MAX(CAST(SUBSTRING(request_id, 4) AS UNSIGNED)) " +
+                        "FROM admin_requests WHERE request_id LIKE 'ARQ%'";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
 
+            int next = 1;
             if (rs.next()) {
-                return String.format("ARQ%03d", rs.getInt(1) + 1);
+                next = rs.getInt(1) + 1;
             }
+            return String.format("ARQ%03d", next);
 
         } catch (SQLException e) {
             System.err.println("generateAdminRequestId error: " + e.getMessage());
+            return "ARQ" + System.currentTimeMillis();
         }
+    }
 
-        return "ARQ" + System.currentTimeMillis();
+    private String safeTrim(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }

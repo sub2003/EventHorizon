@@ -31,7 +31,10 @@ public class UserServlet extends HttpServlet {
                 handleLogout(req, resp);
                 break;
             case "update":
-                handleUpdate(req, resp);
+                handleUpdateProfile(req, resp);
+                break;
+            case "adminUpdate":
+                handleAdminUpdate(req, resp);
                 break;
             case "delete":
                 handleDelete(req, resp);
@@ -105,37 +108,27 @@ public class UserServlet extends HttpServlet {
     private void handleRegister(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
-        String name = req.getParameter("name");
-        String email = req.getParameter("email");
-        String password = req.getParameter("password");
-        String phone = req.getParameter("phone");
-
-        if (name != null) name = name.trim();
-        if (email != null) email = email.trim();
-        if (password != null) password = password.trim();
-        if (phone != null) phone = phone.trim();
+        String name = trim(req.getParameter("name"));
+        String email = trim(req.getParameter("email"));
+        String password = trim(req.getParameter("password"));
+        String phone = trim(req.getParameter("phone"));
 
         boolean created = userService.registerCustomer(name, email, password, phone);
 
         if (created) {
             resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=registered");
         } else {
-            resp.sendRedirect(req.getContextPath() + "/registerCustomer.jsp?error=emailExists");
+            resp.sendRedirect(req.getContextPath() + "/registerCustomer.jsp?error=registerFailed");
         }
     }
 
     private void handleRequestPublicAdmin(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
-        String name = req.getParameter("name");
-        String email = req.getParameter("email");
-        String password = req.getParameter("password");
-        String phone = req.getParameter("phone");
-
-        if (name != null) name = name.trim();
-        if (email != null) email = email.trim();
-        if (password != null) password = password.trim();
-        if (phone != null) phone = phone.trim();
+        String name = trim(req.getParameter("name"));
+        String email = trim(req.getParameter("email"));
+        String password = trim(req.getParameter("password"));
+        String phone = trim(req.getParameter("phone"));
 
         boolean created = userService.submitAdminRequest(
                 "PUBLIC",
@@ -155,11 +148,8 @@ public class UserServlet extends HttpServlet {
     private void handleLogin(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
-        String email = req.getParameter("email");
-        String password = req.getParameter("password");
-
-        if (email != null) email = email.trim();
-        if (password != null) password = password.trim();
+        String email = trim(req.getParameter("email"));
+        String password = trim(req.getParameter("password"));
 
         User user = userService.login(email, password);
 
@@ -199,7 +189,7 @@ public class UserServlet extends HttpServlet {
         resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=logout");
     }
 
-    private void handleUpdate(HttpServletRequest req, HttpServletResponse resp)
+    private void handleUpdateProfile(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
         HttpSession session = req.getSession(false);
@@ -209,13 +199,9 @@ public class UserServlet extends HttpServlet {
         }
 
         String userId = (String) session.getAttribute("userId");
-        String name = req.getParameter("name");
-        String phone = req.getParameter("phone");
-        String password = req.getParameter("password");
-
-        if (name != null) name = name.trim();
-        if (phone != null) phone = phone.trim();
-        if (password != null) password = password.trim();
+        String name = trim(req.getParameter("name"));
+        String phone = trim(req.getParameter("phone"));
+        String password = trim(req.getParameter("password"));
 
         boolean success = userService.updateUser(userId, name, phone, password);
 
@@ -228,6 +214,41 @@ public class UserServlet extends HttpServlet {
         }
     }
 
+    private void handleAdminUpdate(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        HttpSession session = req.getSession(false);
+        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String currentAdminId = (String) session.getAttribute("userId");
+
+        String userId = trim(req.getParameter("userId"));
+        String name = trim(req.getParameter("name"));
+        String email = trim(req.getParameter("email"));
+        String phone = trim(req.getParameter("phone"));
+        String password = trim(req.getParameter("password"));
+        String role = trim(req.getParameter("role"));
+
+        boolean success = userService.updateUserByAdmin(
+                userId, name, email, phone, password, role, currentAdminId
+        );
+
+        if (success) {
+            if (currentAdminId != null && currentAdminId.equals(userId)) {
+                session.setAttribute("userName", name);
+                session.setAttribute("userEmail", email);
+                session.setAttribute("userPhone", phone);
+                session.setAttribute("role", role.toUpperCase());
+            }
+            resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=updated");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/user?action=list&error=updateFailed");
+        }
+    }
+
     private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
@@ -237,10 +258,16 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
-        String userId = req.getParameter("userId");
-        userService.deleteUser(userId);
+        String currentAdminId = (String) session.getAttribute("userId");
+        String userId = trim(req.getParameter("userId"));
 
-        resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=deleted");
+        boolean deleted = userService.deleteUser(userId, currentAdminId);
+
+        if (deleted) {
+            resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=deleted");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/user?action=list&error=deleteFailed");
+        }
     }
 
     private void handleRequestAdmin(HttpServletRequest req, HttpServletResponse resp)
@@ -253,15 +280,10 @@ public class UserServlet extends HttpServlet {
         }
 
         String requesterAdminId = (String) session.getAttribute("userId");
-        String name = req.getParameter("name");
-        String email = req.getParameter("email");
-        String password = req.getParameter("password");
-        String phone = req.getParameter("phone");
-
-        if (name != null) name = name.trim();
-        if (email != null) email = email.trim();
-        if (password != null) password = password.trim();
-        if (phone != null) phone = phone.trim();
+        String name = trim(req.getParameter("name"));
+        String email = trim(req.getParameter("email"));
+        String password = trim(req.getParameter("password"));
+        String phone = trim(req.getParameter("phone"));
 
         boolean created = userService.submitAdminRequest(
                 requesterAdminId, name, email, password, phone
@@ -284,7 +306,7 @@ public class UserServlet extends HttpServlet {
         }
 
         String approverAdminId = (String) session.getAttribute("userId");
-        String requestId = req.getParameter("requestId");
+        String requestId = trim(req.getParameter("requestId"));
 
         boolean approved = userService.approveAdminRequest(requestId, approverAdminId);
 
@@ -305,7 +327,7 @@ public class UserServlet extends HttpServlet {
         }
 
         String approverAdminId = (String) session.getAttribute("userId");
-        String requestId = req.getParameter("requestId");
+        String requestId = trim(req.getParameter("requestId"));
 
         boolean rejected = userService.rejectAdminRequest(requestId, approverAdminId);
 
@@ -314,5 +336,9 @@ public class UserServlet extends HttpServlet {
         } else {
             resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&error=rejectFailed");
         }
+    }
+
+    private String trim(String value) {
+        return value == null ? null : value.trim();
     }
 }
