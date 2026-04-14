@@ -1,4 +1,4 @@
-<h1 align="center">🎟️ EventHorizon</h1>
+<h1 align="center">EventHorizon</h1>
 <h3 align="center">Event Booking Web Application</h3>
 
 <p align="center">
@@ -17,74 +17,89 @@ A full-stack Java web application for discovering events, booking tickets, and m
 
 ---
 
-## 🌐 Live Demo
+## Live Demo
 
-👉 **[Open EventHorizon Web App](https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon)**
+**Railway Deployment (Primary)**  
+https://glistening-light-production-f277.up.railway.app/
 
-> ⚠️ This demo is hosted using ngrok, so availability may be temporary.
+**Temporary Demo (ngrok)**  
+https://phosphate-shrine-iguana.ngrok-free.dev/EventHorizon  
+
+> Note: ngrok link may not always be active.
 
 ---
 
-## 🚀 Features
+## Features
 
-### 🔐 Authentication & Access Control
+### Authentication & Access Control
 - Secure login for Admins and Customers
 - Session-based authentication
-- Role-based page access
+- Role-based access control
 - Separate registration flow for customers
 - Admin request system with approval workflow
 
-### 👑 Admin Approval Workflow
-- Users can request admin access
-- Existing admins can create admin requests
-- Pending admin requests can be reviewed from the admin panel
-- An admin cannot approve their own request
-- Approved requests automatically create a new admin account
+---
 
-### 🎫 Event Management
-- Browse all active events
-- View event details with pricing, venue, date, and seat availability
-- Search events by title or venue
-- Filter events by category
-- Admins can add, update, cancel, and delete events
-- Event image upload support
-
-### 🛒 Booking System
-- Book tickets for available events
-- Real-time seat availability updates
-- Cancel bookings with seat restoration
-- View personal bookings
-- Admin-side booking visibility and management
-
-### 👤 User Management
-- Customer profile management
-- Admin user listing and management
-- Separate admin and customer experiences
-
-### 🎨 UI / UX
-- Dark-themed modern interface
-- Animated event browsing experience
-- Search and category filtering
-- Responsive layouts for core pages
+### Admin Approval Workflow
+- Users can request admin access  
+- Existing admins can create admin requests  
+- Pending requests can be approved or rejected  
+- Admins cannot approve their own requests  
+- Approved requests create new admin accounts  
 
 ---
 
-## 🧱 System Architecture
-
-This project follows the **MVC (Model-View-Controller)** pattern:
-
-- **Model** → Java classes such as `Event`, `User`, `Booking`, `Admin`, and `Customer`
-- **View** → JSP pages
-- **Controller** → Java Servlets
-- **Database Layer** → JDBC with MySQL
+### Event Management
+- View all active events  
+- View event details (date, time, venue, seats)  
+- Search events by title or venue  
+- Filter events by category  
+- Admin capabilities:
+  - Add events  
+  - Update events  
+  - Cancel or delete events  
+- Event image upload support  
 
 ---
 
-## 🛠️ Technologies Used
+### Booking System
+- Book tickets for events  
+- Real-time seat availability updates  
+- Cancel bookings with seat restoration  
+- View personal bookings  
 
-- Java (Core Java + OOP)
-- JSP
-- Servlets
+---
+
+### User Management
+- Customer profile management  
+- Admin user management  
+- Role-based dashboards  
+
+---
+
+### UI / UX
+- Dark-themed interface  
+- Smooth animations and transitions  
+- Search and category filtering  
+- Responsive layout  
+
+---
+
+## System Architecture
+
+Follows the **MVC (Model-View-Controller)** pattern:
+
+- **Model** → Java classes (Event, User, Booking, Admin)
+- **View** → JSP pages  
+- **Controller** → Servlets  
+- **Database Layer** → JDBC with MySQL  
+
+---
+
+## Technologies Used
+
+- Java (Core + OOP)
+- JSP & Servlets
 - Apache Tomcat
 - MySQL
 - JDBC
@@ -93,69 +108,55 @@ This project follows the **MVC (Model-View-Controller)** pattern:
 
 ---
 
-## 📂 Project Structure
+## Modules
 
-<p align="center">
-  <img src="https://github.com/sub2003/EventHorizon/blob/main/src/Screenshot%202026-04-11%20175107.png?raw=true" width="700"/>
-</p>
+### Customer
+- Register and log in  
+- Browse and search events  
+- Book tickets  
+- Manage bookings  
 
----
-
-## 📌 Core Modules
-
-### Customer Module
-- Register and log in
-- Browse events
-- Search and filter events
-- View event details
-- Book tickets
-- View and cancel bookings
-- Manage profile
-
-### Admin Module
-- Log in to admin dashboard
-- Manage events
-- Manage users
-- View bookings
-- Create admin requests
-- Approve or reject pending admin requests
+### Admin
+- Manage events  
+- Manage users  
+- View bookings  
+- Approve admin requests  
 
 ---
 
-## ⚠️ Current Notes
+## Notes
 
-- Built as a Java web application using JSP/Servlet architecture
-- Requires MySQL database configuration
-- Best run using Apache Tomcat
-- Live demo link may change because it uses ngrok
-- SMTP-based email verification was removed from the hosted workflow due to deployment environment limitations
-
----
-
-## 🔮 Future Improvements
-
-- Deploy permanently to a cloud platform
-- Add password hashing with bcrypt
-- Add email service using API-based provider
-- Improve frontend with a richer component-based UI
-- Add payment gateway integration
-- Add analytics and reporting for admins
-- Add event recommendation and advanced filtering
+- Email verification is disabled in deployment due to SMTP limitations  
+- Railway deployment uses environment variables  
+- Database hosted on Railway MySQL  
+- Designed for learning and real-world practice  
 
 ---
 
-## 👨‍💻 Author
+## Future Improvements
 
-**Subhanu Ravisankha Aththanayaka**  
+- Add password hashing (bcrypt)  
+- Integrate email API (Resend / SendGrid)  
+- Add payment gateway  
+- Improve frontend (React / SPA)  
+- Add analytics dashboard  
+
+---
+
+## Author
+
+Subhanu Ravisankha Aththanayaka  
 SLIIT Undergraduate  
-BSc (Hons) in IT
+BSc (Hons) in IT  
 
 ---
 
-## ⭐ Final Note
+## Final Note
 
-EventHorizon is a complete full-stack Java web application that demonstrates authentication, event management, ticket booking, admin workflows, and database integration in a practical real-world project.
+EventHorizon demonstrates a complete **full-stack Java web application**, including authentication, admin workflows, booking systems, and database integration in a real-world project.
+
+---
 
 <p align="center">
-💡 Built for learning, creativity, and real-world software development.
+Built for learning, innovation, and real-world application development.
 </p>
