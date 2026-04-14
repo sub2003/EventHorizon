@@ -14,80 +14,159 @@
     String error = request.getParameter("error");
 %>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Users - EventHorizon</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - EventHorizon Admin</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
+        * {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f7fb;
-            color: #1f2937;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        :root {
+            --bg-primary: #0b1020;
+            --bg-secondary: #121a2f;
+            --bg-card: rgba(18, 26, 47, 0.92);
+            --bg-card-hover: rgba(24, 34, 60, 0.98);
+            --border: rgba(255, 255, 255, 0.08);
+            --border-strong: rgba(255, 255, 255, 0.15);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent: #4f46e5;
+            --accent-light: #6366f1;
+            --accent-soft: rgba(99, 102, 241, 0.18);
+            --success: #10b981;
+            --success-soft: rgba(16, 185, 129, 0.18);
+            --danger: #ef4444;
+            --danger-soft: rgba(239, 68, 68, 0.16);
+            --warning: #f59e0b;
+            --warning-soft: rgba(245, 158, 11, 0.16);
+            --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+            --radius-lg: 24px;
+            --radius-md: 16px;
+            --radius-sm: 12px;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--text-primary);
+            background:
+                radial-gradient(circle at top left, rgba(79, 70, 229, 0.22), transparent 28%),
+                radial-gradient(circle at top right, rgba(16, 185, 129, 0.12), transparent 22%),
+                linear-gradient(135deg, #090d1a 0%, #0f172a 45%, #111827 100%);
+            min-height: 100vh;
+        }
+
         .page {
-            max-width: 1250px;
+            max-width: 1500px;
             margin: 0 auto;
-            padding: 24px;
+            padding: 32px 26px 48px;
         }
+
         .topbar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
+            align-items: flex-start;
+            gap: 20px;
             flex-wrap: wrap;
+            margin-bottom: 28px;
         }
-        .title h1 {
-            margin: 0;
-            font-size: 28px;
+
+        .title-block h1 {
+            font-size: 42px;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            color: #ffffff;
         }
-        .title p {
-            margin: 6px 0 0;
-            color: #6b7280;
+
+        .title-block p {
+            font-size: 20px;
+            color: var(--text-secondary);
         }
-        .actions {
+
+        .top-actions {
             display: flex;
-            gap: 10px;
+            gap: 14px;
             flex-wrap: wrap;
         }
-        .btn, button {
+
+        .btn,
+        button {
             border: none;
-            border-radius: 10px;
-            padding: 10px 16px;
+            outline: none;
             cursor: pointer;
             text-decoration: none;
-            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            transition: 0.25s ease;
         }
-        .btn-dark { background: #111827; color: white; }
-        .btn-light { background: white; color: #111827; border: 1px solid #d1d5db; }
-        .btn-blue { background: #2563eb; color: white; }
-        .btn-red { background: #dc2626; color: white; }
-        .btn-green { background: #059669; color: white; }
+
+        .btn-outline {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-strong);
+            backdrop-filter: blur(12px);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary {
+            color: white;
+            background: linear-gradient(135deg, var(--accent), var(--accent-light));
+            box-shadow: 0 12px 28px rgba(79, 70, 229, 0.35);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 18px 34px rgba(79, 70, 229, 0.45);
+        }
+
+        .panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+            overflow: hidden;
+        }
+
+        .alert-wrap {
+            margin-bottom: 20px;
+        }
 
         .alert {
-            padding: 14px 16px;
-            border-radius: 10px;
-            margin-bottom: 18px;
-            font-weight: 600;
-        }
-        .alert-success {
-            background: #ecfdf5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-        .alert-error {
-            background: #fef2f2;
-            color: #991b1b;
-            border: 1px solid #fecaca;
+            border-radius: 16px;
+            padding: 16px 18px;
+            font-size: 15px;
+            font-weight: 700;
+            border: 1px solid transparent;
         }
 
-        .card {
-            background: white;
-            border-radius: 18px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.06);
-            overflow: hidden;
+        .alert-success {
+            background: var(--success-soft);
+            color: #a7f3d0;
+            border-color: rgba(16, 185, 129, 0.35);
+        }
+
+        .alert-error {
+            background: var(--danger-soft);
+            color: #fecaca;
+            border-color: rgba(239, 68, 68, 0.35);
         }
 
         .table-wrap {
@@ -97,114 +176,270 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1000px;
+            min-width: 1180px;
         }
 
-        th, td {
-            padding: 16px;
-            border-bottom: 1px solid #e5e7eb;
+        thead th {
             text-align: left;
-            vertical-align: top;
-        }
-
-        th {
-            background: #f9fafb;
-            font-size: 14px;
+            padding: 22px 20px;
+            font-size: 13px;
+            font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
-            color: #6b7280;
+            letter-spacing: 0.7px;
+            color: #cbd5e1;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border);
         }
 
-        .role-badge {
-            display: inline-block;
-            padding: 6px 10px;
+        tbody td {
+            padding: 22px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            vertical-align: middle;
+            color: var(--text-primary);
+        }
+
+        tbody tr.data-row {
+            transition: 0.25s ease;
+        }
+
+        tbody tr.data-row:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .user-id {
+            font-weight: 800;
+            color: #ffffff;
+            letter-spacing: 0.3px;
+        }
+
+        .user-name {
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .user-email,
+        .user-phone {
+            color: #cbd5e1;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 12px;
             border-radius: 999px;
             font-size: 12px;
-            font-weight: 700;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
         }
 
-        .role-admin {
-            background: #dbeafe;
-            color: #1d4ed8;
+        .badge-admin {
+            color: #c7d2fe;
+            background: rgba(79, 70, 229, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.3);
         }
 
-        .role-customer {
-            background: #dcfce7;
-            color: #15803d;
+        .badge-customer {
+            color: #a7f3d0;
+            background: rgba(16, 185, 129, 0.18);
+            border: 1px solid rgba(16, 185, 129, 0.28);
         }
 
-        .row-actions {
+        .action-group {
             display: flex;
-            gap: 8px;
+            align-items: center;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
-        .edit-panel {
-            display: none;
-            background: #f9fafb;
-            padding: 18px;
-            border-top: 1px solid #e5e7eb;
+        .btn-edit {
+            color: #dbeafe;
+            background: rgba(37, 99, 235, 0.18);
+            border: 1px solid rgba(59, 130, 246, 0.28);
+            min-width: 92px;
         }
 
-        .edit-panel.active {
-            display: block;
+        .btn-edit:hover {
+            background: rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-delete {
+            color: #fecaca;
+            background: rgba(239, 68, 68, 0.18);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            min-width: 92px;
+        }
+
+        .btn-delete:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-delete:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .edit-row {
+            display: none;
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        .edit-row.active {
+            display: table-row;
+        }
+
+        .edit-cell {
+            padding: 0 !important;
+        }
+
+        .edit-box {
+            padding: 24px;
+            border-top: 1px solid var(--border);
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+        }
+
+        .edit-title {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 18px;
+            color: #ffffff;
         }
 
         .form-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 14px;
+            gap: 18px;
         }
 
         .form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .form-group label {
             font-size: 13px;
-            font-weight: 700;
-            color: #374151;
+            font-weight: 800;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
 
         .form-group input,
         .form-group select {
-            padding: 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            font-size: 14px;
             width: 100%;
+            padding: 13px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(7, 13, 28, 0.9);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: 0.25s ease;
         }
 
-        .edit-actions {
-            margin-top: 16px;
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: rgba(99, 102, 241, 0.6);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #64748b;
+        }
+
+        .form-actions {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             flex-wrap: wrap;
+            margin-top: 20px;
         }
 
-        .danger-note {
-            font-size: 12px;
-            color: #991b1b;
-            margin-top: 6px;
+        .btn-save {
+            color: white;
+            background: linear-gradient(135deg, #059669, #10b981);
+            box-shadow: 0 12px 28px rgba(16, 185, 129, 0.22);
         }
 
-        @media (max-width: 900px) {
+        .btn-save:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-cancel {
+            color: var(--text-primary);
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-strong);
+        }
+
+        .btn-cancel:hover {
+            background: rgba(255,255,255,0.1);
+        }
+
+        .note {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #fca5a5;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            padding: 36px 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 17px;
+        }
+
+        @media (max-width: 1100px) {
+            .form-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 720px) {
+            .page {
+                padding: 22px 14px 32px;
+            }
+
+            .title-block h1 {
+                font-size: 32px;
+            }
+
+            .title-block p {
+                font-size: 16px;
+            }
+
             .form-grid {
                 grid-template-columns: 1fr;
             }
+
+            .top-actions {
+                width: 100%;
+            }
+
+            .top-actions a {
+                flex: 1;
+            }
         }
     </style>
+
     <script>
         function toggleEditPanel(userId) {
-            var panel = document.getElementById("edit-" + userId);
-            if (panel.classList.contains("active")) {
-                panel.classList.remove("active");
-            } else {
-                var panels = document.querySelectorAll(".edit-panel");
-                panels.forEach(function (p) { p.classList.remove("active"); });
-                panel.classList.add("active");
+            var target = document.getElementById("edit-" + userId);
+            var allPanels = document.querySelectorAll(".edit-row");
+
+            allPanels.forEach(function(panel) {
+                if (panel !== target) {
+                    panel.classList.remove("active");
+                }
+            });
+
+            if (target) {
+                target.classList.toggle("active");
             }
         }
 
@@ -215,30 +450,34 @@
 </head>
 <body>
 <div class="page">
+
     <div class="topbar">
-        <div class="title">
+        <div class="title-block">
             <h1>Manage Users</h1>
-            <p>View, edit, and remove system users</p>
+            <p>View, edit, and manage all registered system users</p>
         </div>
-        <div class="actions">
-            <a class="btn btn-light" href="<%=request.getContextPath()%>/admin/dashboard.jsp">Dashboard</a>
-            <a class="btn btn-dark" href="<%=request.getContextPath()%>/user?action=listAdminRequests">Admin Requests</a>
+
+        <div class="top-actions">
+            <a href="<%=request.getContextPath()%>/admin/dashboard.jsp" class="btn btn-outline">Dashboard</a>
+            <a href="<%=request.getContextPath()%>/user?action=listAdminRequests" class="btn btn-primary">Admin Requests</a>
         </div>
     </div>
 
-    <% if ("updated".equals(msg)) { %>
-        <div class="alert alert-success">User updated successfully.</div>
-    <% } else if ("deleted".equals(msg)) { %>
-        <div class="alert alert-success">User deleted successfully.</div>
-    <% } %>
+    <div class="alert-wrap">
+        <% if ("updated".equals(msg)) { %>
+            <div class="alert alert-success">User updated successfully.</div>
+        <% } else if ("deleted".equals(msg)) { %>
+            <div class="alert alert-success">User deleted successfully.</div>
+        <% } %>
 
-    <% if ("updateFailed".equals(error)) { %>
-        <div class="alert alert-error">Failed to update user. Check email uniqueness and required fields.</div>
-    <% } else if ("deleteFailed".equals(error)) { %>
-        <div class="alert alert-error">Failed to delete user. The system blocked the operation or related data caused an issue.</div>
-    <% } %>
+        <% if ("updateFailed".equals(error)) { %>
+            <div class="alert alert-error">Failed to update user. Check required fields and email uniqueness.</div>
+        <% } else if ("deleteFailed".equals(error)) { %>
+            <div class="alert alert-error">Failed to delete user. The system blocked the operation or related data caused an issue.</div>
+        <% } %>
+    </div>
 
-    <div class="card">
+    <div class="panel">
         <div class="table-wrap">
             <table>
                 <thead>
@@ -248,41 +487,47 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Role</th>
-                    <th style="width: 260px;">Actions</th>
+                    <th style="min-width: 220px;">Actions</th>
                 </tr>
                 </thead>
                 <tbody>
                 <% if (users == null || users.isEmpty()) { %>
                     <tr>
-                        <td colspan="6">No users found.</td>
+                        <td colspan="6">
+                            <div class="empty-state">No users found.</div>
+                        </td>
                     </tr>
                 <% } else { %>
                     <% for (User user : users) { %>
-                        <tr>
-                            <td><strong><%= user.getUserId() %></strong></td>
-                            <td><%= user.getName() %></td>
-                            <td><%= user.getEmail() %></td>
-                            <td><%= user.getPhone() %></td>
+                        <tr class="data-row">
+                            <td class="user-id"><%= user.getUserId() %></td>
+                            <td class="user-name"><%= user.getName() %></td>
+                            <td class="user-email"><%= user.getEmail() %></td>
+                            <td class="user-phone"><%= user.getPhone() %></td>
                             <td>
                                 <% if ("ADMIN".equals(user.getRole())) { %>
-                                    <span class="role-badge role-admin">ADMIN</span>
+                                    <span class="badge badge-admin">Admin</span>
                                 <% } else { %>
-                                    <span class="role-badge role-customer">CUSTOMER</span>
+                                    <span class="badge badge-customer">Customer</span>
                                 <% } %>
                             </td>
                             <td>
-                                <div class="row-actions">
-                                    <button type="button" class="btn btn-blue"
+                                <div class="action-group">
+                                    <button type="button"
+                                            class="btn btn-edit"
                                             onclick="toggleEditPanel('<%= user.getUserId() %>')">
                                         Edit
                                     </button>
 
-                                    <form method="post" action="<%=request.getContextPath()%>/user" style="margin:0;"
+                                    <form method="post"
+                                          action="<%=request.getContextPath()%>/user"
+                                          style="margin:0;"
                                           onsubmit="return confirmDelete('<%= user.getUserId() %>');">
                                         <input type="hidden" name="action" value="delete">
                                         <input type="hidden" name="userId" value="<%= user.getUserId() %>">
-                                        <button type="submit" class="btn btn-red"
-                                            <%= user.getUserId().equals(currentAdminId) ? "disabled title='You cannot delete your own account.'" : "" %>>
+                                        <button type="submit"
+                                                class="btn btn-delete"
+                                                <%= user.getUserId().equals(currentAdminId) ? "disabled title='You cannot delete your own account.'" : "" %>>
                                             Delete
                                         </button>
                                     </form>
@@ -290,58 +535,77 @@
                             </td>
                         </tr>
 
-                        <tr id="edit-<%= user.getUserId() %>" class="edit-panel">
-                            <td colspan="6">
-                                <form method="post" action="<%=request.getContextPath()%>/user">
-                                    <input type="hidden" name="action" value="adminUpdate">
-                                    <input type="hidden" name="userId" value="<%= user.getUserId() %>">
+                        <tr id="edit-<%= user.getUserId() %>" class="edit-row">
+                            <td colspan="6" class="edit-cell">
+                                <div class="edit-box">
+                                    <div class="edit-title">Edit User - <%= user.getUserId() %></div>
 
-                                    <div class="form-grid">
-                                        <div class="form-group">
-                                            <label>Name</label>
-                                            <input type="text" name="name" value="<%= user.getName() %>" required>
+                                    <form method="post" action="<%=request.getContextPath()%>/user">
+                                        <input type="hidden" name="action" value="adminUpdate">
+                                        <input type="hidden" name="userId" value="<%= user.getUserId() %>">
+
+                                        <div class="form-grid">
+                                            <div class="form-group">
+                                                <label>Name</label>
+                                                <input type="text"
+                                                       name="name"
+                                                       value="<%= user.getName() %>"
+                                                       required>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Email</label>
+                                                <input type="email"
+                                                       name="email"
+                                                       value="<%= user.getEmail() %>"
+                                                       required>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Phone</label>
+                                                <input type="text"
+                                                       name="phone"
+                                                       value="<%= user.getPhone() %>"
+                                                       required>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>New Password</label>
+                                                <input type="text"
+                                                       name="password"
+                                                       placeholder="Leave blank to keep current password">
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label>Role</label>
+                                                <select name="role" required
+                                                    <%= user.getUserId().equals(currentAdminId) ? "disabled" : "" %>>
+                                                    <option value="ADMIN" <%= "ADMIN".equals(user.getRole()) ? "selected" : "" %>>ADMIN</option>
+                                                    <option value="CUSTOMER" <%= "CUSTOMER".equals(user.getRole()) ? "selected" : "" %>>CUSTOMER</option>
+                                                </select>
+
+                                                <% if (user.getUserId().equals(currentAdminId)) { %>
+                                                    <input type="hidden" name="role" value="ADMIN">
+                                                <% } %>
+                                            </div>
                                         </div>
 
-                                        <div class="form-group">
-                                            <label>Email</label>
-                                            <input type="email" name="email" value="<%= user.getEmail() %>" required>
+                                        <div class="form-actions">
+                                            <button type="submit" class="btn btn-save">Save Changes</button>
+                                            <button type="button"
+                                                    class="btn btn-cancel"
+                                                    onclick="toggleEditPanel('<%= user.getUserId() %>')">
+                                                Cancel
+                                            </button>
                                         </div>
 
-                                        <div class="form-group">
-                                            <label>Phone</label>
-                                            <input type="text" name="phone" value="<%= user.getPhone() %>" required>
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>New Password</label>
-                                            <input type="text" name="password" placeholder="Leave blank to keep current password">
-                                        </div>
-
-                                        <div class="form-group">
-                                            <label>Role</label>
-                                            <select name="role" required
-                                                <%= user.getUserId().equals(currentAdminId) ? "disabled" : "" %>>
-                                                <option value="ADMIN" <%= "ADMIN".equals(user.getRole()) ? "selected" : "" %>>ADMIN</option>
-                                                <option value="CUSTOMER" <%= "CUSTOMER".equals(user.getRole()) ? "selected" : "" %>>CUSTOMER</option>
-                                            </select>
-                                            <% if (user.getUserId().equals(currentAdminId)) { %>
-                                                <input type="hidden" name="role" value="ADMIN">
-                                            <% } %>
-                                        </div>
-                                    </div>
-
-                                    <div class="edit-actions">
-                                        <button type="submit" class="btn btn-green">Save Changes</button>
-                                        <button type="button" class="btn btn-light"
-                                                onclick="toggleEditPanel('<%= user.getUserId() %>')">
-                                            Cancel
-                                        </button>
-                                    </div>
-
-                                    <% if (user.getUserId().equals(currentAdminId)) { %>
-                                        <div class="danger-note">Your own account cannot be downgraded from ADMIN here.</div>
-                                    <% } %>
-                                </form>
+                                        <% if (user.getUserId().equals(currentAdminId)) { %>
+                                            <div class="note">
+                                                Your own admin account cannot be downgraded or deleted from this page.
+                                            </div>
+                                        <% } %>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     <% } %>
@@ -350,6 +614,7 @@
             </table>
         </div>
     </div>
+
 </div>
 </body>
 </html>
