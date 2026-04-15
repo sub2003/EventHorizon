@@ -1,8 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.List" %>
 <%@ page import="com.eventhorizon.model.Admin" %>
-<%@ page import="com.eventhorizon.model.AdminRequest" %>
 <%@ page import="com.eventhorizon.service.UserService" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
     HttpSession currentSession = request.getSession(false);
@@ -24,11 +23,15 @@
         return;
     }
 
-    List<AdminRequest> adminRequests = (List<AdminRequest>) request.getAttribute("adminRequests");
-    if (adminRequests == null) adminRequests = new java.util.ArrayList<>();
+    if (request.getAttribute("adminRequests") == null) {
+        request.setAttribute("adminRequests", new java.util.ArrayList<>());
+    }
 
     String msg = request.getParameter("msg");
+    request.setAttribute("msg", msg);
+    request.setAttribute("permissionLabel", UserService.permissionLabel(adminPermission));
 %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -223,7 +226,7 @@
         <div class="sidebar-footer">
             <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
                 <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
-                <strong><%= UserService.permissionLabel(adminPermission) %></strong>
+                <strong>${permissionLabel}</strong>
             </div>
 
             <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
@@ -248,17 +251,21 @@
 
             <div class="topbar-badge-lite">
                 <i class="fa-solid fa-shield-halved"></i>
-                <span><%= UserService.permissionLabel(adminPermission) %></span>
+                <span>${permissionLabel}</span>
             </div>
         </section>
 
-        <% if ("approved".equals(msg)) { %>
+        <c:if test="${msg == 'approved'}">
             <div class="alert-box alert-success-box">Admin request approved successfully.</div>
-        <% } else if ("rejected".equals(msg)) { %>
+        </c:if>
+
+        <c:if test="${msg == 'rejected'}">
             <div class="alert-box alert-success-box">Admin request rejected successfully.</div>
-        <% } else if ("error".equals(msg)) { %>
+        </c:if>
+
+        <c:if test="${msg == 'error'}">
             <div class="alert-box alert-error-box">Action failed. Please try again.</div>
-        <% } %>
+        </c:if>
 
         <div class="page-card">
             <div class="page-header">
@@ -283,39 +290,39 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <% for (AdminRequest r : adminRequests) { %>
+                    <c:forEach var="r" items="${adminRequests}">
                         <tr>
-                            <td class="mono-id"><%= r.getRequestId() %></td>
-                            <td><%= r.getRequestedBy() %></td>
-                            <td><%= r.getName() %></td>
-                            <td><%= r.getEmail() %></td>
-                            <td><%= r.getPhone() %></td>
-                            <td><span class="perm-pill"><%= UserService.permissionLabel(r.getPermission()) %></span></td>
-                            <td><%= r.getRequestedAt() %></td>
+                            <td class="mono-id">${r.requestId}</td>
+                            <td>${r.requestedBy}</td>
+                            <td>${r.name}</td>
+                            <td>${r.email}</td>
+                            <td>${r.phone}</td>
+                            <td><span class="perm-pill">${r.permission}</span></td>
+                            <td>${r.requestedAt}</td>
                             <td>
                                 <div class="action-group">
                                     <form method="post" action="<%= request.getContextPath() %>/user" style="margin:0;">
                                         <input type="hidden" name="action" value="approveAdminRequest">
-                                        <input type="hidden" name="requestId" value="<%= r.getRequestId() %>">
+                                        <input type="hidden" name="requestId" value="${r.requestId}">
                                         <button type="submit" class="action-btn approve-btn">Approve</button>
                                     </form>
 
                                     <form method="post" action="<%= request.getContextPath() %>/user" style="margin:0;"
                                           onsubmit="return confirm('Reject this admin request?');">
                                         <input type="hidden" name="action" value="rejectAdminRequest">
-                                        <input type="hidden" name="requestId" value="<%= r.getRequestId() %>">
+                                        <input type="hidden" name="requestId" value="${r.requestId}">
                                         <button type="submit" class="action-btn reject-btn">Reject</button>
                                     </form>
                                 </div>
                             </td>
                         </tr>
-                    <% } %>
+                    </c:forEach>
 
-                    <% if (adminRequests.isEmpty()) { %>
+                    <c:if test="${empty adminRequests}">
                         <tr>
                             <td colspan="8" class="muted" style="padding:24px;">No pending admin requests found.</td>
                         </tr>
-                    <% } %>
+                    </c:if>
                     </tbody>
                 </table>
             </div>
