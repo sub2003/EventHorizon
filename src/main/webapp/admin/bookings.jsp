@@ -1,23 +1,32 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.eventhorizon.service.BookingService, java.util.List, com.eventhorizon.model.Booking" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.eventhorizon.model.Booking" %>
+<%@ page import="com.eventhorizon.model.Admin" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
 
 <%
-    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    response.setHeader("Pragma", "no-cache");
-    response.setDateHeader("Expires", 0);
-
     HttpSession currentSession = request.getSession(false);
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
-    String userName = currentSession != null ? (String) currentSession.getAttribute("userName") : null;
+    String adminPermission = currentSession != null ? (String) currentSession.getAttribute("adminPermission") : null;
 
     if (currentSession == null || role == null || !"ADMIN".equals(role)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
 
-    BookingService bookingService = new BookingService();
-    List<Booking> bookings = bookingService.getAllBookings();
-    int bookingCount = bookings != null ? bookings.size() : 0;
+    if (adminPermission == null || adminPermission.trim().isEmpty()) {
+        adminPermission = Admin.FULL_ACCESS;
+    }
+
+    if (!UserService.hasBookingAccess(adminPermission)) {
+        response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
+        return;
+    }
+
+    List<Booking> bookings = (List<Booking>) request.getAttribute("bookings");
+    if (bookings == null) bookings = new java.util.ArrayList<>();
+
+    String msg = request.getParameter("msg");
 %>
 
 <!DOCTYPE html>
@@ -28,265 +37,202 @@
     <title>Bookings - EventHorizon</title>
 
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        .bookings-shell {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .bookings-hero {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 18px;
-            flex-wrap: wrap;
-            padding: 28px;
-            border-radius: 24px;
-            background:
-                linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(6, 182, 212, 0.10)),
-                rgba(15, 23, 42, 0.75);
+        .page-card {
+            background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 22px;
+            padding: 24px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.25);
         }
 
-        .bookings-hero h2 {
-            font-size: 2rem;
-            font-weight: 800;
-            margin-bottom: 8px;
-            color: #f8fafc;
-        }
-
-        .bookings-hero p {
-            margin: 0;
-            color: var(--text-secondary);
-            max-width: 760px;
-        }
-
-        .bookings-summary {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .summary-card {
-            min-width: 180px;
-            padding: 18px 20px;
-            border-radius: 20px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .summary-card .label {
-            display: block;
-            font-size: 0.82rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-        }
-
-        .summary-card .value {
-            font-size: 1.7rem;
-            font-weight: 800;
-            color: #f8fafc;
-        }
-
-        .booking-panel {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 18px 36px rgba(0,0,0,0.22);
-        }
-
-        .booking-toolbar {
+        .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 14px;
+            gap: 16px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
-            padding: 22px 24px;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(255,255,255,0.02);
         }
 
-        .toolbar-left h3 {
-            margin: 0 0 6px;
-            font-size: 1.2rem;
-            color: #f8fafc;
-        }
-
-        .toolbar-left p {
+        .page-header h2 {
             margin: 0;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        .search-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 320px;
-            max-width: 480px;
-            width: 100%;
-            padding: 12px 14px;
-            border-radius: 16px;
-            background: rgba(2, 6, 23, 0.55);
-            border: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .search-wrap i {
-            color: var(--text-muted);
-        }
-
-        .search-wrap input {
-            flex: 1;
-            border: none;
-            outline: none;
-            background: transparent;
-            color: #f8fafc;
-            font-size: 0.96rem;
-        }
-
-        .search-wrap input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .table-holder {
-            overflow-x: auto;
-        }
-
-        .bookings-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1050px;
-        }
-
-        .bookings-table thead th {
-            text-align: left;
-            padding: 18px 20px;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--text-muted);
-            background: rgba(255,255,255,0.02);
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .bookings-table tbody td {
-            padding: 18px 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            color: #dbe4f0;
-            vertical-align: middle;
-        }
-
-        .bookings-table tbody tr:hover {
-            background: rgba(255,255,255,0.02);
-        }
-
-        .booking-id {
-            font-family: "Courier New", monospace;
-            font-weight: 700;
-            color: #22d3ee;
-            font-size: 0.88rem;
-        }
-
-        .event-title {
-            font-weight: 700;
-            color: #f8fafc;
-        }
-
-        .total-amount {
-            font-weight: 700;
-            color: #67e8f9;
-        }
-
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 8px 12px;
-            border-radius: 999px;
-            font-size: 0.78rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .status-confirmed {
-            color: #86efac;
-            background: rgba(34, 197, 94, 0.14);
-            border: 1px solid rgba(34, 197, 94, 0.22);
-        }
-
-        .status-cancelled {
-            color: #fca5a5;
-            background: rgba(239, 68, 68, 0.14);
-            border: 1px solid rgba(239, 68, 68, 0.22);
-        }
-
-        .btn-cancel-booking {
-            border: none;
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-weight: 700;
-            cursor: pointer;
+            font-size: 2rem;
             color: #fff;
-            background: linear-gradient(135deg, #ef4444, #f97316);
-            transition: transform 0.2s ease, opacity 0.2s ease;
         }
 
-        .btn-cancel-booking:hover {
-            transform: translateY(-1px);
-            opacity: 0.95;
+        .page-header p {
+            margin: 8px 0 0;
+            color: #aab4d6;
         }
 
-        .muted-dash {
-            color: var(--text-muted);
-            font-size: 0.95rem;
+        .search-box input {
+            min-width: 280px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(0,0,0,0.25);
+            color: white;
+            outline: none;
         }
 
-        .empty-bookings {
-            padding: 48px 24px;
-            text-align: center;
-            color: var(--text-secondary);
-        }
-
-        .alert-inline {
-            margin: 0 24px 20px;
+        .alert-box {
             padding: 14px 16px;
-            border-radius: 16px;
-            border: 1px solid rgba(6, 182, 212, 0.22);
-            background: rgba(6, 182, 212, 0.08);
-            color: #bae6fd;
+            border-radius: 14px;
+            margin-bottom: 18px;
             font-weight: 600;
         }
 
-        @media (max-width: 900px) {
-            .bookings-hero {
-                padding: 22px;
-            }
+        .alert-success-box {
+            background: rgba(34,197,94,0.12);
+            border: 1px solid rgba(34,197,94,0.22);
+            color: #d1fadf;
+        }
 
-            .summary-card {
-                min-width: 150px;
-            }
+        .alert-error-box {
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.22);
+            color: #ffd0d0;
+        }
 
-            .search-wrap {
-                min-width: 100%;
-                max-width: 100%;
-            }
+        .booking-table-wrap {
+            overflow-x: auto;
+        }
+
+        .booking-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1400px;
+        }
+
+        .booking-table thead th {
+            text-align: left;
+            color: white;
+            padding: 14px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            text-transform: uppercase;
+            font-size: 0.84rem;
+            letter-spacing: 0.06em;
+        }
+
+        .booking-table tbody td {
+            padding: 16px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            color: #eef2ff;
+            vertical-align: middle;
+        }
+
+        .mono-id {
+            color: #7dd3fc;
+            font-family: Consolas, monospace;
+            font-weight: 700;
+        }
+
+        .status-pill,
+        .payment-pill {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .confirmed-pill {
+            color: #5eead4;
+            background: rgba(16,185,129,0.16);
+            border: 1px solid rgba(16,185,129,0.28);
+        }
+
+        .cancelled-pill {
+            color: #fca5a5;
+            background: rgba(239,68,68,0.16);
+            border: 1px solid rgba(239,68,68,0.28);
+        }
+
+        .pending-pill {
+            color: #fbbf24;
+            background: rgba(245,158,11,0.16);
+            border: 1px solid rgba(245,158,11,0.28);
+        }
+
+        .approved-pill {
+            color: #6ee7b7;
+            background: rgba(34,197,94,0.16);
+            border: 1px solid rgba(34,197,94,0.28);
+        }
+
+        .rejected-pill {
+            color: #fda4af;
+            background: rgba(225,29,72,0.16);
+            border: 1px solid rgba(225,29,72,0.28);
+        }
+
+        .reference-box {
+            max-width: 260px;
+            word-break: break-word;
+            color: #fde68a;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .reference-empty {
+            color: #94a3b8;
+        }
+
+        .action-cell {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .inline-form {
+            margin: 0;
+        }
+
+        .action-btn {
+            border: none;
+            border-radius: 12px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .cancel-btn {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+        }
+
+        .leave-btn {
+            background: linear-gradient(135deg, #334155, #475569);
+            color: #e2e8f0;
+        }
+
+        .leave-note {
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .topbar-badge-lite {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
         }
     </style>
 </head>
 <body>
 
 <div class="admin-shell">
-
     <aside class="sidebar">
-        <div>
+        <div class="sidebar-top">
             <div class="brand">
                 <div class="brand-icon">⬡</div>
                 <div>
@@ -301,11 +247,31 @@
                     <span>Dashboard</span>
                 </a>
 
+                <% if (UserService.hasFullAccess(adminPermission)) { %>
                 <a href="<%= request.getContextPath() %>/user?action=list">
                     <i class="fa-solid fa-users"></i>
                     <span>Manage Users</span>
                 </a>
+                <% } %>
 
+                <% if (UserService.hasEventAccess(adminPermission)) { %>
+                <a href="<%= request.getContextPath() %>/event?action=adminList">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Manage Events</span>
+                </a>
+                <% } %>
+
+                <a class="active" href="<%= request.getContextPath() %>/booking?action=allBookings">
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>Bookings</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/booking?action=pendingPayments">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>Manage Payments</span>
+                </a>
+
+                <% if (UserService.hasFullAccess(adminPermission)) { %>
                 <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
@@ -315,16 +281,7 @@
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
-
-                <a href="<%= request.getContextPath() %>/event?action=adminList">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <span>Manage Events</span>
-                </a>
-
-                <a class="active" href="<%= request.getContextPath() %>/admin/bookings.jsp">
-                    <i class="fa-solid fa-ticket"></i>
-                    <span>Bookings</span>
-                </a>
+                <% } %>
             </nav>
         </div>
 
@@ -344,127 +301,132 @@
     <main class="main-content">
         <section class="topbar">
             <div>
-                <p class="eyebrow">Administration</p>
-                <h1>Bookings</h1>
-                <p class="subtitle">Welcome back, <strong><%= userName != null ? userName : "Admin" %></strong></p>
+                <p class="eyebrow">Booking Management</p>
+                <h1>All Booking Records</h1>
+                <p class="subtitle">View payment reference numbers before cancelling or keeping bookings unchanged.</p>
             </div>
 
-            <div class="topbar-badge">
-                <i class="fa-solid fa-ticket"></i>
-                <span>Booking Control</span>
+            <div class="topbar-badge-lite">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span><%= UserService.permissionLabel(adminPermission) %></span>
             </div>
         </section>
 
-        <div class="bookings-shell">
-            <section class="bookings-hero">
+        <% if ("cancelled".equals(request.getParameter("msg"))) { %>
+            <div class="alert-box alert-success-box">Booking cancelled successfully and seats were restored.</div>
+        <% } %>
+
+        <% if ("error".equals(request.getParameter("msg"))) { %>
+            <div class="alert-box alert-error-box">Action failed. Please try again.</div>
+        <% } %>
+
+        <div class="page-card">
+            <div class="page-header">
                 <div>
-                    <h2>All Booking Records</h2>
-                    <p>Review confirmed and cancelled reservations, search instantly, and manage booking activity from the same premium admin workspace.</p>
+                    <h2>Booking Table</h2>
+                    <p>Check each payment reference or slip reference number before deciding what to do.</p>
                 </div>
 
-                <div class="bookings-summary">
-                    <div class="summary-card">
-                        <span class="label">Total Bookings</span>
-                        <span class="value"><%= bookingCount %></span>
-                    </div>
+                <div class="search-box">
+                    <input type="text" id="bookingSearch" placeholder="Search bookings...">
                 </div>
-            </section>
+            </div>
 
-            <% if ("cancelled".equals(request.getParameter("msg"))) { %>
-                <div class="alert-inline">
-                    Booking cancelled successfully and seats were restored.
-                </div>
-            <% } %>
+            <div class="booking-table-wrap">
+                <table class="booking-table" id="bookingTable">
+                    <thead>
+                    <tr>
+                        <th>Booking ID</th>
+                        <th>Customer ID</th>
+                        <th>Event</th>
+                        <th>Tickets</th>
+                        <th>Total (LKR)</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Reference / Slip Reference</th>
+                        <th>Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% for (Booking b : bookings) { %>
+                        <tr>
+                            <td class="mono-id"><%= b.getBookingId() %></td>
+                            <td><%= b.getCustomerId() %></td>
+                            <td><%= b.getEventTitle() %></td>
+                            <td><%= b.getNumberOfTickets() %></td>
+                            <td><%= String.format("%.1f", b.getTotalAmount()) %></td>
+                            <td><%= b.getBookingDate() %></td>
 
-            <section class="booking-panel">
-                <div class="booking-toolbar">
-                    <div class="toolbar-left">
-                        <h3>Booking Table</h3>
-                        <p>Search by booking ID, customer ID, or event title.</p>
-                    </div>
+                            <td>
+                                <% if ("CANCELLED".equalsIgnoreCase(b.getStatus())) { %>
+                                    <span class="status-pill cancelled-pill">CANCELLED</span>
+                                <% } else { %>
+                                    <span class="status-pill confirmed-pill">CONFIRMED</span>
+                                <% } %>
+                            </td>
 
-                    <div class="search-wrap">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="liveSearch" placeholder="Search bookings...">
-                    </div>
-                </div>
+                            <td>
+                                <% if ("APPROVED".equalsIgnoreCase(b.getPaymentStatus())) { %>
+                                    <span class="payment-pill approved-pill">APPROVED</span>
+                                <% } else if ("REJECTED".equalsIgnoreCase(b.getPaymentStatus())) { %>
+                                    <span class="payment-pill rejected-pill">REJECTED</span>
+                                <% } else { %>
+                                    <span class="payment-pill pending-pill">PENDING</span>
+                                <% } %>
+                            </td>
 
-                <div class="table-holder">
-                    <table class="bookings-table">
-                        <thead>
-                            <tr>
-                                <th>Booking ID</th>
-                                <th>Customer ID</th>
-                                <th>Event</th>
-                                <th>Tickets</th>
-                                <th>Total (LKR)</th>
-                                <th>Date</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bookingTableBody">
-                        <% if (bookings == null || bookings.isEmpty()) { %>
-                            <tr>
-                                <td colspan="8">
-                                    <div class="empty-bookings">No bookings found.</div>
-                                </td>
-                            </tr>
-                        <% } else { %>
-                            <% for (Booking b : bookings) { %>
-                                <tr data-search-row>
-                                    <td class="booking-id"><%= b.getBookingId() %></td>
-                                    <td><%= b.getCustomerId() %></td>
-                                    <td class="event-title"><%= b.getEventTitle() %></td>
-                                    <td><%= b.getNumberOfTickets() %></td>
-                                    <td class="total-amount"><%= b.getTotalAmount() %></td>
-                                    <td><%= b.getBookingDate() %></td>
-                                    <td>
-                                        <% if ("CONFIRMED".equalsIgnoreCase(b.getStatus())) { %>
-                                            <span class="status-badge status-confirmed">Confirmed</span>
-                                        <% } else { %>
-                                            <span class="status-badge status-cancelled">Cancelled</span>
-                                        <% } %>
-                                    </td>
-                                    <td>
-                                        <% if ("CONFIRMED".equalsIgnoreCase(b.getStatus())) { %>
-                                            <form action="<%= request.getContextPath() %>/booking" method="post" style="display:inline;">
-                                                <input type="hidden" name="action" value="cancel">
-                                                <input type="hidden" name="bookingId" value="<%= b.getBookingId() %>">
-                                                <button type="submit"
-                                                        class="btn-cancel-booking"
-                                                        onclick="return confirm('Cancel this booking and restore seats?');">
-                                                    Cancel
-                                                </button>
-                                            </form>
-                                        <% } else { %>
-                                            <span class="muted-dash">—</span>
-                                        <% } %>
-                                    </td>
-                                </tr>
-                            <% } %>
-                        <% } %>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                            <td>
+                                <% if (b.getPaymentReference() != null && !b.getPaymentReference().trim().isEmpty()) { %>
+                                    <div class="reference-box"><%= b.getPaymentReference() %></div>
+                                <% } else { %>
+                                    <div class="reference-empty">No reference given</div>
+                                <% } %>
+                            </td>
+
+                            <td>
+                                <div class="action-cell">
+                                    <% if ("CONFIRMED".equalsIgnoreCase(b.getStatus())) { %>
+                                        <form class="inline-form" method="post" action="<%= request.getContextPath() %>/booking"
+                                              onsubmit="return confirm('Cancel this booking?');">
+                                            <input type="hidden" name="action" value="cancel">
+                                            <input type="hidden" name="bookingId" value="<%= b.getBookingId() %>">
+                                            <button type="submit" class="action-btn cancel-btn">Cancel</button>
+                                        </form>
+
+                                        <span class="leave-note">or leave it as it is</span>
+                                    <% } else { %>
+                                        <span class="leave-note">—</span>
+                                    <% } %>
+                                </div>
+                            </td>
+                        </tr>
+                    <% } %>
+
+                    <% if (bookings.isEmpty()) { %>
+                        <tr>
+                            <td colspan="10" class="leave-note" style="padding: 24px;">No bookings found.</td>
+                        </tr>
+                    <% } %>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 </div>
 
 <script>
     (function () {
-        var searchInput = document.getElementById("liveSearch");
-        var rows = document.querySelectorAll("[data-search-row]");
+        const input = document.getElementById("bookingSearch");
+        const table = document.getElementById("bookingTable");
+        const rows = table.querySelectorAll("tbody tr");
 
-        if (!searchInput) return;
-
-        searchInput.addEventListener("input", function () {
-            var keyword = searchInput.value.toLowerCase().trim();
+        input.addEventListener("input", function () {
+            const q = input.value.toLowerCase().trim();
 
             rows.forEach(function (row) {
-                var text = row.innerText.toLowerCase();
-                row.style.display = text.indexOf(keyword) !== -1 ? "" : "none";
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(q) ? "" : "none";
             });
         });
     })();
