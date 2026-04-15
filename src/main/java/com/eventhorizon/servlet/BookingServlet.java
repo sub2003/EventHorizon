@@ -122,14 +122,14 @@ public class BookingServlet extends HttpServlet {
                 requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
-                handleApprovePayment(req, resp);
+                handleApprovePayment(req, resp, session);
                 break;
 
             case "rejectPayment":
                 requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
-                handleRejectPayment(req, resp);
+                handleRejectPayment(req, resp, session);
                 break;
 
             default:
@@ -247,36 +247,36 @@ public class BookingServlet extends HttpServlet {
                                       HttpSession session) throws IOException {
 
         String permission = (String) session.getAttribute("adminPermission");
+        if (permission == null) permission = Admin.FULL_ACCESS;
 
         if (!UserService.hasBookingAccess(permission)) {
-            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noPermission");
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
             return;
         }
 
         String bookingId = req.getParameter("bookingId");
-
         boolean ok = bookingService.approveBooking(bookingId);
 
-        resp.sendRedirect(req.getContextPath() +
-                "/booking?action=pendingPayments&msg=" + (ok ? "approved" : "error"));
+        resp.sendRedirect(req.getContextPath()
+                + "/booking?action=pendingPayments&msg=" + (ok ? "approved" : "error"));
     }
 
     private void handleRejectPayment(HttpServletRequest req, HttpServletResponse resp,
                                      HttpSession session) throws IOException {
 
         String permission = (String) session.getAttribute("adminPermission");
+        if (permission == null) permission = Admin.FULL_ACCESS;
 
         if (!UserService.hasBookingAccess(permission)) {
-            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noPermission");
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
             return;
         }
 
         String bookingId = req.getParameter("bookingId");
-
         boolean ok = bookingService.rejectBooking(bookingId);
 
-        resp.sendRedirect(req.getContextPath() +
-                "/booking?action=pendingPayments&msg=" + (ok ? "rejected" : "error"));
+        resp.sendRedirect(req.getContextPath()
+                + "/booking?action=pendingPayments&msg=" + (ok ? "rejected" : "error"));
     }
 
     private void requireCustomer(HttpSession session, HttpServletRequest req, HttpServletResponse resp)
