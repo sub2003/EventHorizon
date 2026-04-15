@@ -786,10 +786,13 @@ public class UserService {
     }
 
     public static boolean hasBookingAccess(String permission) {
-        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
-        return Admin.FULL_ACCESS.equals(p)
-                || Admin.BOOKINGS_ONLY.equals(p)
-                || Admin.EVENTS_BOOKINGS.equals(p);
+        if (permission == null) return false;
+
+        permission = permission.toUpperCase();
+
+        return permission.equals(Admin.FULL_ACCESS) ||
+                permission.equals(Admin.BOOKINGS_ONLY) ||
+                permission.equals(Admin.EVENTS_BOOKINGS);
     }
 
     public static boolean hasFullAccess(String permission) {

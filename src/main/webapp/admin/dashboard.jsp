@@ -69,6 +69,11 @@
                     <i class="fa-solid fa-ticket"></i>
                     <span>Bookings</span>
                 </a>
+
+                <a href="<%= request.getContextPath() %>/booking?action=pendingPayments">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>Manage Payments</span>
+                </a>
                 <% } %>
 
                 <% if (hasFullAccess) { %>
@@ -150,6 +155,11 @@
                     <i class="fa-solid fa-list-check"></i>
                     <span>Review Bookings</span>
                 </a>
+
+                <a href="<%= request.getContextPath() %>/booking?action=pendingPayments" class="secondary-btn">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>Approve Payments</span>
+                </a>
                 <% } %>
 
                 <% if (hasFullAccess) { %>
@@ -187,13 +197,21 @@
                 <div class="mini-icon"><i class="fa-solid fa-ticket"></i></div>
                 <div>
                     <h3>Booking Control</h3>
-                    <p>Track customer reservations and approvals</p>
+                    <p>Track customer reservations, payment references, and approvals</p>
+                </div>
+            </div>
+
+            <div class="mini-card orange">
+                <div class="mini-icon"><i class="fa-solid fa-money-check-dollar"></i></div>
+                <div>
+                    <h3>Payment Review</h3>
+                    <p>Check reference numbers and approve or reject pending payments</p>
                 </div>
             </div>
             <% } %>
 
             <% if (hasFullAccess) { %>
-            <div class="mini-card orange">
+            <div class="mini-card pink">
                 <div class="mini-icon"><i class="fa-solid fa-user-check"></i></div>
                 <div>
                     <h3>Admin Requests</h3>
@@ -216,6 +234,7 @@
 
                 <% if (canManageBookings) { %>
                     <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Bookings</span></span>
+                    <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Payment Approval</span></span>
                 <% } %>
 
                 <% if (hasFullAccess) { %>

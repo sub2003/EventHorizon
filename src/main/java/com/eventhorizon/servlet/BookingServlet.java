@@ -243,20 +243,40 @@ public class BookingServlet extends HttpServlet {
         }
     }
 
-    private void handleApprovePayment(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+    private void handleApprovePayment(HttpServletRequest req, HttpServletResponse resp,
+                                      HttpSession session) throws IOException {
+
+        String permission = (String) session.getAttribute("adminPermission");
+
+        if (!UserService.hasBookingAccess(permission)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noPermission");
+            return;
+        }
 
         String bookingId = req.getParameter("bookingId");
+
         boolean ok = bookingService.approveBooking(bookingId);
-        resp.sendRedirect(req.getContextPath() + "/booking?action=allBookings&msg=" + (ok ? "approved" : "error"));
+
+        resp.sendRedirect(req.getContextPath() +
+                "/booking?action=pendingPayments&msg=" + (ok ? "approved" : "error"));
     }
 
-    private void handleRejectPayment(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
+    private void handleRejectPayment(HttpServletRequest req, HttpServletResponse resp,
+                                     HttpSession session) throws IOException {
+
+        String permission = (String) session.getAttribute("adminPermission");
+
+        if (!UserService.hasBookingAccess(permission)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noPermission");
+            return;
+        }
 
         String bookingId = req.getParameter("bookingId");
+
         boolean ok = bookingService.rejectBooking(bookingId);
-        resp.sendRedirect(req.getContextPath() + "/booking?action=allBookings&msg=" + (ok ? "rejected" : "error"));
+
+        resp.sendRedirect(req.getContextPath() +
+                "/booking?action=pendingPayments&msg=" + (ok ? "rejected" : "error"));
     }
 
     private void requireCustomer(HttpSession session, HttpServletRequest req, HttpServletResponse resp)
