@@ -35,9 +35,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Payments - EventHorizon</title>
+
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
         .page-card {
             background: rgba(255,255,255,0.04);
@@ -65,6 +67,17 @@
         .page-header p {
             margin: 8px 0 0;
             color: #aab4d6;
+        }
+
+        .topbar-badge-lite {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
         }
 
         .alert-box {
@@ -168,6 +181,7 @@
     </style>
 </head>
 <body>
+
 <div class="admin-shell">
     <aside class="sidebar">
         <div class="sidebar-top">
@@ -185,6 +199,13 @@
                     <span>Dashboard</span>
                 </a>
 
+                <% if (UserService.hasFullAccess(adminPermission)) { %>
+                <a href="<%= request.getContextPath() %>/user?action=list">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Manage Users</span>
+                </a>
+                <% } %>
+
                 <% if (UserService.hasEventAccess(adminPermission)) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList">
                     <i class="fa-solid fa-calendar-days"></i>
@@ -201,10 +222,27 @@
                     <i class="fa-solid fa-money-check-dollar"></i>
                     <span>Manage Payments</span>
                 </a>
+
+                <% if (UserService.hasFullAccess(adminPermission)) { %>
+                <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Request New Admin</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>Admin Requests</span>
+                </a>
+                <% } %>
             </nav>
         </div>
 
         <div class="sidebar-footer">
+            <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
+                <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
+                <strong><%= UserService.permissionLabel(adminPermission) %></strong>
+            </div>
+
             <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
                 <i class="fa-solid fa-globe"></i>
                 <span>Open Website</span>
@@ -224,17 +262,18 @@
                 <h1>Pending Payments</h1>
                 <p class="subtitle">Check each reference number manually and approve or reject it.</p>
             </div>
+
+            <div class="topbar-badge-lite">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span><%= UserService.permissionLabel(adminPermission) %></span>
+            </div>
         </section>
 
         <% if ("approved".equals(msg)) { %>
-            <div class="alert-box alert-success-box">Payment approved successfully. Tickets were generated.</div>
-        <% } %>
-
-        <% if ("rejected".equals(msg)) { %>
+            <div class="alert-box alert-success-box">Payment approved successfully.</div>
+        <% } else if ("rejected".equals(msg)) { %>
             <div class="alert-box alert-success-box">Payment rejected. Booking was cancelled and seats were restored.</div>
-        <% } %>
-
-        <% if ("error".equals(msg)) { %>
+        <% } else if ("error".equals(msg)) { %>
             <div class="alert-box alert-error-box">Action failed. Please try again.</div>
         <% } %>
 
@@ -310,5 +349,6 @@
         </div>
     </main>
 </div>
+
 </body>
 </html>
