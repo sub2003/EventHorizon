@@ -1,6 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.eventhorizon.service.UserService" %>
 <%@ page import="com.eventhorizon.model.Admin" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
 <%
     HttpSession currentSession = request.getSession(false);
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
@@ -16,6 +16,10 @@
         adminPermission = Admin.FULL_ACCESS;
     }
 
+    boolean canManageEvents = UserService.hasEventAccess(adminPermission);
+    boolean canManageBookings = UserService.hasBookingAccess(adminPermission);
+    boolean hasFullAccess = UserService.hasFullAccess(adminPermission);
+
     String msg = request.getParameter("msg");
     String error = request.getParameter("error");
 %>
@@ -25,7 +29,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request New Admin - EventHorizon</title>
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
     <style>
         * {
             box-sizing: border-box;
@@ -35,12 +41,12 @@
         }
 
         body {
-            min-height: 100vh;
             background:
-                radial-gradient(circle at top left, rgba(53, 93, 255, 0.18), transparent 28%),
-                radial-gradient(circle at top right, rgba(0, 212, 255, 0.12), transparent 24%),
-                linear-gradient(180deg, #020617 0%, #020b24 45%, #01081d 100%);
-            color: #e5eefc;
+                radial-gradient(circle at top left, rgba(38, 200, 255, 0.10), transparent 28%),
+                radial-gradient(circle at top center, rgba(124, 92, 255, 0.14), transparent 35%),
+                linear-gradient(180deg, #020617 0%, #030a1c 45%, #020617 100%);
+            color: #eef2ff;
+            min-height: 100vh;
         }
 
         .admin-shell {
@@ -49,106 +55,95 @@
         }
 
         .sidebar {
-            width: 190px;
-            background: rgba(2, 6, 23, 0.88);
-            border-right: 1px solid rgba(148, 163, 184, 0.08);
-            padding: 18px 12px;
+            width: 260px;
+            background: rgba(3, 7, 18, 0.92);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 18px 14px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            backdrop-filter: blur(14px);
+            backdrop-filter: blur(10px);
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 8px 8px 14px;
-            margin-bottom: 8px;
+            padding: 12px 10px;
+            margin-bottom: 18px;
         }
 
         .brand-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 12px;
+            width: 38px;
+            height: 38px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: linear-gradient(135deg, #7c5cff, #26c8ff);
             color: #ffffff;
-            font-size: 16px;
-            background: linear-gradient(135deg, #7c5cff, #25c7ff);
-            box-shadow: 0 10px 26px rgba(124, 92, 255, 0.35);
-            flex-shrink: 0;
+            font-size: 15px;
+            box-shadow: 0 10px 25px rgba(124, 92, 255, 0.35);
         }
 
         .brand h2 {
-            font-size: 15px;
-            line-height: 1.1;
-            letter-spacing: 0.4px;
             color: #ffffff;
+            font-size: 1.7rem;
+            line-height: 1.1;
+            margin: 0;
+            font-weight: 900;
         }
 
         .brand p {
-            margin-top: 3px;
-            font-size: 11px;
             color: #94a3b8;
-        }
-
-        .nav-links {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-top: 6px;
+            font-size: 0.82rem;
+            margin-top: 3px;
         }
 
         .nav-links a {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 11px 12px;
-            border-radius: 12px;
+            gap: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 14px;
             color: #dbe7ff;
             text-decoration: none;
-            font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 0.96rem;
+            background: rgba(255,255,255,0.02);
             border: 1px solid transparent;
-            background: rgba(255, 255, 255, 0.02);
-            transition: 0.2s ease;
+            transition: all 0.2s ease;
         }
 
         .nav-links a i {
             width: 18px;
             text-align: center;
-            font-size: 13px;
+            color: #cbd5e1;
         }
 
         .nav-links a:hover,
         .nav-links a.active {
-            background: linear-gradient(90deg, rgba(90, 115, 255, 0.18), rgba(41, 195, 255, 0.12));
-            border-color: rgba(96, 165, 250, 0.15);
+            background: linear-gradient(90deg, rgba(124,92,255,0.18), rgba(38,200,255,0.12));
+            border-color: rgba(124, 92, 255, 0.22);
             color: #ffffff;
         }
 
-        .sidebar-footer {
-            margin-top: 24px;
-        }
-
-        .permission-box {
+        .sidebar-footer .permission-box {
             padding: 12px 14px;
             margin-bottom: 12px;
             border-radius: 12px;
             background: rgba(255,255,255,0.04);
             color: #cbd5e1;
             font-size: 0.9rem;
-            border: 1px solid rgba(255,255,255,0.04);
         }
 
-        .permission-box div {
-            font-size: 0.72rem;
+        .permission-box .label {
+            font-size: 0.74rem;
             text-transform: uppercase;
             opacity: 0.75;
             margin-bottom: 4px;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.4px;
         }
 
         .back-site,
@@ -156,30 +151,30 @@
             display: flex;
             align-items: center;
             gap: 10px;
+            justify-content: flex-start;
             width: 100%;
-            padding: 12px 14px;
+            padding: 13px 14px;
             border-radius: 12px;
             text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
+            font-weight: 800;
             margin-top: 10px;
         }
 
         .back-site {
-            background: rgba(255,255,255,0.03);
-            color: #e2e8f0;
+            background: rgba(255,255,255,0.04);
+            color: #eef2ff;
             border: 1px solid rgba(255,255,255,0.05);
         }
 
         .logout-btn {
-            background: linear-gradient(90deg, rgba(127,29,29,0.82), rgba(69,10,10,0.95));
+            background: linear-gradient(90deg, rgba(120,25,35,0.78), rgba(58,10,26,0.96));
             color: #ffffff;
-            border: 1px solid rgba(248, 113, 113, 0.14);
+            border: 1px solid rgba(255,255,255,0.04);
         }
 
         .main-content {
             flex: 1;
-            padding: 20px 18px 28px;
+            padding: 22px 24px 30px;
         }
 
         .topbar {
@@ -191,157 +186,90 @@
         }
 
         .eyebrow {
-            color: #22d3ee;
+            color: #22c7ff;
             text-transform: uppercase;
-            letter-spacing: 1.8px;
-            font-size: 11px;
+            letter-spacing: 1.4px;
+            font-size: 0.78rem;
             font-weight: 800;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
 
         .topbar h1 {
-            font-size: 54px;
-            line-height: 1.02;
+            font-size: 3.15rem;
+            line-height: 1.05;
+            margin: 0 0 8px;
             font-weight: 900;
             color: #f8fbff;
-            margin-bottom: 6px;
         }
 
         .subtitle {
-            color: #94a3b8;
-            font-size: 15px;
-        }
-
-        .subtitle strong {
-            color: #ffffff;
+            color: #9fb0d3;
+            font-size: 1rem;
         }
 
         .topbar-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 11px 16px;
-            margin-top: 18px;
+            padding: 12px 18px;
             border-radius: 14px;
             background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            color: #f8fafc;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .hero-panel,
-        .content-card {
-            background: linear-gradient(90deg, rgba(58, 45, 125, 0.68), rgba(18, 63, 92, 0.62));
-            border: 1px solid rgba(148, 163, 184, 0.10);
-            border-radius: 22px;
-            box-shadow: 0 22px 55px rgba(0, 0, 0, 0.26);
-        }
-
-        .hero-panel {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            padding: 22px 18px;
-            margin-bottom: 18px;
-        }
-
-        .hero-text h2 {
-            font-size: 17px;
+            border: 1px solid rgba(255,255,255,0.06);
+            color: #ffffff;
             font-weight: 800;
-            color: #ffffff;
-            margin-bottom: 7px;
-        }
-
-        .hero-text p {
-            color: #b8c6e4;
-            font-size: 14px;
-            line-height: 1.55;
-        }
-
-        .hero-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .primary-btn,
-        .secondary-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 9px;
-            min-height: 44px;
-            padding: 0 18px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 14px;
-            border: 1px solid transparent;
-        }
-
-        .primary-btn {
-            background: linear-gradient(90deg, #7c5cff, #22c7ff);
-            color: #ffffff;
-            box-shadow: 0 12px 28px rgba(34, 199, 255, 0.22);
-        }
-
-        .secondary-btn {
-            background: rgba(255,255,255,0.05);
-            color: #e2e8f0;
-            border-color: rgba(255,255,255,0.08);
+            white-space: nowrap;
         }
 
         .content-card {
             max-width: 980px;
-            padding: 26px 22px;
+            background: linear-gradient(135deg, rgba(28, 36, 78, 0.96), rgba(12, 20, 46, 0.94));
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 26px;
+            padding: 28px 24px 24px;
+            box-shadow: 0 18px 48px rgba(0,0,0,0.28);
         }
 
         .content-card h2 {
-            font-size: 34px;
+            margin: 0 0 10px;
+            font-size: 2.2rem;
             font-weight: 900;
-            color: #ffffff;
-            margin-bottom: 10px;
+            color: #f8fbff;
         }
 
-        .content-card .section-text {
-            color: #b8c6e4;
-            font-size: 14px;
+        .content-card p {
+            color: #9fb0d3;
+            margin-bottom: 24px;
             line-height: 1.6;
-            margin-bottom: 22px;
         }
 
         .alert {
-            border-radius: 14px;
             padding: 14px 16px;
+            border-radius: 14px;
             margin-bottom: 18px;
             font-weight: 700;
-            border: 1px solid transparent;
         }
 
         .alert-success {
-            background: rgba(34, 197, 94, 0.12);
-            border-color: rgba(74, 222, 128, 0.24);
-            color: #bbf7d0;
+            background: rgba(46, 204, 113, 0.14);
+            border: 1px solid rgba(46, 204, 113, 0.30);
+            color: #9af5b6;
         }
 
         .alert-error {
-            background: rgba(239, 68, 68, 0.12);
-            border-color: rgba(248, 113, 113, 0.24);
-            color: #fecaca;
+            background: rgba(231, 76, 60, 0.14);
+            border: 1px solid rgba(231, 76, 60, 0.30);
+            color: #ffb7ad;
         }
 
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px 16px;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
         }
 
         .field {
             display: flex;
             flex-direction: column;
-            gap: 10px;
         }
 
         .field.full {
@@ -349,54 +277,67 @@
         }
 
         .field label {
-            font-size: 14px;
+            margin-bottom: 10px;
+            font-size: 1rem;
             font-weight: 800;
-            color: #f8fafc;
+            color: #f3f7ff;
         }
 
         .field input,
         .field select {
-            width: 100%;
-            height: 54px;
+            height: 56px;
+            border: 1px solid rgba(255,255,255,0.08);
             border-radius: 14px;
-            border: 1px solid rgba(148, 163, 184, 0.12);
-            background: rgba(2, 6, 23, 0.78);
-            color: #f8fafc;
+            background: rgba(4, 10, 28, 0.95);
+            color: #ffffff;
             padding: 0 16px;
-            font-size: 14px;
+            font-size: 0.98rem;
             outline: none;
-            transition: 0.2s ease;
+            transition: all 0.2s ease;
         }
 
         .field input:focus,
         .field select:focus {
-            border-color: rgba(96, 165, 250, 0.42);
-            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.12);
+            border-color: rgba(124,92,255,0.50);
+            box-shadow: 0 0 0 3px rgba(124,92,255,0.12);
         }
 
-        .field input::placeholder {
-            color: #64748b;
-        }
-
-        .form-actions {
+        .actions {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
             margin-top: 24px;
         }
 
-        @media (max-width: 1024px) {
-            .topbar {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .topbar-badge {
-                margin-top: 0;
-            }
+        .primary-btn,
+        .secondary-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-height: 50px;
+            padding: 0 22px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            font-size: 0.96rem;
         }
 
-        @media (max-width: 900px) {
+        .primary-btn {
+            background: linear-gradient(90deg, #7c5cff, #26c8ff);
+            color: #ffffff;
+            box-shadow: 0 14px 30px rgba(76, 130, 255, 0.22);
+        }
+
+        .secondary-btn {
+            background: rgba(255,255,255,0.05);
+            color: #eef2ff;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        @media (max-width: 980px) {
             .admin-shell {
                 flex-direction: column;
             }
@@ -405,17 +346,13 @@
                 width: 100%;
             }
 
-            .main-content {
-                padding: 18px 14px 24px;
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
             }
 
             .topbar h1 {
-                font-size: 40px;
-            }
-
-            .hero-panel {
-                flex-direction: column;
-                align-items: flex-start;
+                font-size: 2.4rem;
             }
 
             .form-grid {
@@ -425,6 +362,7 @@
     </style>
 </head>
 <body>
+
 <div class="admin-shell">
     <aside class="sidebar">
         <div>
@@ -441,36 +379,50 @@
                     <i class="fa-solid fa-chart-line"></i>
                     <span>Dashboard</span>
                 </a>
+
+                <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=list">
                     <i class="fa-solid fa-users"></i>
                     <span>Manage Users</span>
                 </a>
+                <% } %>
+
+                <% if (canManageEvents) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList">
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Manage Events</span>
                 </a>
+                <% } %>
+
+                <% if (canManageBookings) { %>
                 <a href="<%= request.getContextPath() %>/booking?action=allBookings">
                     <i class="fa-solid fa-ticket"></i>
                     <span>Bookings</span>
                 </a>
+
                 <a href="<%= request.getContextPath() %>/booking?action=pendingPayments">
                     <i class="fa-solid fa-money-check-dollar"></i>
                     <span>Manage Payments</span>
                 </a>
+                <% } %>
+
+                <% if (hasFullAccess) { %>
                 <a class="active" href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
                 </a>
+
                 <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
+                <% } %>
             </nav>
         </div>
 
         <div class="sidebar-footer">
             <div class="permission-box">
-                <div>Permission</div>
+                <div class="label">Permission</div>
                 <strong><%= UserService.permissionLabel(adminPermission) %></strong>
             </div>
 
@@ -500,23 +452,9 @@
             </div>
         </section>
 
-        <section class="hero-panel">
-            <div class="hero-text">
-                <h2>Submit a new admin access request</h2>
-                <p>Your request will remain pending until another full-access admin reviews and processes it.</p>
-            </div>
-
-            <div class="hero-actions">
-                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="secondary-btn">
-                    <i class="fa-solid fa-user-check"></i>
-                    <span>View Pending Requests</span>
-                </a>
-            </div>
-        </section>
-
         <section class="content-card">
             <h2>New Admin Request Form</h2>
-            <p class="section-text">Fill in the requested details below. This page was visually aligned to the dashboard without changing your existing request flow.</p>
+            <p>Submit a new admin access request. The request will stay pending until another full-access admin reviews it.</p>
 
             <% if ("requestSubmitted".equals(msg)) { %>
                 <div class="alert alert-success">
@@ -566,14 +504,14 @@
                     </div>
                 </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="primary-btn" style="border:none; cursor:pointer;">
+                <div class="actions">
+                    <button type="submit" class="primary-btn">
                         <i class="fa-solid fa-paper-plane"></i>
                         <span>Submit Request</span>
                     </button>
 
                     <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="secondary-btn">
-                        <i class="fa-solid fa-clock"></i>
+                        <i class="fa-solid fa-list-check"></i>
                         <span>View Pending Requests</span>
                     </a>
                 </div>
@@ -581,5 +519,6 @@
         </section>
     </main>
 </div>
+
 </body>
 </html>
