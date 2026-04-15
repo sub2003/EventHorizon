@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.eventhorizon.model.Admin" %>
 <%@ page import="com.eventhorizon.service.UserService" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%
     HttpSession currentSession = request.getSession(false);
@@ -22,15 +23,20 @@
         return;
     }
 
-    String error = request.getParameter("error");
+    if (request.getAttribute("adminRequests") == null) {
+        request.setAttribute("adminRequests", new java.util.ArrayList<>());
+    }
+
     String msg = request.getParameter("msg");
+    request.setAttribute("msg", msg);
+    request.setAttribute("permissionLabel", UserService.permissionLabel(adminPermission));
 %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Request New Admin - EventHorizon</title>
+    <title>Admin Requests - EventHorizon</title>
 
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css">
@@ -41,9 +47,28 @@
             background: rgba(255,255,255,0.04);
             border: 1px solid rgba(255,255,255,0.08);
             border-radius: 22px;
-            padding: 28px;
+            padding: 24px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-            max-width: 950px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 2rem;
+            color: #fff;
+        }
+
+        .page-header p {
+            margin: 8px 0 0;
+            color: #aab4d6;
         }
 
         .topbar-badge-lite {
@@ -76,77 +101,73 @@
             color: #ffd0d0;
         }
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
+        .table-wrap-x {
+            overflow-x: auto;
         }
 
-        .form-group.full {
-            grid-column: 1 / -1;
+        .request-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #cbd5e1;
+        .request-table th,
+        .request-table td {
+            padding: 16px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .request-table th {
+            color: #fff;
+            text-transform: uppercase;
+            font-size: 0.84rem;
+            letter-spacing: 0.06em;
+        }
+
+        .mono-id {
+            color: #7dd3fc;
+            font-family: Consolas, monospace;
             font-weight: 700;
         }
 
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 14px 14px;
-            border-radius: 14px;
-            border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(0,0,0,0.25);
-            color: white;
-            outline: none;
-            box-sizing: border-box;
+        .perm-pill {
+            display: inline-block;
+            padding: 8px 14px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: #facc15;
+            background: rgba(245,158,11,0.16);
+            border: 1px solid rgba(245,158,11,0.28);
         }
 
-        .submit-row {
-            margin-top: 22px;
+        .action-group {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
         }
 
-        .primary-btn-custom,
-        .secondary-btn-custom {
+        .action-btn {
             border: none;
-            border-radius: 14px;
-            padding: 13px 18px;
+            border-radius: 12px;
+            padding: 10px 14px;
             font-weight: 800;
             cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .primary-btn-custom {
             color: #fff;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
         }
 
-        .secondary-btn-custom {
-            color: #e2e8f0;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.08);
+        .approve-btn {
+            background: linear-gradient(135deg, #7c3aed, #6366f1);
         }
 
-        .helper-text {
+        .reject-btn {
+            background: linear-gradient(135deg, #ef4444, #f97316);
+        }
+
+        .muted {
             color: #94a3b8;
-            line-height: 1.7;
-            margin-top: 8px;
-            margin-bottom: 22px;
-        }
-
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+            font-weight: 700;
         }
     </style>
 </head>
@@ -189,12 +210,12 @@
                     <span>Manage Payments</span>
                 </a>
 
-                <a class="active" href="<%= request.getContextPath() %>/user?action=addAdminForm">
+                <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
                 </a>
 
-                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
+                <a class="active" href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
@@ -204,7 +225,7 @@
         <div class="sidebar-footer">
             <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
                 <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
-                <strong><%= UserService.permissionLabel(adminPermission) %></strong>
+                <strong>${permissionLabel}</strong>
             </div>
 
             <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
@@ -223,82 +244,87 @@
         <section class="topbar">
             <div>
                 <p class="eyebrow">Administration</p>
-                <h1>Request New Admin</h1>
+                <h1>Admin Requests</h1>
                 <p class="subtitle">Welcome, <strong><%= userName != null ? userName : "Admin" %></strong></p>
             </div>
 
             <div class="topbar-badge-lite">
                 <i class="fa-solid fa-shield-halved"></i>
-                <span><%= UserService.permissionLabel(adminPermission) %></span>
+                <span>${permissionLabel}</span>
             </div>
         </section>
 
-        <% if ("submitted".equals(msg)) { %>
-            <div class="alert-box alert-success-box">Admin request submitted successfully. Another admin can now review it.</div>
-        <% } %>
+        <c:if test="${msg == 'approved'}">
+            <div class="alert-box alert-success-box">Admin request approved successfully.</div>
+        </c:if>
 
-        <% if ("emailExists".equals(error)) { %>
-            <div class="alert-box alert-error-box">That email is already used by another account or request.</div>
-        <% } else if ("invalidPermission".equals(error)) { %>
-            <div class="alert-box alert-error-box">Please choose a valid permission type.</div>
-        <% } else if ("failed".equals(error)) { %>
-            <div class="alert-box alert-error-box">Request creation failed. Please try again.</div>
-        <% } %>
+        <c:if test="${msg == 'rejected'}">
+            <div class="alert-box alert-success-box">Admin request rejected successfully.</div>
+        </c:if>
+
+        <c:if test="${msg == 'error'}">
+            <div class="alert-box alert-error-box">Action failed. Please try again.</div>
+        </c:if>
 
         <div class="page-card">
-            <h2 style="margin:0 0 10px; color:#fff; font-size:2rem;">New Admin Request Form</h2>
-            <p class="helper-text">
-                Submit a new admin access request. The request will stay pending until another full-access admin reviews it.
-            </p>
-
-            <form method="post" action="<%= request.getContextPath() %>/user">
-                <input type="hidden" name="action" value="submitAdminRequest">
-
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="name">Full Name</label>
-                        <input type="text" id="name" name="name" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password">Temporary Password</label>
-                        <input type="text" id="password" name="password" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="phone">Phone Number</label>
-                        <input type="text" id="phone" name="phone" required>
-                    </div>
-
-                    <div class="form-group full">
-                        <label for="permission">Permission Type</label>
-                        <select id="permission" name="permission" required>
-                            <option value="">Select permission</option>
-                            <option value="BOOKINGS_ONLY">Bookings Only</option>
-                            <option value="EVENTS_ONLY">Events Only</option>
-                            <option value="EVENTS_BOOKINGS">Events and Bookings</option>
-                            <option value="FULL_ACCESS">Full Access</option>
-                        </select>
-                    </div>
+            <div class="page-header">
+                <div>
+                    <h2>Pending Admin Requests</h2>
+                    <p>Review and approve or reject admin access requests.</p>
                 </div>
+            </div>
 
-                <div class="submit-row">
-                    <button type="submit" class="primary-btn-custom">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        <span>Submit Request</span>
-                    </button>
+            <div class="table-wrap-x">
+                <table class="request-table">
+                    <thead>
+                    <tr>
+                        <th>Request ID</th>
+                        <th>Requested By</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Permission</th>
+                        <th>Requested At</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach var="r" items="${adminRequests}">
+                        <tr>
+                            <td class="mono-id">${r.requestId}</td>
+                            <td>${r.requestedBy}</td>
+                            <td>${r.name}</td>
+                            <td>${r.email}</td>
+                            <td>${r.phone}</td>
+                            <td><span class="perm-pill">${r.permission}</span></td>
+                            <td>${r.requestedAt}</td>
+                            <td>
+                                <div class="action-group">
+                                    <form method="post" action="<%= request.getContextPath() %>/user" style="margin:0;">
+                                        <input type="hidden" name="action" value="approveAdminRequest">
+                                        <input type="hidden" name="requestId" value="${r.requestId}">
+                                        <button type="submit" class="action-btn approve-btn">Approve</button>
+                                    </form>
 
-                    <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="secondary-btn-custom">
-                        <i class="fa-solid fa-list"></i>
-                        <span>View Pending Requests</span>
-                    </a>
-                </div>
-            </form>
+                                    <form method="post" action="<%= request.getContextPath() %>/user" style="margin:0;"
+                                          onsubmit="return confirm('Reject this admin request?');">
+                                        <input type="hidden" name="action" value="rejectAdminRequest">
+                                        <input type="hidden" name="requestId" value="${r.requestId}">
+                                        <button type="submit" class="action-btn reject-btn">Reject</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </c:forEach>
+
+                    <c:if test="${empty adminRequests}">
+                        <tr>
+                            <td colspan="8" class="muted" style="padding:24px;">No pending admin requests found.</td>
+                        </tr>
+                    </c:if>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </main>
 </div>
