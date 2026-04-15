@@ -410,14 +410,23 @@ public class BookingService {
     }
 
     public boolean deleteBookingPermanently(String bookingId) {
+        bookingId = safeTrim(bookingId);
+        if (isBlank(bookingId)) return false;
+
         Booking booking = getBookingById(bookingId);
-        if (booking == null) return false;
+        if (booking == null) {
+            System.err.println("deleteBookingPermanently failed: booking not found for ID = " + bookingId);
+            return false;
+        }
 
         boolean canDelete =
                 "CANCELLED".equalsIgnoreCase(booking.getStatus()) ||
                         "REJECTED".equalsIgnoreCase(booking.getPaymentStatus());
 
         if (!canDelete) {
+            System.err.println("deleteBookingPermanently failed: booking is not deletable. "
+                    + "status=" + booking.getStatus()
+                    + ", paymentStatus=" + booking.getPaymentStatus());
             return false;
         }
 
@@ -427,17 +436,26 @@ public class BookingService {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
+            // Delete related tickets first if they exist
             try (PreparedStatement deleteTickets = conn.prepareStatement(
                     "DELETE FROM tickets WHERE booking_id = ?")) {
                 deleteTickets.setString(1, bookingId);
-                deleteTickets.executeUpdate();
+                int ticketRows = deleteTickets.executeUpdate();
+                System.out.println("deleteBookingPermanently: deleted tickets rows = " + ticketRows);
+            } catch (SQLException e) {
+                // If your tickets table does not exist or booking has no tickets,
+                // do not fail immediately. Log and continue.
+                System.err.println("deleteBookingPermanently warning while deleting tickets: " + e.getMessage());
             }
 
             try (PreparedStatement deleteBooking = conn.prepareStatement(
                     "DELETE FROM bookings WHERE booking_id = ?")) {
                 deleteBooking.setString(1, bookingId);
 
-                if (deleteBooking.executeUpdate() == 0) {
+                int bookingRows = deleteBooking.executeUpdate();
+                System.out.println("deleteBookingPermanently: deleted booking rows = " + bookingRows);
+
+                if (bookingRows == 0) {
                     conn.rollback();
                     return false;
                 }
@@ -448,6 +466,8 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("deleteBookingPermanently error: " + e.getMessage());
+            System.err.println("SQL State: " + e.getSQLState());
+            System.err.println("Error Code: " + e.getErrorCode());
             e.printStackTrace();
 
             if (conn != null) {
