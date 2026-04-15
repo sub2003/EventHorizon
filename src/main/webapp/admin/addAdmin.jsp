@@ -1,29 +1,17 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.eventhorizon.model.Admin" %>
-<%@ page import="com.eventhorizon.service.UserService" %>
-
 <%
     HttpSession currentSession = request.getSession(false);
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
     String userName = currentSession != null ? (String) currentSession.getAttribute("userName") : null;
     String adminPermission = currentSession != null ? (String) currentSession.getAttribute("adminPermission") : null;
 
-    if (currentSession == null || role == null || !"ADMIN".equals(role)) {
+    if (currentSession == null || role == null || !"ADMIN".equals(role) || !"FULL_ACCESS".equals(adminPermission)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
 
-    if (adminPermission == null || adminPermission.trim().isEmpty()) {
-        adminPermission = Admin.FULL_ACCESS;
-    }
-
-    if (!UserService.hasFullAccess(adminPermission)) {
-        response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp?error=noFullAccess");
-        return;
-    }
-
-    String error = request.getParameter("error");
     String msg = request.getParameter("msg");
+    String error = request.getParameter("error");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,277 +19,315 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request New Admin - EventHorizon</title>
-
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
     <style>
-        .page-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 22px;
-            padding: 28px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-            max-width: 950px;
+        * { box-sizing: border-box; font-family: Arial, sans-serif; }
+        body {
+            margin: 0;
+            background: radial-gradient(circle at top, #0d1635 0%, #050816 55%, #030611 100%);
+            color: #eef2ff;
         }
-
-        .topbar-badge-lite {
-            display: inline-flex;
+        .wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: rgba(4, 9, 30, 0.95);
+            border-right: 1px solid rgba(255,255,255,0.06);
+            padding: 18px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .brand-box {
+            display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 14px 12px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.03);
+        }
+        .brand-icon {
+            width: 34px;
+            height: 34px;
             border-radius: 12px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
+            background: linear-gradient(135deg, #7c5cff, #27c8ff);
+        }
+        .brand-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .brand-sub {
+            font-size: 12px;
+            color: #9aa7d7;
+        }
+        .nav a {
+            display: block;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border-radius: 14px;
+            color: #d9def8;
+            text-decoration: none;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid transparent;
+            font-weight: 600;
+        }
+        .nav a.active,
+        .nav a:hover {
+            background: linear-gradient(90deg, rgba(124,92,255,0.18), rgba(39,200,255,0.12));
+            border-color: rgba(124,92,255,0.25);
+        }
+        .sidebar-footer .permission,
+        .sidebar-footer .website,
+        .sidebar-footer .logout {
+            display: block;
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            text-decoration: none;
+            margin-top: 10px;
+            font-weight: 700;
+        }
+        .permission {
+            background: rgba(255,255,255,0.04);
+            color: #eef2ff;
+        }
+        .website {
+            background: rgba(255,255,255,0.03);
+            color: #eef2ff;
+        }
+        .logout {
+            background: linear-gradient(90deg, rgba(120,25,35,0.75), rgba(58,10,26,0.95));
             color: #fff;
         }
-
-        .alert-box {
+        .main {
+            flex: 1;
+            padding: 26px 28px;
+        }
+        .page-kicker {
+            color: #22c7ff;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-size: 12px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .page-title {
+            font-size: 52px;
+            font-weight: 900;
+            margin: 0 0 8px;
+        }
+        .page-subtitle {
+            color: #9ca9d9;
+            margin-bottom: 22px;
+        }
+        .access-badge {
+            float: right;
+            margin-top: -75px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: #fff;
+            padding: 12px 18px;
+            border-radius: 14px;
+            font-weight: 800;
+        }
+        .card {
+            max-width: 980px;
+            background: linear-gradient(135deg, rgba(25,32,67,0.95), rgba(12,19,44,0.92));
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 28px;
+            padding: 34px;
+            box-shadow: 0 18px 48px rgba(0,0,0,0.28);
+        }
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 38px;
+            font-weight: 900;
+        }
+        .card p {
+            color: #9ca9d9;
+            margin-bottom: 28px;
+        }
+        .alert {
             padding: 14px 16px;
             border-radius: 14px;
             margin-bottom: 18px;
             font-weight: 700;
         }
-
-        .alert-success-box {
-            background: rgba(34,197,94,0.12);
-            border: 1px solid rgba(34,197,94,0.24);
-            color: #d1fadf;
+        .alert-success {
+            background: rgba(46, 204, 113, 0.14);
+            border: 1px solid rgba(46, 204, 113, 0.3);
+            color: #9af5b6;
         }
-
-        .alert-error-box {
-            background: rgba(239,68,68,0.12);
-            border: 1px solid rgba(239,68,68,0.24);
-            color: #ffd0d0;
+        .alert-error {
+            background: rgba(231, 76, 60, 0.14);
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: #ffb7ad;
         }
-
-        .form-grid {
+        .grid {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 18px;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 18px;
         }
-
-        .form-group.full {
+        .field {
+            display: flex;
+            flex-direction: column;
+        }
+        .field.full {
             grid-column: 1 / -1;
         }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #cbd5e1;
-            font-weight: 700;
+        label {
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 800;
         }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 14px 14px;
-            border-radius: 14px;
+        input, select {
+            height: 56px;
             border: 1px solid rgba(255,255,255,0.08);
-            background: rgba(0,0,0,0.25);
-            color: white;
+            border-radius: 16px;
+            background: rgba(6, 11, 30, 0.95);
+            color: #ffffff;
+            padding: 0 18px;
+            font-size: 16px;
             outline: none;
-            box-sizing: border-box;
         }
-
-        .submit-row {
-            margin-top: 22px;
+        input:focus, select:focus {
+            border-color: rgba(124,92,255,0.55);
+            box-shadow: 0 0 0 3px rgba(124,92,255,0.12);
+        }
+        .actions {
             display: flex;
-            gap: 12px;
+            gap: 14px;
+            margin-top: 28px;
             flex-wrap: wrap;
         }
-
-        .primary-btn-custom,
-        .secondary-btn-custom {
-            border: none;
-            border-radius: 14px;
-            padding: 13px 18px;
-            font-weight: 800;
-            cursor: pointer;
-            text-decoration: none;
+        .btn {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            height: 52px;
+            padding: 0 24px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
         }
-
-        .primary-btn-custom {
+        .btn-primary {
+            background: linear-gradient(90deg, #7c5cff, #28c7ff);
             color: #fff;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
         }
-
-        .secondary-btn-custom {
-            color: #e2e8f0;
-            background: rgba(255,255,255,0.06);
+        .btn-secondary {
+            background: rgba(255,255,255,0.07);
+            color: #eef2ff;
             border: 1px solid rgba(255,255,255,0.08);
         }
-
-        .helper-text {
-            color: #94a3b8;
-            line-height: 1.7;
-            margin-top: 8px;
-            margin-bottom: 22px;
-        }
-
-        @media (max-width: 768px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+        @media (max-width: 900px) {
+            .wrapper { flex-direction: column; }
+            .sidebar { width: 100%; }
+            .grid { grid-template-columns: 1fr; }
+            .access-badge { float: none; margin: 0 0 16px; display: inline-block; }
+            .page-title { font-size: 40px; }
         }
     </style>
 </head>
 <body>
-
-<div class="admin-shell">
+<div class="wrapper">
     <aside class="sidebar">
-        <div class="sidebar-top">
-            <div class="brand">
-                <div class="brand-icon">⬡</div>
+        <div>
+            <div class="brand-box">
+                <div class="brand-icon"></div>
                 <div>
-                    <h2>EVENTHORIZON</h2>
-                    <p>Admin Workspace</p>
+                    <div class="brand-title">EVENTHORIZON</div>
+                    <div class="brand-sub">Admin Workspace</div>
                 </div>
             </div>
 
-            <nav class="nav-links">
-                <a href="<%= request.getContextPath() %>/admin/dashboard.jsp">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <span>Dashboard</span>
-                </a>
-
-                <a href="<%= request.getContextPath() %>/user?action=list">
-                    <i class="fa-solid fa-users"></i>
-                    <span>Manage Users</span>
-                </a>
-
-                <a href="<%= request.getContextPath() %>/event?action=adminList">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <span>Manage Events</span>
-                </a>
-
-                <a href="<%= request.getContextPath() %>/booking?action=allBookings">
-                    <i class="fa-solid fa-ticket"></i>
-                    <span>Bookings</span>
-                </a>
-
-                <a href="<%= request.getContextPath() %>/booking?action=pendingPayments">
-                    <i class="fa-solid fa-money-check-dollar"></i>
-                    <span>Manage Payments</span>
-                </a>
-
-                <a class="active" href="<%= request.getContextPath() %>/user?action=addAdminForm">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Request New Admin</span>
-                </a>
-
-                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
-                    <i class="fa-solid fa-user-check"></i>
-                    <span>Admin Requests</span>
-                </a>
+            <nav class="nav">
+                <a href="<%= request.getContextPath() %>/admin/dashboard.jsp">Dashboard</a>
+                <a href="<%= request.getContextPath() %>/user?action=list">Manage Users</a>
+                <a href="<%= request.getContextPath() %>/event?action=adminList">Manage Events</a>
+                <a href="<%= request.getContextPath() %>/booking?action=allBookings">Bookings</a>
+                <a href="<%= request.getContextPath() %>/booking?action=pendingPayments">Manage Payments</a>
+                <a class="active" href="<%= request.getContextPath() %>/user?action=addAdminForm">Request New Admin</a>
+                <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">Admin Requests</a>
             </nav>
         </div>
 
         <div class="sidebar-footer">
-            <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
-                <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
-                <strong><%= UserService.permissionLabel(adminPermission) %></strong>
-            </div>
-
-            <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
-                <i class="fa-solid fa-globe"></i>
-                <span>Open Website</span>
-            </a>
-
-            <a class="logout-btn" href="<%= request.getContextPath() %>/user?action=logout">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>Logout</span>
-            </a>
+            <div class="permission">Permission<br><strong>Full Access</strong></div>
+            <a class="website" href="<%= request.getContextPath() %>/index.jsp">Open Website</a>
+            <a class="logout" href="<%= request.getContextPath() %>/user?action=logout">Logout</a>
         </div>
     </aside>
 
-    <main class="main-content">
-        <section class="topbar">
-            <div>
-                <p class="eyebrow">Administration</p>
-                <h1>Request New Admin</h1>
-                <p class="subtitle">Welcome, <strong><%= userName != null ? userName : "Admin" %></strong></p>
-            </div>
+    <main class="main">
+        <div class="page-kicker">Administration</div>
+        <h1 class="page-title">Request New Admin</h1>
+        <div class="page-subtitle">Welcome, <%= userName %></div>
+        <div class="access-badge">Full Access</div>
 
-            <div class="topbar-badge-lite">
-                <i class="fa-solid fa-shield-halved"></i>
-                <span><%= UserService.permissionLabel(adminPermission) %></span>
-            </div>
-        </section>
+        <section class="card">
+            <h2>New Admin Request Form</h2>
+            <p>Submit a new admin access request. The request will stay pending until another full-access admin reviews it.</p>
 
-        <% if ("submitted".equals(msg)) { %>
-            <div class="alert-box alert-success-box">Admin request submitted successfully. Another admin can now review it.</div>
-        <% } %>
+            <% if ("requestSubmitted".equals(msg)) { %>
+                <div class="alert alert-success">
+                    Admin request submitted successfully. Another full-access admin can now review it.
+                </div>
+            <% } %>
 
-        <% if ("emailExists".equals(error)) { %>
-            <div class="alert-box alert-error-box">That email is already used by another account or request.</div>
-        <% } else if ("invalidPermission".equals(error)) { %>
-            <div class="alert-box alert-error-box">Please choose a valid permission type.</div>
-        <% } else if ("failed".equals(error)) { %>
-            <div class="alert-box alert-error-box">Request creation failed. Please try again.</div>
-        <% } %>
+            <% if ("requestFailed".equals(error)) { %>
+                <div class="alert alert-error">
+                    Request submission failed. Check the fields or verify that the email is not already registered or pending.
+                </div>
+            <% } %>
 
-        <div class="page-card">
-            <h2 style="margin:0 0 10px; color:#fff; font-size:2rem;">New Admin Request Form</h2>
-            <p class="helper-text">
-                Submit a new admin access request. The request will stay pending until another full-access admin reviews it.
-            </p>
+            <form action="<%= request.getContextPath() %>/user" method="post">
+                <input type="hidden" name="action" value="requestAdmin">
 
-            <form method="post" action="<%= request.getContextPath() %>/user">
-                <input type="hidden" name="action" value="submitAdminRequest">
-
-                <div class="form-grid">
-                    <div class="form-group">
+                <div class="grid">
+                    <div class="field">
                         <label for="name">Full Name</label>
-                        <input type="text" id="name" name="name" required>
+                        <input id="name" type="text" name="name" required>
                     </div>
 
-                    <div class="form-group">
+                    <div class="field">
                         <label for="email">Email Address</label>
-                        <input type="email" id="email" name="email" required>
+                        <input id="email" type="email" name="email" required>
                     </div>
 
-                    <div class="form-group">
+                    <div class="field">
                         <label for="password">Temporary Password</label>
-                        <input type="text" id="password" name="password" required>
+                        <input id="password" type="text" name="password" required>
                     </div>
 
-                    <div class="form-group">
+                    <div class="field">
                         <label for="phone">Phone Number</label>
-                        <input type="text" id="phone" name="phone" required>
+                        <input id="phone" type="text" name="phone" required>
                     </div>
 
-                    <div class="form-group full">
-                        <label for="permission">Permission Type</label>
-                        <select id="permission" name="permission" required>
+                    <div class="field full">
+                        <label for="adminPermission">Permission Type</label>
+                        <select id="adminPermission" name="adminPermission" required>
                             <option value="">Select permission</option>
-                            <option value="BOOKINGS_ONLY">Bookings Only</option>
-                            <option value="EVENTS_ONLY">Events Only</option>
-                            <option value="EVENTS_BOOKINGS">Events and Bookings</option>
                             <option value="FULL_ACCESS">Full Access</option>
+                            <option value="EVENTS_ONLY">Events Only</option>
+                            <option value="BOOKINGS_ONLY">Bookings Only</option>
+                            <option value="EVENTS_BOOKINGS">Events + Bookings</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="submit-row">
-                    <button type="submit" class="primary-btn-custom">
-                        <i class="fa-solid fa-paper-plane"></i>
-                        <span>Submit Request</span>
-                    </button>
-
-                    <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="secondary-btn-custom">
-                        <i class="fa-solid fa-list"></i>
-                        <span>View Pending Requests</span>
-                    </a>
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Submit Request</button>
+                    <a href="<%= request.getContextPath() %>/user?action=listAdminRequests" class="btn btn-secondary">View Pending Requests</a>
                 </div>
             </form>
-        </div>
+        </section>
     </main>
 </div>
-
 </body>
 </html>

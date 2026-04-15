@@ -13,8 +13,6 @@ import java.util.Map;
 
 public class UserService {
 
-    // ======================== CREATE ========================
-
     public boolean registerCustomer(String name, String email, String password, String phone) {
         name = safeTrim(name);
         email = normalizeEmail(email);
@@ -89,8 +87,6 @@ public class UserService {
             return false;
         }
     }
-
-    // ======================== ADMIN REQUEST FLOW ========================
 
     public boolean submitAdminRequest(String requesterAdminId,
                                       String name,
@@ -175,8 +171,8 @@ public class UserService {
                 } catch (SQLException e) {
                     requestedPermission = Admin.FULL_ACCESS;
                 }
-                row.put("requestedPermission", normalizeAdminPermission(requestedPermission));
 
+                row.put("requestedPermission", normalizeAdminPermission(requestedPermission));
                 row.put("status", rs.getString("status"));
                 row.put("requestedAt", rs.getString("requested_at"));
                 requests.add(row);
@@ -190,8 +186,7 @@ public class UserService {
     }
 
     public boolean approveAdminRequest(String requestId, String approverAdminId) {
-        String selectSql =
-                "SELECT * FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
+        String selectSql = "SELECT * FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
 
         String insertAdminSql =
                 "INSERT INTO users (user_id, name, email, password, phone, role, admin_permission) " +
@@ -307,7 +302,6 @@ public class UserService {
                 }
 
                 String requesterAdminId = rs.getString("requester_admin_id");
-
                 if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
                     return false;
                 }
@@ -323,8 +317,6 @@ public class UserService {
             return false;
         }
     }
-
-    // ======================== READ ========================
 
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
@@ -459,8 +451,6 @@ public class UserService {
         return Admin.FULL_ACCESS;
     }
 
-    // ======================== UPDATE ========================
-
     public boolean updateUser(String userId, String newName, String newPhone, String newPassword) {
         userId = safeTrim(userId);
         newName = safeTrim(newName);
@@ -593,8 +583,6 @@ public class UserService {
         }
     }
 
-    // ======================== DELETE ========================
-
     public boolean deleteUser(String userId) {
         return deleteUser(userId, null);
     }
@@ -681,8 +669,6 @@ public class UserService {
             return false;
         }
     }
-
-    // ======================== HELPERS ========================
 
     private int getBookingCount(String customerId, Connection conn) {
         String sql = "SELECT COUNT(*) FROM bookings WHERE customer_id = ? AND status = 'CONFIRMED'";
@@ -786,13 +772,10 @@ public class UserService {
     }
 
     public static boolean hasBookingAccess(String permission) {
-        if (permission == null) return false;
-
-        permission = permission.toUpperCase();
-
-        return permission.equals(Admin.FULL_ACCESS) ||
-                permission.equals(Admin.BOOKINGS_ONLY) ||
-                permission.equals(Admin.EVENTS_BOOKINGS);
+        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
+        return Admin.FULL_ACCESS.equals(p)
+                || Admin.BOOKINGS_ONLY.equals(p)
+                || Admin.EVENTS_BOOKINGS.equals(p);
     }
 
     public static boolean hasFullAccess(String permission) {
@@ -804,9 +787,9 @@ public class UserService {
         String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
         switch (p) {
             case Admin.EVENTS_ONLY:
-                return "Events only";
+                return "Events Only";
             case Admin.BOOKINGS_ONLY:
-                return "Bookings only";
+                return "Bookings Only";
             case Admin.EVENTS_BOOKINGS:
                 return "Events + Bookings";
             default:

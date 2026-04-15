@@ -20,48 +20,59 @@ public class UserServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String action = req.getParameter("action");
+        if (action == null) action = "";
 
-        switch (action == null ? "" : action) {
+        switch (action) {
             case "register":
                 handleRegister(req, resp);
                 break;
+
             case "login":
                 handleLogin(req, resp);
                 break;
+
             case "logout":
                 handleLogout(req, resp);
                 break;
+
             case "update":
                 handleUpdateProfile(req, resp);
                 break;
+
             case "adminUpdate":
                 requireFullAccessAdmin(req, resp);
                 if (resp.isCommitted()) return;
                 handleAdminUpdate(req, resp);
                 break;
+
             case "delete":
                 requireFullAccessAdmin(req, resp);
                 if (resp.isCommitted()) return;
                 handleDelete(req, resp);
                 break;
+
             case "requestAdmin":
                 requireFullAccessAdmin(req, resp);
                 if (resp.isCommitted()) return;
                 handleRequestAdmin(req, resp);
                 break;
+
             case "requestPublicAdmin":
                 resp.sendRedirect(req.getContextPath() + "/register.jsp?error=notAllowed");
                 break;
+
             case "approveAdminRequest":
                 requireFullAccessAdmin(req, resp);
                 if (resp.isCommitted()) return;
                 handleApproveAdminRequest(req, resp);
                 break;
+
             case "rejectAdminRequest":
                 requireFullAccessAdmin(req, resp);
                 if (resp.isCommitted()) return;
                 handleRejectAdminRequest(req, resp);
                 break;
+
             default:
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
         }
@@ -72,39 +83,39 @@ public class UserServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String action = req.getParameter("action");
+        if (action == null) action = "";
 
-        if ("logout".equals(action)) {
-            handleLogout(req, resp);
-            return;
+        switch (action) {
+            case "logout":
+                handleLogout(req, resp);
+                return;
+
+            case "list":
+                requireFullAccessAdmin(req, resp);
+                if (resp.isCommitted()) return;
+
+                req.setAttribute("users", userService.getAllUsers());
+                req.getRequestDispatcher("/admin/users.jsp").forward(req, resp);
+                return;
+
+            case "addAdminForm":
+                requireFullAccessAdmin(req, resp);
+                if (resp.isCommitted()) return;
+
+                req.getRequestDispatcher("/admin/addAdmin.jsp").forward(req, resp);
+                return;
+
+            case "listAdminRequests":
+                requireFullAccessAdmin(req, resp);
+                if (resp.isCommitted()) return;
+
+                req.setAttribute("adminRequests", userService.getPendingAdminRequests());
+                req.getRequestDispatcher("/admin/adminRequests.jsp").forward(req, resp);
+                return;
+
+            default:
+                resp.sendRedirect(req.getContextPath() + "/index.jsp");
         }
-
-        if ("list".equals(action)) {
-            requireFullAccessAdmin(req, resp);
-            if (resp.isCommitted()) return;
-
-            req.setAttribute("users", userService.getAllUsers());
-            req.getRequestDispatcher("/admin/users.jsp").forward(req, resp);
-            return;
-        }
-
-        if ("addAdminForm".equals(action)) {
-            requireFullAccessAdmin(req, resp);
-            if (resp.isCommitted()) return;
-
-            req.getRequestDispatcher("/admin/addAdmin.jsp").forward(req, resp);
-            return;
-        }
-
-        if ("listAdminRequests".equals(action)) {
-            requireFullAccessAdmin(req, resp);
-            if (resp.isCommitted()) return;
-
-            req.setAttribute("adminRequests", userService.getPendingAdminRequests());
-            req.getRequestDispatcher("/admin/adminRequests.jsp").forward(req, resp);
-            return;
-        }
-
-        resp.sendRedirect(req.getContextPath() + "/index.jsp");
     }
 
     private void handleRegister(HttpServletRequest req, HttpServletResponse resp)
@@ -272,8 +283,8 @@ public class UserServlet extends HttpServlet {
             throws IOException {
 
         HttpSession session = req.getSession(false);
-
         String requesterAdminId = (String) session.getAttribute("userId");
+
         String name = trim(req.getParameter("name"));
         String email = trim(req.getParameter("email"));
         String password = trim(req.getParameter("password"));
@@ -285,9 +296,9 @@ public class UserServlet extends HttpServlet {
         );
 
         if (created) {
-            resp.sendRedirect(req.getContextPath() + "/admin/addAdmin.jsp?msg=requestSubmitted");
+            resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&msg=requestSubmitted");
         } else {
-            resp.sendRedirect(req.getContextPath() + "/admin/addAdmin.jsp?error=requestFailed");
+            resp.sendRedirect(req.getContextPath() + "/user?action=addAdminForm&error=requestFailed");
         }
     }
 
