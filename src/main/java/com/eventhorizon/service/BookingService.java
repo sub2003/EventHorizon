@@ -41,12 +41,6 @@ public class BookingService {
                 return null;
             }
 
-            System.out.println("DEBUG BEFORE reduceSeat:");
-            System.out.println("Event ID: " + eventId);
-            System.out.println("Available seats: " + event.getAvailableSeats());
-            System.out.println("Requested tickets: " + numberOfTickets);
-            System.out.println("Event status: " + event.getStatus());
-
             if (!"ACTIVE".equalsIgnoreCase(event.getStatus())) {
                 System.err.println("createBooking failed: event is not ACTIVE");
                 conn.rollback();
@@ -60,8 +54,6 @@ public class BookingService {
             }
 
             boolean reduced = eventService.reduceSeat(eventId, numberOfTickets, conn);
-            System.out.println("DEBUG reduceSeat result: " + reduced);
-
             if (!reduced) {
                 System.err.println("createBooking failed: reduceSeat returned false");
                 conn.rollback();
@@ -89,23 +81,17 @@ public class BookingService {
                 ps.setString(8, paymentReference != null ? paymentReference : "");
 
                 int rows = ps.executeUpdate();
-                System.out.println("createBooking insert rows = " + rows);
-
                 if (rows == 0) {
-                    System.err.println("createBooking failed: insert returned 0 rows");
                     conn.rollback();
                     return null;
                 }
             }
 
             conn.commit();
-            System.out.println("createBooking success bookingId = " + bookingId);
             return bookingId;
 
         } catch (SQLException e) {
             System.err.println("createBooking error: " + e.getMessage());
-            System.err.println("SQL State: " + e.getSQLState());
-            System.err.println("Error Code: " + e.getErrorCode());
             e.printStackTrace();
 
             if (conn != null) {
@@ -134,22 +120,52 @@ public class BookingService {
     public boolean approveBooking(String bookingId) {
         Booking booking = getBookingById(bookingId);
         if (booking == null) return false;
+        if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) return false;
         if ("APPROVED".equalsIgnoreCase(booking.getPaymentStatus())) return false;
+        if ("REJECTED".equalsIgnoreCase(booking.getPaymentStatus())) return false;
 
-        String sql = "UPDATE bookings SET payment_status='APPROVED' WHERE booking_id=?";
+        Connection conn = null;
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
 
-            ps.setString(1, bookingId);
-            if (ps.executeUpdate() == 0) {
-                return false;
+            String sql = "UPDATE bookings " +
+                    "SET payment_status='APPROVED' " +
+                    "WHERE booking_id=? AND status='CONFIRMED' AND payment_status='PENDING'";
+
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, bookingId);
+
+                int rows = ps.executeUpdate();
+                if (rows == 0) {
+                    conn.rollback();
+                    return false;
+                }
             }
+
+            conn.commit();
 
         } catch (SQLException e) {
             System.err.println("approveBooking error: " + e.getMessage());
             e.printStackTrace();
+
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
             return false;
+
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
         }
 
         List<Ticket> tickets = ticketService.generateTickets(
@@ -166,6 +182,7 @@ public class BookingService {
         Booking booking = getBookingById(bookingId);
         if (booking == null) return false;
         if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) return false;
+        if ("REJECTED".equalsIgnoreCase(booking.getPaymentStatus())) return false;
 
         Connection conn = null;
 
@@ -184,7 +201,9 @@ public class BookingService {
                 return false;
             }
 
-            String sql = "UPDATE bookings SET payment_status='REJECTED', status='CANCELLED' WHERE booking_id=?";
+            String sql = "UPDATE bookings " +
+                    "SET payment_status='REJECTED', status='CANCELLED' " +
+                    "WHERE booking_id=? AND payment_status='PENDING'";
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, bookingId);
@@ -223,7 +242,9 @@ public class BookingService {
 
     public List<Booking> getPendingBookings() {
         List<Booking> list = new ArrayList<>();
-        String sql = "SELECT * FROM bookings WHERE payment_status='PENDING' AND status='CONFIRMED' ORDER BY booking_date DESC, booking_id DESC";
+        String sql = "SELECT * FROM bookings " +
+                "WHERE payment_status='PENDING' AND status='CONFIRMED' " +
+                "ORDER BY booking_date DESC, booking_id DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
@@ -367,6 +388,66 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("cancelBooking error: " + e.getMessage());
+            e.printStackTrace();
+
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException ignored) {
+                }
+            }
+            return false;
+
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException ignored) {
+                }
+            }
+        }
+    }
+
+    public boolean deleteBookingPermanently(String bookingId) {
+        Booking booking = getBookingById(bookingId);
+        if (booking == null) return false;
+
+        boolean canDelete =
+                "CANCELLED".equalsIgnoreCase(booking.getStatus()) ||
+                        "REJECTED".equalsIgnoreCase(booking.getPaymentStatus());
+
+        if (!canDelete) {
+            return false;
+        }
+
+        Connection conn = null;
+
+        try {
+            conn = DatabaseConnection.getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement deleteTickets = conn.prepareStatement(
+                    "DELETE FROM tickets WHERE booking_id = ?")) {
+                deleteTickets.setString(1, bookingId);
+                deleteTickets.executeUpdate();
+            }
+
+            try (PreparedStatement deleteBooking = conn.prepareStatement(
+                    "DELETE FROM bookings WHERE booking_id = ?")) {
+                deleteBooking.setString(1, bookingId);
+
+                if (deleteBooking.executeUpdate() == 0) {
+                    conn.rollback();
+                    return false;
+                }
+            }
+
+            conn.commit();
+            return true;
+
+        } catch (SQLException e) {
+            System.err.println("deleteBookingPermanently error: " + e.getMessage());
             e.printStackTrace();
 
             if (conn != null) {

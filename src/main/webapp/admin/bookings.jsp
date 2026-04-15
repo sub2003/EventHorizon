@@ -83,18 +83,18 @@
             padding: 14px 16px;
             border-radius: 14px;
             margin-bottom: 18px;
-            font-weight: 600;
+            font-weight: 700;
         }
 
         .alert-success-box {
             background: rgba(34,197,94,0.12);
-            border: 1px solid rgba(34,197,94,0.22);
+            border: 1px solid rgba(34,197,94,0.24);
             color: #d1fadf;
         }
 
         .alert-error-box {
             background: rgba(239,68,68,0.12);
-            border: 1px solid rgba(239,68,68,0.22);
+            border: 1px solid rgba(239,68,68,0.24);
             color: #ffd0d0;
         }
 
@@ -105,7 +105,7 @@
         .booking-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1400px;
+            min-width: 1500px;
         }
 
         .booking-table thead th {
@@ -160,8 +160,8 @@
 
         .approved-pill {
             color: #6ee7b7;
-            background: rgba(34,197,94,0.16);
-            border: 1px solid rgba(34,197,94,0.28);
+            background: rgba(16,185,129,0.16);
+            border: 1px solid rgba(16,185,129,0.28);
         }
 
         .rejected-pill {
@@ -206,9 +206,8 @@
             background: linear-gradient(135deg, #ef4444, #f97316);
         }
 
-        .leave-btn {
-            background: linear-gradient(135deg, #334155, #475569);
-            color: #e2e8f0;
+        .delete-btn {
+            background: linear-gradient(135deg, #7c3aed, #475569);
         }
 
         .leave-note {
@@ -303,7 +302,7 @@
             <div>
                 <p class="eyebrow">Booking Management</p>
                 <h1>All Booking Records</h1>
-                <p class="subtitle">View payment reference numbers before cancelling or keeping bookings unchanged.</p>
+                <p class="subtitle">Rejected and cancelled bookings can be removed from this table permanently.</p>
             </div>
 
             <div class="topbar-badge-lite">
@@ -312,11 +311,11 @@
             </div>
         </section>
 
-        <% if ("cancelled".equals(request.getParameter("msg"))) { %>
+        <% if ("cancelled".equals(msg)) { %>
             <div class="alert-box alert-success-box">Booking cancelled successfully and seats were restored.</div>
-        <% } %>
-
-        <% if ("error".equals(request.getParameter("msg"))) { %>
+        <% } else if ("deleted".equals(msg)) { %>
+            <div class="alert-box alert-success-box">Booking record deleted from the table successfully.</div>
+        <% } else if ("error".equals(msg)) { %>
             <div class="alert-box alert-error-box">Action failed. Please try again.</div>
         <% } %>
 
@@ -324,7 +323,7 @@
             <div class="page-header">
                 <div>
                     <h2>Booking Table</h2>
-                    <p>Check each payment reference or slip reference number before deciding what to do.</p>
+                    <p>Delete only old rejected or cancelled bookings to keep this table manageable.</p>
                 </div>
 
                 <div class="search-box">
@@ -349,7 +348,11 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <% for (Booking b : bookings) { %>
+                    <% for (Booking b : bookings) {
+                        boolean isCancelled = "CANCELLED".equalsIgnoreCase(b.getStatus());
+                        boolean isRejected = "REJECTED".equalsIgnoreCase(b.getPaymentStatus());
+                        boolean canDelete = isCancelled || isRejected;
+                    %>
                         <tr>
                             <td class="mono-id"><%= b.getBookingId() %></td>
                             <td><%= b.getCustomerId() %></td>
@@ -359,7 +362,7 @@
                             <td><%= b.getBookingDate() %></td>
 
                             <td>
-                                <% if ("CANCELLED".equalsIgnoreCase(b.getStatus())) { %>
+                                <% if (isCancelled) { %>
                                     <span class="status-pill cancelled-pill">CANCELLED</span>
                                 <% } else { %>
                                     <span class="status-pill confirmed-pill">CONFIRMED</span>
@@ -369,7 +372,7 @@
                             <td>
                                 <% if ("APPROVED".equalsIgnoreCase(b.getPaymentStatus())) { %>
                                     <span class="payment-pill approved-pill">APPROVED</span>
-                                <% } else if ("REJECTED".equalsIgnoreCase(b.getPaymentStatus())) { %>
+                                <% } else if (isRejected) { %>
                                     <span class="payment-pill rejected-pill">REJECTED</span>
                                 <% } else { %>
                                     <span class="payment-pill pending-pill">PENDING</span>
@@ -386,17 +389,20 @@
 
                             <td>
                                 <div class="action-cell">
-                                    <% if ("CONFIRMED".equalsIgnoreCase(b.getStatus())) { %>
+                                    <% if (canDelete) { %>
+                                        <form class="inline-form" method="post" action="<%= request.getContextPath() %>/booking"
+                                              onsubmit="return confirm('Delete this booking record permanently from the table?');">
+                                            <input type="hidden" name="action" value="deleteBookingPermanently">
+                                            <input type="hidden" name="bookingId" value="<%= b.getBookingId() %>">
+                                            <button type="submit" class="action-btn delete-btn">Delete</button>
+                                        </form>
+                                    <% } else { %>
                                         <form class="inline-form" method="post" action="<%= request.getContextPath() %>/booking"
                                               onsubmit="return confirm('Cancel this booking?');">
                                             <input type="hidden" name="action" value="cancel">
                                             <input type="hidden" name="bookingId" value="<%= b.getBookingId() %>">
                                             <button type="submit" class="action-btn cancel-btn">Cancel</button>
                                         </form>
-
-                                        <span class="leave-note">or leave it as it is</span>
-                                    <% } else { %>
-                                        <span class="leave-note">—</span>
                                     <% } %>
                                 </div>
                             </td>
@@ -405,7 +411,7 @@
 
                     <% if (bookings.isEmpty()) { %>
                         <tr>
-                            <td colspan="10" class="leave-note" style="padding: 24px;">No bookings found.</td>
+                            <td colspan="10" class="leave-note" style="padding:24px;">No bookings found.</td>
                         </tr>
                     <% } %>
                     </tbody>

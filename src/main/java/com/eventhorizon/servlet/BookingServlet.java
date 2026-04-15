@@ -132,6 +132,13 @@ public class BookingServlet extends HttpServlet {
                 handleRejectPayment(req, resp, session);
                 break;
 
+            case "deleteBookingPermanently":
+                requireBookingAdmin(session, req, resp);
+                if (resp.isCommitted()) return;
+
+                handleDeleteBookingPermanently(req, resp, session);
+                break;
+
             default:
                 resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
         }
@@ -277,6 +284,24 @@ public class BookingServlet extends HttpServlet {
 
         resp.sendRedirect(req.getContextPath()
                 + "/booking?action=pendingPayments&msg=" + (ok ? "rejected" : "error"));
+    }
+
+    private void handleDeleteBookingPermanently(HttpServletRequest req, HttpServletResponse resp,
+                                                HttpSession session) throws IOException {
+
+        String permission = (String) session.getAttribute("adminPermission");
+        if (permission == null) permission = Admin.FULL_ACCESS;
+
+        if (!UserService.hasBookingAccess(permission)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
+            return;
+        }
+
+        String bookingId = req.getParameter("bookingId");
+        boolean ok = bookingService.deleteBookingPermanently(bookingId);
+
+        resp.sendRedirect(req.getContextPath()
+                + "/booking?action=allBookings&msg=" + (ok ? "deleted" : "error"));
     }
 
     private void requireCustomer(HttpSession session, HttpServletRequest req, HttpServletResponse resp)
