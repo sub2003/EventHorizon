@@ -3,6 +3,7 @@
 <%
     Ticket ticket = (Ticket) request.getAttribute("ticket");
     Boolean approved = (Boolean) request.getAttribute("approved");
+    String scannedToken = (String) request.getAttribute("scannedToken");
     if (approved == null) approved = false;
 %>
 <!DOCTYPE html>
@@ -167,11 +168,21 @@
                 <div class="value"><%= ticket.getCreatedAt() == null ? "-" : ticket.getCreatedAt() %></div>
             </div>
 
+            <div class="row">
+                <div class="label">Scanned Token</div>
+                <div class="value"><%= scannedToken == null ? "-" : scannedToken %></div>
+            </div>
+
             <div class="note">
                 This is a valid ticket issued by the EventHorizon system.
             </div>
         <% } else { %>
             <div class="status-box not-approved">NOT APPROVED</div>
+
+            <div class="row">
+                <div class="label">Scanned Token</div>
+                <div class="value"><%= scannedToken == null ? "-" : scannedToken %></div>
+            </div>
 
             <div class="note">
                 This QR code is not a valid approved EventHorizon ticket.

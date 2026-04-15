@@ -190,6 +190,11 @@ public class TicketServlet extends HttpServlet {
                     hints
             );
 
+            // Prevent browser caching old QR images
+            resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+            resp.setHeader("Pragma", "no-cache");
+            resp.setDateHeader("Expires", 0);
+
             resp.setContentType("image/png");
             MatrixToImageWriter.writeToStream(matrix, "PNG", resp.getOutputStream());
             resp.getOutputStream().flush();
@@ -210,6 +215,7 @@ public class TicketServlet extends HttpServlet {
 
         req.setAttribute("ticket", ticket);
         req.setAttribute("approved", approved);
+        req.setAttribute("scannedToken", token);
         req.getRequestDispatcher("/verifyTicket.jsp").forward(req, resp);
     }
 
