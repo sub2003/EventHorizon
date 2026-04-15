@@ -46,6 +46,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("addEvent error: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
@@ -64,6 +65,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("getAllEvents error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return events;
@@ -83,6 +85,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("getActiveEvents error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return events;
@@ -93,15 +96,17 @@ public class EventService {
             return getEventById(eventId, conn);
         } catch (SQLException e) {
             System.err.println("getEventById error: " + e.getMessage());
+            e.printStackTrace();
             return null;
         }
     }
 
     public Event getEventById(String eventId, Connection conn) {
+        String cleanEventId = safeTrim(eventId);
         String sql = "SELECT * FROM events WHERE event_id = ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, safeTrim(eventId));
+            ps.setString(1, cleanEventId);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
@@ -111,6 +116,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("getEventById(tx) error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return null;
@@ -137,6 +143,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("searchEvents error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return events;
@@ -165,6 +172,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("updateEvent error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -202,6 +210,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("updateEventWithImage error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -217,6 +226,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("cancelEvent error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -226,12 +236,18 @@ public class EventService {
             return reduceSeat(eventId, count, conn);
         } catch (SQLException e) {
             System.err.println("reduceSeat error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
     public boolean reduceSeat(String eventId, int count, Connection conn) {
-        if (isBlank(eventId) || count <= 0) return false;
+        String cleanEventId = safeTrim(eventId);
+
+        if (isBlank(cleanEventId) || count <= 0) {
+            System.err.println("reduceSeat failed: invalid input. eventId=" + eventId + ", count=" + count);
+            return false;
+        }
 
         String sql = "UPDATE events " +
                 "SET available_seats = available_seats - ? " +
@@ -241,13 +257,21 @@ public class EventService {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, count);
-            ps.setString(2, safeTrim(eventId));
+            ps.setString(2, cleanEventId);
             ps.setInt(3, count);
 
-            return ps.executeUpdate() > 0;
+            int rows = ps.executeUpdate();
+
+            System.out.println("DEBUG reduceSeat:");
+            System.out.println("eventId = " + cleanEventId);
+            System.out.println("count = " + count);
+            System.out.println("rows affected = " + rows);
+
+            return rows > 0;
 
         } catch (SQLException e) {
             System.err.println("reduceSeat(tx) error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -257,12 +281,18 @@ public class EventService {
             return restoreSeat(eventId, count, conn);
         } catch (SQLException e) {
             System.err.println("restoreSeat error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
 
     public boolean restoreSeat(String eventId, int count, Connection conn) {
-        if (isBlank(eventId) || count <= 0) return false;
+        String cleanEventId = safeTrim(eventId);
+
+        if (isBlank(cleanEventId) || count <= 0) {
+            System.err.println("restoreSeat failed: invalid input. eventId=" + eventId + ", count=" + count);
+            return false;
+        }
 
         String sql = "UPDATE events " +
                 "SET available_seats = LEAST(total_seats, available_seats + ?) " +
@@ -270,12 +300,20 @@ public class EventService {
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, count);
-            ps.setString(2, safeTrim(eventId));
+            ps.setString(2, cleanEventId);
 
-            return ps.executeUpdate() > 0;
+            int rows = ps.executeUpdate();
+
+            System.out.println("DEBUG restoreSeat:");
+            System.out.println("eventId = " + cleanEventId);
+            System.out.println("count = " + count);
+            System.out.println("rows affected = " + rows);
+
+            return rows > 0;
 
         } catch (SQLException e) {
             System.err.println("restoreSeat(tx) error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -291,6 +329,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("deleteEvent error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
     }
@@ -332,6 +371,7 @@ public class EventService {
 
         } catch (SQLException e) {
             System.err.println("generateId error: " + e.getMessage());
+            e.printStackTrace();
             return "EVT" + System.currentTimeMillis();
         }
     }

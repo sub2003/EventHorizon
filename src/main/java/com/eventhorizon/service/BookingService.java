@@ -10,9 +10,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * BookingService - CRUD operations for Bookings using MySQL.
- */
 public class BookingService {
 
     private final EventService eventService = new EventService();
@@ -26,6 +23,7 @@ public class BookingService {
         paymentReference = safeTrim(paymentReference);
 
         if (isBlank(customerId) || isBlank(eventId) || numberOfTickets <= 0) {
+            System.err.println("createBooking failed: invalid input");
             return null;
         }
 
@@ -38,22 +36,34 @@ public class BookingService {
             Event event = eventService.getEventById(eventId, conn);
 
             if (event == null) {
+                System.err.println("createBooking failed: event not found for ID = " + eventId);
                 conn.rollback();
                 return null;
             }
 
+            System.out.println("DEBUG BEFORE reduceSeat:");
+            System.out.println("Event ID: " + eventId);
+            System.out.println("Available seats: " + event.getAvailableSeats());
+            System.out.println("Requested tickets: " + numberOfTickets);
+            System.out.println("Event status: " + event.getStatus());
+
             if (!"ACTIVE".equalsIgnoreCase(event.getStatus())) {
+                System.err.println("createBooking failed: event is not ACTIVE");
                 conn.rollback();
                 return null;
             }
 
             if (event.getAvailableSeats() < numberOfTickets) {
+                System.err.println("createBooking failed: not enough seats");
                 conn.rollback();
                 return null;
             }
 
             boolean reduced = eventService.reduceSeat(eventId, numberOfTickets, conn);
+            System.out.println("DEBUG reduceSeat result: " + reduced);
+
             if (!reduced) {
+                System.err.println("createBooking failed: reduceSeat returned false");
                 conn.rollback();
                 return null;
             }
@@ -79,17 +89,24 @@ public class BookingService {
                 ps.setString(8, paymentReference != null ? paymentReference : "");
 
                 int rows = ps.executeUpdate();
+                System.out.println("createBooking insert rows = " + rows);
+
                 if (rows == 0) {
+                    System.err.println("createBooking failed: insert returned 0 rows");
                     conn.rollback();
                     return null;
                 }
             }
 
             conn.commit();
+            System.out.println("createBooking success bookingId = " + bookingId);
             return bookingId;
 
         } catch (SQLException e) {
             System.err.println("createBooking error: " + e.getMessage());
+            System.err.println("SQL State: " + e.getSQLState());
+            System.err.println("Error Code: " + e.getErrorCode());
+            e.printStackTrace();
 
             if (conn != null) {
                 try {
@@ -131,6 +148,7 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("approveBooking error: " + e.getMessage());
+            e.printStackTrace();
             return false;
         }
 
@@ -166,8 +184,7 @@ public class BookingService {
                 return false;
             }
 
-            String sql = "UPDATE bookings SET payment_status='REJECTED', status='CANCELLED' " +
-                    "WHERE booking_id=?";
+            String sql = "UPDATE bookings SET payment_status='REJECTED', status='CANCELLED' WHERE booking_id=?";
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, bookingId);
@@ -183,6 +200,7 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("rejectBooking error: " + e.getMessage());
+            e.printStackTrace();
 
             if (conn != null) {
                 try {
@@ -205,8 +223,7 @@ public class BookingService {
 
     public List<Booking> getPendingBookings() {
         List<Booking> list = new ArrayList<>();
-        String sql = "SELECT * FROM bookings WHERE payment_status='PENDING' " +
-                "AND status='CONFIRMED' ORDER BY booking_date DESC, booking_id DESC";
+        String sql = "SELECT * FROM bookings WHERE payment_status='PENDING' AND status='CONFIRMED' ORDER BY booking_date DESC, booking_id DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
@@ -218,6 +235,7 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("getPendingBookings error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return list;
@@ -237,6 +255,7 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("getAllBookings error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return bookings;
@@ -258,6 +277,7 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("getBookingById error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return null;
@@ -280,6 +300,7 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("getBookingsByCustomer error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return bookings;
@@ -302,6 +323,7 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("getBookingsByEvent error: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return bookings;
@@ -345,6 +367,7 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("cancelBooking error: " + e.getMessage());
+            e.printStackTrace();
 
             if (conn != null) {
                 try {
@@ -394,21 +417,18 @@ public class BookingService {
     }
 
     private String generateId(Connection conn) {
-        String sql = "SELECT MAX(CAST(SUBSTRING(booking_id, 4) AS UNSIGNED)) " +
-                "FROM bookings WHERE booking_id LIKE 'BKG%'";
+        String sql = "SELECT MAX(CAST(SUBSTRING(booking_id, 4) AS UNSIGNED)) FROM bookings WHERE booking_id LIKE 'BKG%'";
 
         try (Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
 
             int next = 1;
-            if (rs.next()) {
-                next = rs.getInt(1) + 1;
-            }
-
+            if (rs.next()) next = rs.getInt(1) + 1;
             return String.format("BKG%03d", next);
 
         } catch (SQLException e) {
             System.err.println("generateId error: " + e.getMessage());
+            e.printStackTrace();
             return "BKG" + System.currentTimeMillis();
         }
     }
