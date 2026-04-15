@@ -10,9 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * TicketService – generates and validates secure QR-code tickets.
- */
 public class TicketService {
 
     private static final String SECRET_KEY =
@@ -131,42 +128,6 @@ public class TicketService {
         INVALID
     }
 
-    /**
-     * Public/browser verification:
-     * - valid only if token exists
-     * - booking must be APPROVED + CONFIRMED
-     */
-    public boolean isTicketApprovedForPublicScan(String qrToken) {
-        if (qrToken == null || qrToken.isBlank()) return false;
-
-        String sql = "SELECT t.ticket_id " +
-                "FROM tickets t " +
-                "JOIN bookings b ON t.booking_id = b.booking_id " +
-                "WHERE t.qr_token = ? " +
-                "AND b.payment_status = 'APPROVED' " +
-                "AND b.status = 'CONFIRMED'";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, qrToken.trim());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next();
-            }
-
-        } catch (SQLException e) {
-            System.err.println("isTicketApprovedForPublicScan error: " + e.getMessage());
-            return false;
-        }
-    }
-
-    /**
-     * Admin/gate verification:
-     * - token must exist
-     * - booking must be APPROVED + CONFIRMED
-     * - first valid scan marks as used
-     */
     public VerifyResult verifyAndRedeemTicket(String qrToken) {
         if (qrToken == null || qrToken.isBlank()) return VerifyResult.INVALID;
 

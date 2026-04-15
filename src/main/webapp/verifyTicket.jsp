@@ -1,7 +1,9 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.eventhorizon.model.Ticket" %>
+<%@ page import="com.eventhorizon.model.Booking" %>
 <%
     Ticket ticket = (Ticket) request.getAttribute("ticket");
+    Booking booking = (Booking) request.getAttribute("booking");
     Boolean approved = (Boolean) request.getAttribute("approved");
     String scannedToken = (String) request.getAttribute("scannedToken");
     if (approved == null) approved = false;
@@ -140,7 +142,7 @@
     <div class="card">
         <div class="title">Ticket Verification</div>
 
-        <% if (approved && ticket != null) { %>
+        <% if (approved && ticket != null && booking != null) { %>
             <div class="status-box approved">APPROVED</div>
 
             <div class="row">
@@ -164,8 +166,13 @@
             </div>
 
             <div class="row">
-                <div class="label">Issued At</div>
-                <div class="value"><%= ticket.getCreatedAt() == null ? "-" : ticket.getCreatedAt() %></div>
+                <div class="label">Booking Payment</div>
+                <div class="value"><%= booking.getPaymentStatus() %></div>
+            </div>
+
+            <div class="row">
+                <div class="label">Booking Status</div>
+                <div class="value"><%= booking.getStatus() %></div>
             </div>
 
             <div class="row">

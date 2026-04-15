@@ -22,15 +22,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * TicketServlet
- *
- * GET  /ticket?action=viewTickets&bookingId=BKG001
- * GET  /ticket?action=qr&token=...
- * GET  /ticket?action=verify&token=...
- * GET  /ticket?action=scanPage
- * POST /ticket?action=verify
- */
 public class TicketServlet extends HttpServlet {
 
     private static final String PUBLIC_BASE_URL =
@@ -97,7 +88,7 @@ public class TicketServlet extends HttpServlet {
                 resp.sendError(HttpServletResponse.SC_FORBIDDEN);
                 return;
             }
-            handleVerify(req, resp);
+            handleAdminVerify(req, resp);
             return;
         }
 
@@ -210,18 +201,34 @@ public class TicketServlet extends HttpServlet {
         String token = req.getParameter("token");
 
         Ticket ticket = ticketService.getTicketByToken(token);
-        boolean approved = ticketService.isTicketApprovedForPublicScan(token);
+        Booking booking = null;
+        boolean approved = false;
+
+        if (ticket != null) {
+            booking = bookingService.getBookingById(ticket.getBookingId());
+
+            if (booking != null
+                    && "APPROVED".equalsIgnoreCase(booking.getPaymentStatus())
+                    && "CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+                approved = true;
+            }
+        }
 
         req.setAttribute("ticket", ticket);
+        req.setAttribute("booking", booking);
         req.setAttribute("approved", approved);
         req.setAttribute("scannedToken", token);
         req.getRequestDispatcher("/verifyTicket.jsp").forward(req, resp);
     }
 
-    private void handleVerify(HttpServletRequest req, HttpServletResponse resp)
+    private void handleAdminVerify(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
         String qrToken = req.getParameter("token");
+        if (qrToken == null || qrToken.isBlank()) {
+            qrToken = req.getParameter("qrToken");
+        }
+
         TicketService.VerifyResult result = ticketService.verifyAndRedeemTicket(qrToken);
 
         String message;
