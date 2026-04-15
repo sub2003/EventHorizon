@@ -174,7 +174,7 @@ public class BookingService {
 
         try {
             List<Ticket> tickets = ticketService.generateTickets(
-                    bookingId,
+                    booking.getBookingId(),
                     booking.getEventId(),
                     booking.getCustomerId(),
                     booking.getNumberOfTickets()
