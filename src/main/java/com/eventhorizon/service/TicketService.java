@@ -57,8 +57,11 @@ public class TicketService {
             ps.executeBatch();
 
         } catch (SQLException e) {
-            System.err.println("generateTickets error: " + e.getMessage());
-            tickets.clear();
+        System.err.println("generateTickets error: " + e.getMessage());
+        System.err.println("SQL State: " + e.getSQLState());
+        System.err.println("Error Code: " + e.getErrorCode());
+        e.printStackTrace();
+        tickets.clear();
         }
 
         return tickets;
