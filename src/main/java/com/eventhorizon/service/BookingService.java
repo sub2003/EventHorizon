@@ -118,10 +118,14 @@ public class BookingService {
     }
 
     public boolean approveBooking(String bookingId) {
+        bookingId = safeTrim(bookingId);
+        if (isBlank(bookingId)) return false;
+
         Booking booking = getBookingById(bookingId);
         if (booking == null) return false;
+
         if ("CANCELLED".equalsIgnoreCase(booking.getStatus())) return false;
-        if ("APPROVED".equalsIgnoreCase(booking.getPaymentStatus())) return false;
+        if ("APPROVED".equalsIgnoreCase(booking.getPaymentStatus())) return true;
         if ("REJECTED".equalsIgnoreCase(booking.getPaymentStatus())) return false;
 
         Connection conn = null;
@@ -168,14 +172,23 @@ public class BookingService {
             }
         }
 
-        List<Ticket> tickets = ticketService.generateTickets(
-                bookingId,
-                booking.getEventId(),
-                booking.getCustomerId(),
-                booking.getNumberOfTickets()
-        );
+        try {
+            List<Ticket> tickets = ticketService.generateTickets(
+                    bookingId,
+                    booking.getEventId(),
+                    booking.getCustomerId(),
+                    booking.getNumberOfTickets()
+            );
 
-        return !tickets.isEmpty();
+            if (tickets == null || tickets.isEmpty()) {
+                System.err.println("approveBooking warning: payment approved but no tickets were generated for " + bookingId);
+            }
+        } catch (Exception e) {
+            System.err.println("approveBooking warning: payment approved but ticket generation failed for " + bookingId);
+            e.printStackTrace();
+        }
+
+        return true;
     }
 
     public boolean rejectBooking(String bookingId) {
