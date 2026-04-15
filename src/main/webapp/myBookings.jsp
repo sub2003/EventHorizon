@@ -4,6 +4,7 @@
 <%
     HttpSession currentSession = request.getSession(false);
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
+    String userName = currentSession != null ? (String) currentSession.getAttribute("userName") : null;
 
     if (currentSession == null || role == null || !"CUSTOMER".equals(role)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
@@ -11,9 +12,12 @@
     }
 
     List<Booking> bookings = (List<Booking>) request.getAttribute("bookings");
-    if (bookings == null) bookings = new java.util.ArrayList<>();
+    if (bookings == null) {
+        bookings = new java.util.ArrayList<>();
+    }
 
     String msg = request.getParameter("msg");
+    String error = request.getParameter("error");
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -21,293 +25,428 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings - EventHorizon</title>
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        .page-wrap {
-            min-height: 100vh;
-            background:
-                radial-gradient(circle at top left, rgba(139,92,246,0.12), transparent 25%),
-                radial-gradient(circle at top right, rgba(6,182,212,0.08), transparent 22%),
-                linear-gradient(180deg, #020617 0%, #030b2a 100%);
-            color: #fff;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
         }
 
-        .content-box {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 42px 20px 70px;
+        body {
+            background: #050816;
+            color: #e8ecff;
         }
 
-        .page-top {
+        .navbar {
+            width: 100%;
+            background: linear-gradient(90deg, #060b1f, #0b1434);
+            border-bottom: 1px solid rgba(130, 90, 255, 0.22);
+            padding: 18px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 26px;
+        }
+
+        .brand {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #7c5cff;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .nav-links a {
+            color: #d9defa;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: #8c6cff;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1250px;
+            margin: 32px auto;
+        }
+
+        .page-header {
+            margin-bottom: 24px;
         }
 
         .page-title {
-            font-size: 2.5rem;
-            margin: 0;
-            color: #fff;
-            letter-spacing: 0.02em;
-        }
-
-        .page-sub {
-            color: #9fb0d3;
-            margin-top: 8px;
-        }
-
-        .browse-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            text-decoration: none;
-            padding: 14px 22px;
-            border-radius: 16px;
-            color: #38bdf8;
-            border: 1px solid rgba(56,189,248,0.35);
-            background: rgba(56,189,248,0.05);
-            font-weight: 700;
-            transition: 0.25s ease;
-        }
-
-        .browse-btn:hover {
-            transform: translateY(-2px);
-            color: #fff;
-            border-color: rgba(56,189,248,0.6);
-        }
-
-        .alert-box {
-            padding: 14px 16px;
-            border-radius: 14px;
-            margin-bottom: 18px;
-            font-weight: 700;
-        }
-
-        .alert-success-box {
-            background: rgba(34,197,94,0.12);
-            border: 1px solid rgba(34,197,94,0.24);
-            color: #d1fadf;
-        }
-
-        .alert-error-box {
-            background: rgba(239,68,68,0.12);
-            border: 1px solid rgba(239,68,68,0.24);
-            color: #ffd0d0;
-        }
-
-        .bookings-card {
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.25);
-        }
-
-        .bookings-table-wrap {
-            overflow-x: auto;
-        }
-
-        .bookings-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 950px;
-        }
-
-        .bookings-table thead {
-            background: linear-gradient(135deg, rgba(124,58,237,0.28), rgba(6,182,212,0.16));
-        }
-
-        .bookings-table th {
-            padding: 16px 16px;
-            text-align: left;
-            color: #cbd5e1;
-            text-transform: uppercase;
-            font-size: 0.84rem;
-            letter-spacing: 0.06em;
-        }
-
-        .bookings-table td {
-            padding: 18px 16px;
-            border-top: 1px solid rgba(255,255,255,0.06);
-            color: #eef2ff;
-        }
-
-        .booking-id {
-            color: #38bdf8;
-            font-family: Consolas, monospace;
-            font-weight: 700;
-        }
-
-        .amount {
-            color: #7dd3fc;
+            font-size: 36px;
             font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            color: #9ba8d8;
+            font-size: 15px;
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+
+        .alert.success {
+            background: rgba(46, 204, 113, 0.12);
+            border-color: rgba(46, 204, 113, 0.35);
+            color: #b8ffd4;
+        }
+
+        .alert.error {
+            background: rgba(231, 76, 60, 0.12);
+            border-color: rgba(231, 76, 60, 0.35);
+            color: #ffc4bd;
+        }
+
+        .booking-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+            gap: 24px;
+        }
+
+        .booking-card {
+            background: linear-gradient(180deg, #0b1431, #09112a);
+            border: 1px solid rgba(126, 93, 255, 0.18);
+            border-radius: 22px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+            transition: 0.2s ease;
+        }
+
+        .booking-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(126, 93, 255, 0.32);
+        }
+
+        .booking-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 18px;
+        }
+
+        .booking-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+        }
+
+        .booking-row:last-child {
+            border-bottom: none;
+        }
+
+        .booking-label {
+            color: #99a5d7;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .booking-value {
+            color: #f3f6ff;
+            font-weight: 700;
+            font-size: 14px;
+            text-align: right;
+            word-break: break-word;
+            max-width: 55%;
         }
 
         .status-pill {
-            display: inline-block;
-            padding: 8px 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 7px 12px;
             border-radius: 999px;
-            font-size: 0.82rem;
+            font-size: 12px;
             font-weight: 800;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
         }
 
-        .status-pending {
-            color: #facc15;
-            background: rgba(245,158,11,0.16);
-            border: 1px solid rgba(245,158,11,0.28);
-        }
-
-        .status-approved {
-            color: #5eead4;
-            background: rgba(16,185,129,0.16);
-            border: 1px solid rgba(16,185,129,0.28);
+        .status-confirmed {
+            background: rgba(46, 204, 113, 0.14);
+            color: #87f0aa;
         }
 
         .status-cancelled {
-            color: #fca5a5;
-            background: rgba(239,68,68,0.16);
-            border: 1px solid rgba(239,68,68,0.28);
+            background: rgba(160, 160, 160, 0.16);
+            color: #d0d0d0;
         }
 
-        .action-btn {
-            border: none;
+        .payment-pending {
+            background: rgba(255, 193, 7, 0.14);
+            color: #ffd66b;
+        }
+
+        .payment-approved {
+            background: rgba(46, 204, 113, 0.14);
+            color: #87f0aa;
+        }
+
+        .payment-rejected {
+            background: rgba(231, 76, 60, 0.14);
+            color: #ff9f95;
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 16px;
             border-radius: 12px;
-            padding: 10px 16px;
+            border: none;
+            text-decoration: none;
             font-weight: 800;
+            font-size: 14px;
             cursor: pointer;
-            color: #fff;
-            background: linear-gradient(135deg, #ef4444, #f97316);
+            transition: 0.2s ease;
         }
 
-        .muted {
-            color: #94a3b8;
-            font-weight: 700;
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.96;
         }
 
-        .footer {
-            margin-top: 50px;
-            padding-top: 18px;
-            border-top: 1px solid rgba(255,255,255,0.08);
-            color: #94a3b8;
+        .btn-primary {
+            background: linear-gradient(90deg, #7c5cff, #2bc0ff);
+            color: #ffffff;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        .btn-danger {
+            background: linear-gradient(90deg, #ff5d73, #ff7b54);
+            color: #ffffff;
+        }
+
+        .empty-box {
+            text-align: center;
+            padding: 55px 24px;
+            background: linear-gradient(180deg, #0b1431, #09112a);
+            border: 1px solid rgba(126, 93, 255, 0.18);
+            border-radius: 22px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
+        }
+
+        .empty-box h2 {
+            font-size: 30px;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .empty-box p {
+            color: #9ba8d8;
+            margin-bottom: 22px;
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 14px;
+                padding: 16px 18px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 14px;
+            }
+
+            .page-title {
+                font-size: 30px;
+            }
+
+            .booking-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .booking-value {
+                max-width: 100%;
+                text-align: left;
+            }
         }
     </style>
 </head>
 <body>
-<div class="page-wrap">
 
-    <nav class="navbar">
-        <a href="<%= request.getContextPath() %>/index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
-        <ul class="navbar-links">
-            <li><a href="<%= request.getContextPath() %>/index.jsp">Home</a></li>
-            <li><a href="<%= request.getContextPath() %>/event?action=list">Events</a></li>
-            <li><a href="<%= request.getContextPath() %>/booking?action=myBookings" class="active">My Bookings</a></li>
-            <li><a href="<%= request.getContextPath() %>/profile.jsp">Profile</a></li>
-            <li><a href="<%= request.getContextPath() %>/user?action=logout" class="btn-nav">Logout</a></li>
-        </ul>
-    </nav>
-
-    <div class="content-box">
-        <div class="page-top">
-            <div>
-                <h1 class="page-title">My Bookings</h1>
-                <p class="page-sub">Track your payment review status here.</p>
-            </div>
-
-            <a href="<%= request.getContextPath() %>/event?action=list" class="browse-btn">
-                <i class="fa-solid fa-compass"></i>
-                <span>Browse More Events</span>
-            </a>
-        </div>
-
-        <% if ("paymentPending".equals(msg)) { %>
-            <div class="alert-box alert-success-box">Your payment reference was submitted successfully. Status is now pending admin review.</div>
-        <% } %>
-
-        <% if ("cancelled".equals(msg)) { %>
-            <div class="alert-box alert-success-box">Your booking was cancelled successfully.</div>
-        <% } %>
-
-        <% if ("error".equals(msg)) { %>
-            <div class="alert-box alert-error-box">Something went wrong. Please try again.</div>
-        <% } %>
-
-        <div class="bookings-card">
-            <div class="bookings-table-wrap">
-                <table class="bookings-table">
-                    <thead>
-                    <tr>
-                        <th>Booking ID</th>
-                        <th>Event</th>
-                        <th>Tickets</th>
-                        <th>Total Amount</th>
-                        <th>Date</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <% for (Booking b : bookings) {
-                        String displayStatus;
-
-                        if ("CANCELLED".equalsIgnoreCase(b.getStatus()) ||
-                            "REJECTED".equalsIgnoreCase(b.getPaymentStatus())) {
-                            displayStatus = "CANCELLED";
-                        } else if ("APPROVED".equalsIgnoreCase(b.getPaymentStatus())) {
-                            displayStatus = "APPROVED";
-                        } else {
-                            displayStatus = "PENDING";
-                        }
-                    %>
-                        <tr>
-                            <td class="booking-id"><%= b.getBookingId() %></td>
-                            <td><%= b.getEventTitle() %></td>
-                            <td><%= b.getNumberOfTickets() %></td>
-                            <td class="amount">LKR <%= String.format("%.1f", b.getTotalAmount()) %></td>
-                            <td><%= b.getBookingDate() %></td>
-                            <td>
-                                <% if ("PENDING".equals(displayStatus)) { %>
-                                    <span class="status-pill status-pending">PENDING</span>
-                                <% } else if ("APPROVED".equals(displayStatus)) { %>
-                                    <span class="status-pill status-approved">APPROVED</span>
-                                <% } else { %>
-                                    <span class="status-pill status-cancelled">CANCELLED</span>
-                                <% } %>
-                            </td>
-                            <td>
-                                <% if ("PENDING".equals(displayStatus)) { %>
-                                    <form method="post" action="<%= request.getContextPath() %>/booking" style="margin:0;">
-                                        <input type="hidden" name="action" value="cancel">
-                                        <input type="hidden" name="bookingId" value="<%= b.getBookingId() %>">
-                                        <button type="submit" class="action-btn">Cancel</button>
-                                    </form>
-                                <% } else { %>
-                                    <span class="muted">—</span>
-                                <% } %>
-                            </td>
-                        </tr>
-                    <% } %>
-
-                    <% if (bookings.isEmpty()) { %>
-                        <tr>
-                            <td colspan="7" class="muted" style="padding:24px;">No bookings found yet.</td>
-                        </tr>
-                    <% } %>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="footer">
-            ⬡ EVENTHORIZON<br>
-            SE1020 – Object Oriented Programming Project &copy; 2026
-        </div>
+<div class="navbar">
+    <div class="brand">EVENTHORIZON</div>
+    <div class="nav-links">
+        <a href="<%= request.getContextPath() %>/index.jsp">Home</a>
+        <a href="<%= request.getContextPath() %>/event?action=list">Events</a>
+        <a href="<%= request.getContextPath() %>/booking?action=myBookings">My Bookings</a>
+        <a href="<%= request.getContextPath() %>/profile.jsp">Profile</a>
+        <a href="<%= request.getContextPath() %>/user?action=logout">Logout</a>
     </div>
 </div>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-title">My Bookings</div>
+        <div class="page-subtitle">
+            Welcome<%= userName != null ? ", " + userName : "" %>. Here you can track payments and view your approved tickets.
+        </div>
+    </div>
+
+    <% if ("paymentPending".equals(msg)) { %>
+        <div class="alert success">
+            Payment submitted successfully. Your booking is now waiting for admin approval.
+        </div>
+    <% } %>
+
+    <% if ("cancelled".equals(msg)) { %>
+        <div class="alert success">
+            Booking cancelled successfully.
+        </div>
+    <% } %>
+
+    <% if ("error".equals(msg) || error != null) { %>
+        <div class="alert error">
+            Something went wrong. Please try again.
+        </div>
+    <% } %>
+
+    <% if (bookings.isEmpty()) { %>
+        <div class="empty-box">
+            <h2>No bookings yet</h2>
+            <p>You have not booked any events yet.</p>
+            <a class="btn btn-primary" href="<%= request.getContextPath() %>/event?action=list">
+                Browse Events
+            </a>
+        </div>
+    <% } else { %>
+
+    <div class="booking-grid">
+        <%
+            for (Booking b : bookings) {
+                String bookingStatusClass = "status-confirmed";
+                if ("CANCELLED".equalsIgnoreCase(b.getStatus())) {
+                    bookingStatusClass = "status-cancelled";
+                }
+
+                String paymentStatusClass = "payment-pending";
+                if ("APPROVED".equalsIgnoreCase(b.getPaymentStatus())) {
+                    paymentStatusClass = "payment-approved";
+                } else if ("REJECTED".equalsIgnoreCase(b.getPaymentStatus())) {
+                    paymentStatusClass = "payment-rejected";
+                }
+        %>
+        <div class="booking-card">
+            <div class="booking-title"><%= b.getEventTitle() %></div>
+
+            <div class="booking-row">
+                <div class="booking-label">Booking ID</div>
+                <div class="booking-value"><%= b.getBookingId() %></div>
+            </div>
+
+            <div class="booking-row">
+                <div class="booking-label">Event ID</div>
+                <div class="booking-value"><%= b.getEventId() %></div>
+            </div>
+
+            <div class="booking-row">
+                <div class="booking-label">Number of Tickets</div>
+                <div class="booking-value"><%= b.getNumberOfTickets() %></div>
+            </div>
+
+            <div class="booking-row">
+                <div class="booking-label">Total Amount</div>
+                <div class="booking-value">LKR <%= String.format("%.2f", b.getTotalAmount()) %></div>
+            </div>
+
+            <div class="booking-row">
+                <div class="booking-label">Booking Date</div>
+                <div class="booking-value"><%= b.getBookingDate() %></div>
+            </div>
+
+            <div class="booking-row">
+                <div class="booking-label">Booking Status</div>
+                <div class="booking-value">
+                    <span class="status-pill <%= bookingStatusClass %>"><%= b.getStatus() %></span>
+                </div>
+            </div>
+
+            <div class="booking-row">
+                <div class="booking-label">Payment Status</div>
+                <div class="booking-value">
+                    <span class="status-pill <%= paymentStatusClass %>"><%= b.getPaymentStatus() %></span>
+                </div>
+            </div>
+
+            <div class="booking-row">
+                <div class="booking-label">Payment Reference</div>
+                <div class="booking-value">
+                    <%= (b.getPaymentReference() == null || b.getPaymentReference().trim().isEmpty())
+                            ? "-"
+                            : b.getPaymentReference() %>
+                </div>
+            </div>
+
+            <div class="actions">
+                <% if ("APPROVED".equalsIgnoreCase(b.getPaymentStatus())
+                        && !"CANCELLED".equalsIgnoreCase(b.getStatus())) { %>
+                    <a class="btn btn-primary"
+                       href="<%= request.getContextPath() %>/ticket?action=viewTickets&bookingId=<%= b.getBookingId() %>">
+                        View Tickets
+                    </a>
+                <% } %>
+
+                <% if ("PENDING".equalsIgnoreCase(b.getPaymentStatus())
+                        && !"CANCELLED".equalsIgnoreCase(b.getStatus())) { %>
+                    <a class="btn btn-secondary"
+                       href="<%= request.getContextPath() %>/ticket?action=viewTickets&bookingId=<%= b.getBookingId() %>">
+                        Check Ticket Status
+                    </a>
+                <% } %>
+
+                <% if (!"CANCELLED".equalsIgnoreCase(b.getStatus())
+                        && !"APPROVED".equalsIgnoreCase(b.getPaymentStatus())) { %>
+                    <form method="post" action="<%= request.getContextPath() %>/booking" style="display:inline;">
+                        <input type="hidden" name="action" value="cancel">
+                        <input type="hidden" name="bookingId" value="<%= b.getBookingId() %>">
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Are you sure you want to cancel this booking?');">
+                            Cancel Booking
+                        </button>
+                    </form>
+                <% } %>
+            </div>
+        </div>
+        <% } %>
+    </div>
+
+    <% } %>
+</div>
+
 </body>
 </html>

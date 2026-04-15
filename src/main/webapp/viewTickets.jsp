@@ -1,314 +1,201 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-
+<%@ page import="java.util.List" %>
+<%@ page import="com.eventhorizon.model.Ticket" %>
+<%@ page import="com.eventhorizon.model.Booking" %>
 <%
-    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-    response.setHeader("Pragma", "no-cache");
-    response.setDateHeader("Expires", 0);
+    HttpSession currentSession = request.getSession(false);
+    String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
 
-    Object userId = session.getAttribute("userId");
-    Object role = session.getAttribute("role");
-
-    if (userId == null || role == null || !"CUSTOMER".equals(role.toString())) {
+    if (currentSession == null || role == null) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
-%>
 
+    Boolean paymentPending = (Boolean) request.getAttribute("paymentPending");
+    if (paymentPending == null) paymentPending = false;
+
+    Booking booking = (Booking) request.getAttribute("booking");
+    List<Ticket> tickets = (List<Ticket>) request.getAttribute("tickets");
+    if (tickets == null) tickets = new java.util.ArrayList<>();
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Tickets – EventHorizon</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <title>My Tickets - EventHorizon</title>
     <style>
-        body { background: #020617; min-height: 100vh; }
-
-        .tickets-page {
-            max-width: 1100px;
-            margin: 100px auto 60px;
-            padding: 0 20px;
-        }
-
-        .page-header {
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
+        body { background: #050816; color: #eef2ff; }
+        .navbar {
+            background: linear-gradient(90deg, #060b1f, #0b1434);
+            border-bottom: 1px solid rgba(130, 90, 255, 0.22);
+            padding: 18px 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 32px;
-            flex-wrap: wrap;
-            gap: 14px;
+        }
+        .brand { font-size: 32px; font-weight: 800; color: #7c5cff; }
+        .nav-links a { color: #d9defa; text-decoration: none; margin-left: 22px; font-weight: 600; }
+        .container { width: 92%; max-width: 1300px; margin: 30px auto; }
+        .page-title { font-size: 34px; font-weight: 800; margin-bottom: 22px; }
+
+        .notice-box, .ticket-card {
+            background: linear-gradient(180deg, #0b1431, #09112a);
+            border: 1px solid rgba(126, 93, 255, 0.18);
+            border-radius: 22px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.22);
         }
 
-        .page-header h1 {
-            font-size: 2rem;
-            font-weight: 900;
-            color: #f1f5f9;
-        }
+        .notice-box { padding: 28px; }
+        .notice-box h2 { margin-bottom: 10px; font-size: 28px; }
+        .notice-box p { color: #a8b3de; line-height: 1.6; margin-bottom: 12px; }
 
-        .btn-back {
-            padding: 10px 20px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 12px;
-            color: #94a3b8;
+        .btn {
+            display: inline-block;
+            margin-top: 15px;
             text-decoration: none;
-            font-weight: 700;
-            font-size: 0.9rem;
-            transition: all 0.2s;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 18px;
+            font-weight: 800;
+            cursor: pointer;
+            background: linear-gradient(90deg, #7c5cff, #2bc0ff);
+            color: #fff;
         }
-        .btn-back:hover { background: rgba(255,255,255,0.1); color: #f1f5f9; }
 
-        .pending-box {
-            background: rgba(250,204,21,0.07);
-            border: 1px solid rgba(250,204,21,0.22);
-            border-radius: 20px;
-            padding: 40px;
-            text-align: center;
-        }
-        .pending-box .pending-icon { font-size: 3rem; margin-bottom: 16px; }
-        .pending-box h2 { color: #fde68a; font-size: 1.5rem; margin: 0 0 10px; }
-        .pending-box p  { color: #94a3b8; max-width: 460px; margin: 0 auto; line-height: 1.6; }
-
-        .tickets-grid {
+        .ticket-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+            gap: 22px;
         }
 
-        .ticket-card {
-            background: linear-gradient(145deg, rgba(15,23,42,0.95), rgba(30,41,59,0.9));
-            border: 1px solid rgba(124,58,237,0.3);
-            border-radius: 24px;
-            padding: 26px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .ticket-card::before {
-            content: '';
-            position: absolute;
-            top: -40px; right: -40px;
-            width: 120px; height: 120px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(124,58,237,0.18), transparent);
-        }
-        .ticket-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 28px 56px rgba(0,0,0,0.5), 0 0 30px rgba(124,58,237,0.15);
-        }
-
-        .ticket-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 18px;
-        }
-        .ticket-num {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #7c3aed;
+        .ticket-card { padding: 22px; }
+        .ticket-badge {
+            display: inline-block;
+            margin-bottom: 14px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(124, 92, 255, 0.18);
+            color: #bca8ff;
+            font-size: 12px;
             font-weight: 800;
         }
-        .ticket-badge-used {
-            font-size: 0.72rem;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: rgba(239,68,68,0.15);
-            border: 1px solid rgba(239,68,68,0.3);
-            color: #fca5a5;
-            font-weight: 700;
-        }
-        .ticket-badge-valid {
-            font-size: 0.72rem;
-            padding: 4px 10px;
-            border-radius: 999px;
-            background: rgba(34,197,94,0.12);
-            border: 1px solid rgba(34,197,94,0.25);
-            color: #86efac;
-            font-weight: 700;
-        }
+        .ticket-title { font-size: 24px; font-weight: 800; margin-bottom: 16px; }
 
-        .qr-wrapper {
+        .row {
             display: flex;
-            justify-content: center;
-            margin: 16px 0;
+            justify-content: space-between;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
         }
-        .qr-box {
-            background: #fff;
-            border-radius: 12px;
-            padding: 10px;
-            display: inline-block;
-            line-height: 0;
-        }
+        .label { color: #99a5d7; font-weight: 600; }
+        .value { color: #f8f9ff; font-weight: 700; text-align: right; word-break: break-word; }
 
-        .ticket-id-row {
+        .qr-box {
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 18px;
+            padding: 18px;
             text-align: center;
-            margin-top: 12px;
         }
-        .ticket-id-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: #475569;
-            margin-bottom: 4px;
+        .qr-box img {
+            width: 260px;
+            max-width: 100%;
+            height: auto;
+            border-radius: 12px;
+            background: #fff;
         }
-        .ticket-id-val {
-            font-family: 'Courier New', monospace;
-            font-size: 0.8rem;
-            color: #64748b;
+        .qr-note {
+            margin-top: 10px;
+            color: #222;
+            font-size: 13px;
+            font-weight: 700;
             word-break: break-all;
         }
 
-        .divider {
-            border: none;
-            border-top: 1px dashed rgba(255,255,255,0.08);
-            margin: 16px 0;
-        }
-
-        .ticket-info-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.85rem;
-            margin-bottom: 8px;
-        }
-        .ticket-info-row .lbl { color: #475569; }
-        .ticket-info-row .vl  { color: #e2e8f0; font-weight: 700; }
-
-        .empty-state {
-            text-align: center;
-            padding: 64px 20px;
-            color: #475569;
-        }
-        .empty-state .emoji { font-size: 3.5rem; display: block; margin-bottom: 16px; }
-
-        @media print {
-            .navbar, .btn-back, .page-header a { display: none !important; }
-            .ticket-card { break-inside: avoid; page-break-inside: avoid; }
-        }
-
-        @media (max-width: 600px) {
-            .tickets-page { margin-top: 75px; }
-        }
+        .used { color: #ff8f8f; font-weight: 800; }
+        .unused { color: #7ef0aa; font-weight: 800; }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="${pageContext.request.contextPath}/index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
-    <div class="hamburger"><span></span><span></span><span></span></div>
-    <ul class="navbar-links">
-        <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
-        <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking?action=myBookings" class="active">My Bookings</a></li>
-        <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
-        <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
-    </ul>
-</nav>
-
-<div class="tickets-page">
-    <div class="page-header">
-        <h1>🎟 My Tickets</h1>
-        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="btn-back">
-            <i class="fa-solid fa-arrow-left"></i> Back to Bookings
-        </a>
+<div class="navbar">
+    <div class="brand">EVENTHORIZON</div>
+    <div class="nav-links">
+        <a href="<%= request.getContextPath() %>/index.jsp">Home</a>
+        <a href="<%= request.getContextPath() %>/event?action=list">Events</a>
+        <a href="<%= request.getContextPath() %>/booking?action=myBookings">My Bookings</a>
+        <a href="<%= request.getContextPath() %>/profile.jsp">Profile</a>
+        <a href="<%= request.getContextPath() %>/user?action=logout">Logout</a>
     </div>
-
-    <c:if test="${paymentPending}">
-        <div class="pending-box">
-            <div class="pending-icon">⏳</div>
-            <h2>Payment Under Review</h2>
-            <p>
-                Your payment reference has been received.
-                Once our team verifies your bank transfer, your QR tickets will appear here automatically.
-                This usually takes a few hours.
-            </p>
-            <p style="margin-top:12px; font-size:0.85rem; color:#64748b;">
-                Booking: <strong style="color:#a78bfa;">${booking.bookingId}</strong> &nbsp;|&nbsp;
-                Reference: <strong style="color:#a78bfa;">${booking.paymentReference}</strong>
-            </p>
-        </div>
-    </c:if>
-
-    <c:if test="${not paymentPending}">
-        <c:choose>
-            <c:when test="${not empty tickets}">
-                <div class="tickets-grid" id="ticketGrid">
-                    <c:forEach var="t" items="${tickets}" varStatus="status">
-                        <div class="ticket-card">
-                            <div class="ticket-header">
-                                <span class="ticket-num">Ticket #${status.count}</span>
-                                <c:choose>
-                                    <c:when test="${t.used}">
-                                        <span class="ticket-badge-used">✗ Used</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="ticket-badge-valid">✓ Valid</span>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-
-                            <div class="qr-wrapper">
-                                <div class="qr-box">
-                                    <div class="qr-canvas"
-                                         id="qr-${status.index}"
-                                         data-token="${t.qrToken}"
-                                         style="width:180px;height:180px;">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="ticket-id-row">
-                                <div class="ticket-id-label">Ticket ID</div>
-                                <div class="ticket-id-val">${t.ticketId}</div>
-                            </div>
-
-                            <hr class="divider">
-
-                            <div class="ticket-info-row">
-                                <span class="lbl">Booking</span>
-                                <span class="vl">${t.bookingId}</span>
-                            </div>
-                            <div class="ticket-info-row">
-                                <span class="lbl">Event ID</span>
-                                <span class="vl">${t.eventId}</span>
-                            </div>
-                            <div class="ticket-info-row">
-                                <span class="lbl">Issued</span>
-                                <span class="vl">${t.createdAt}</span>
-                            </div>
-                        </div>
-                    </c:forEach>
-                </div>
-            </c:when>
-            <c:otherwise>
-                <div class="empty-state">
-                    <span class="emoji">🎭</span>
-                    <h3 style="color:#64748b;">No tickets found</h3>
-                    <p>Tickets are issued after payment is approved.</p>
-                </div>
-            </c:otherwise>
-        </c:choose>
-    </c:if>
 </div>
 
-<script src="${pageContext.request.contextPath}/js/main.js"></script>
-<script>
-    document.querySelectorAll('.qr-canvas').forEach(function (el) {
-        var token = el.getAttribute('data-token');
-        new QRCode(el, {
-            text: token,
-            width: 180,
-            height: 180,
-            colorDark: '#0f172a',
-            colorLight: '#ffffff',
-            correctLevel: QRCode.CorrectLevel.H
-        });
-    });
-</script>
+<div class="container">
+    <div class="page-title">My Tickets</div>
+
+    <% if (paymentPending) { %>
+        <div class="notice-box">
+            <h2>Tickets are not available yet</h2>
+            <p>Your payment is still waiting for admin approval.</p>
+            <% if (booking != null) { %>
+                <p><strong>Booking ID:</strong> <%= booking.getBookingId() %></p>
+                <p><strong>Event:</strong> <%= booking.getEventTitle() %></p>
+                <p><strong>Payment Status:</strong> <%= booking.getPaymentStatus() %></p>
+            <% } %>
+            <a class="btn" href="<%= request.getContextPath() %>/booking?action=myBookings">Back to My Bookings</a>
+        </div>
+    <% } else if (tickets.isEmpty()) { %>
+        <div class="notice-box">
+            <h2>No tickets found</h2>
+            <p>No generated tickets are linked to this booking yet.</p>
+            <a class="btn" href="<%= request.getContextPath() %>/booking?action=myBookings">Back to My Bookings</a>
+        </div>
+    <% } else { %>
+        <div class="ticket-grid">
+            <% int i = 1; for (Ticket t : tickets) { %>
+            <div class="ticket-card">
+                <div class="ticket-badge">TICKET <%= i++ %></div>
+                <div class="ticket-title"><%= booking != null ? booking.getEventTitle() : "Event Ticket" %></div>
+
+                <div class="row">
+                    <div class="label">Ticket ID</div>
+                    <div class="value"><%= t.getTicketId() %></div>
+                </div>
+                <div class="row">
+                    <div class="label">Booking ID</div>
+                    <div class="value"><%= t.getBookingId() %></div>
+                </div>
+                <div class="row">
+                    <div class="label">Event ID</div>
+                    <div class="value"><%= t.getEventId() %></div>
+                </div>
+                <div class="row">
+                    <div class="label">Customer ID</div>
+                    <div class="value"><%= t.getCustomerId() %></div>
+                </div>
+                <div class="row">
+                    <div class="label">Issued At</div>
+                    <div class="value"><%= t.getCreatedAt() == null ? "-" : t.getCreatedAt() %></div>
+                </div>
+                <div class="row">
+                    <div class="label">Status</div>
+                    <div class="value <%= t.isUsed() ? "used" : "unused" %>">
+                        <%= t.isUsed() ? "USED" : "APPROVED" %>
+                    </div>
+                </div>
+
+                <div class="qr-box">
+                    <img src="<%= request.getContextPath() %>/ticket?action=qr&token=<%= java.net.URLEncoder.encode(t.getQrToken(), "UTF-8") %>"
+                         alt="QR Code">
+                    <div class="qr-note">Secure ticket token stored in system</div>
+                </div>
+            </div>
+            <% } %>
+        </div>
+    <% } %>
+</div>
+
 </body>
 </html>
