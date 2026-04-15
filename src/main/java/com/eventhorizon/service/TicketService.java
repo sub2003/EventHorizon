@@ -27,8 +27,8 @@ public class TicketService {
     // Change this to a long random string in production and store it in an env var.
     private static final String SECRET_KEY =
             System.getenv("TICKET_HMAC_SECRET") != null
-            ? System.getenv("TICKET_HMAC_SECRET")
-            : "EH@T1cket$3cr3tK3y_2026!#Horizon";
+                    ? System.getenv("TICKET_HMAC_SECRET")
+                    : "EH@T1cket$3cr3tK3y_2026!#Horizon";
 
     // ==================== GENERATE ====================
 
@@ -42,7 +42,7 @@ public class TicketService {
         List<Ticket> tickets = new ArrayList<>();
 
         String sql = "INSERT INTO tickets (ticket_id, booking_id, event_id, customer_id, qr_token, is_used) "
-                   + "VALUES (?, ?, ?, ?, ?, 0)";
+                + "VALUES (?, ?, ?, ?, ?, 0)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -171,7 +171,7 @@ public class TicketService {
      * a token is cryptographically bound to a specific event.
      */
     public static String buildQrToken(String ticketId, String bookingId,
-                                       String eventId, String customerId) {
+                                      String eventId, String customerId) {
         try {
             String payload = ticketId + "|" + bookingId + "|" + eventId + "|" + customerId;
             Mac mac = Mac.getInstance("HmacSHA256");
@@ -189,13 +189,13 @@ public class TicketService {
 
     private Ticket mapRow(ResultSet rs) throws SQLException {
         return new Ticket(
-            rs.getString("ticket_id"),
-            rs.getString("booking_id"),
-            rs.getString("event_id"),
-            rs.getString("customer_id"),
-            rs.getString("qr_token"),
-            rs.getInt("is_used") == 1,
-            rs.getString("created_at")
+                rs.getString("ticket_id"),
+                rs.getString("booking_id"),
+                rs.getString("event_id"),
+                rs.getString("customer_id"),
+                rs.getString("qr_token"),
+                rs.getInt("is_used") == 1,
+                rs.getString("created_at")
         );
     }
 }

@@ -89,20 +89,28 @@ public class EventService {
     }
 
     public Event getEventById(String eventId) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            return getEventById(eventId, conn);
+        } catch (SQLException e) {
+            System.err.println("getEventById error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public Event getEventById(String eventId, Connection conn) {
         String sql = "SELECT * FROM events WHERE event_id = ?";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, safeTrim(eventId));
 
-            ps.setString(1, eventId);
-            ResultSet rs = ps.executeQuery();
-
-            if (rs.next()) {
-                return mapRowToEvent(rs);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRowToEvent(rs);
+                }
             }
 
         } catch (SQLException e) {
-            System.err.println("getEventById error: " + e.getMessage());
+            System.err.println("getEventById(tx) error: " + e.getMessage());
         }
 
         return null;
@@ -121,9 +129,10 @@ public class EventService {
             ps.setString(2, q);
             ps.setString(3, q);
 
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                events.add(mapRowToEvent(rs));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    events.add(mapRowToEvent(rs));
+                }
             }
 
         } catch (SQLException e) {
@@ -213,37 +222,60 @@ public class EventService {
     }
 
     public boolean reduceSeat(String eventId, int count) {
-        String sql = "UPDATE events SET available_seats = available_seats - ? " +
-                "WHERE event_id = ? AND available_seats >= ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setInt(1, count);
-            ps.setString(2, eventId);
-            ps.setInt(3, count);
-
-            return ps.executeUpdate() > 0;
-
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            return reduceSeat(eventId, count, conn);
         } catch (SQLException e) {
             System.err.println("reduceSeat error: " + e.getMessage());
             return false;
         }
     }
 
-    public boolean restoreSeat(String eventId, int count) {
-        String sql = "UPDATE events SET available_seats = available_seats + ? WHERE event_id = ?";
+    public boolean reduceSeat(String eventId, int count, Connection conn) {
+        if (isBlank(eventId) || count <= 0) return false;
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        String sql = "UPDATE events " +
+                "SET available_seats = available_seats - ? " +
+                "WHERE event_id = ? " +
+                "AND status = 'ACTIVE' " +
+                "AND available_seats >= ?";
 
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, count);
-            ps.setString(2, eventId);
+            ps.setString(2, safeTrim(eventId));
+            ps.setInt(3, count);
 
             return ps.executeUpdate() > 0;
 
         } catch (SQLException e) {
+            System.err.println("reduceSeat(tx) error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean restoreSeat(String eventId, int count) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            return restoreSeat(eventId, count, conn);
+        } catch (SQLException e) {
             System.err.println("restoreSeat error: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean restoreSeat(String eventId, int count, Connection conn) {
+        if (isBlank(eventId) || count <= 0) return false;
+
+        String sql = "UPDATE events " +
+                "SET available_seats = LEAST(total_seats, available_seats + ?) " +
+                "WHERE event_id = ?";
+
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, count);
+            ps.setString(2, safeTrim(eventId));
+
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.err.println("restoreSeat(tx) error: " + e.getMessage());
             return false;
         }
     }
@@ -276,11 +308,11 @@ public class EventService {
                 rs.getInt("available_seats"),
                 rs.getString("description"),
                 rs.getString("status"),
-                rs.getString("image_path")
+                safeColumn(rs, "image_path")
         );
 
-        event.setImageData(rs.getBytes("image_data"));
-        event.setImageType(rs.getString("image_type"));
+        event.setImageData(safeBytes(rs, "image_data"));
+        event.setImageType(safeColumn(rs, "image_type"));
 
         return event;
     }
@@ -301,6 +333,30 @@ public class EventService {
         } catch (SQLException e) {
             System.err.println("generateId error: " + e.getMessage());
             return "EVT" + System.currentTimeMillis();
+        }
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private String safeColumn(ResultSet rs, String column) {
+        try {
+            return rs.getString(column);
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    private byte[] safeBytes(ResultSet rs, String column) {
+        try {
+            return rs.getBytes(column);
+        } catch (SQLException e) {
+            return null;
         }
     }
 }

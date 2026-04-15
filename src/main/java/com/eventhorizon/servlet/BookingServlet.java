@@ -24,16 +24,15 @@ public class BookingServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
-        if (session == null) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
-            return;
-        }
-
         String action = req.getParameter("action");
 
         switch (action == null ? "" : action) {
 
             case "myBookings":
+                if (session == null) {
+                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    return;
+                }
                 requireCustomer(session, req, resp);
                 if (resp.isCommitted()) return;
 
@@ -43,6 +42,10 @@ public class BookingServlet extends HttpServlet {
                 break;
 
             case "allBookings":
+                if (session == null) {
+                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    return;
+                }
                 requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
@@ -51,6 +54,10 @@ public class BookingServlet extends HttpServlet {
                 break;
 
             case "eventBookings":
+                if (session == null) {
+                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    return;
+                }
                 requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 
@@ -59,6 +66,10 @@ public class BookingServlet extends HttpServlet {
                 break;
 
             case "checkout":
+                if (session == null) {
+                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    return;
+                }
                 requireCustomer(session, req, resp);
                 if (resp.isCommitted()) return;
 
@@ -66,6 +77,10 @@ public class BookingServlet extends HttpServlet {
                 break;
 
             case "pendingPayments":
+                if (session == null) {
+                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    return;
+                }
                 requireBookingAdmin(session, req, resp);
                 if (resp.isCommitted()) return;
 

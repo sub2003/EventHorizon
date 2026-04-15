@@ -181,7 +181,7 @@
 
                 <% if ("bookingFailed".equals(request.getParameter("error"))) { %>
                     <div class="alert alert-danger" style="margin-top:12px;">
-                        ❌ Booking failed. Not enough seats available.
+                        ❌ Booking failed. Please try again. Seats may have just changed or the booking transaction did not complete.
                     </div>
                 <% } %>
 
