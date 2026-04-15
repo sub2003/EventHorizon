@@ -28,7 +28,9 @@
     }
 
     String msg = request.getParameter("msg");
+    String error = request.getParameter("error");
     request.setAttribute("msg", msg);
+    request.setAttribute("error", error);
     request.setAttribute("permissionLabel", UserService.permissionLabel(adminPermission));
 %>
 
@@ -263,8 +265,12 @@
             <div class="alert-box alert-success-box">Admin request rejected successfully.</div>
         </c:if>
 
-        <c:if test="${msg == 'error'}">
-            <div class="alert-box alert-error-box">Action failed. Please try again.</div>
+        <c:if test="${error == 'approveFailed'}">
+            <div class="alert-box alert-error-box">Approval failed. You cannot approve your own admin request.</div>
+        </c:if>
+
+        <c:if test="${error == 'rejectFailed'}">
+            <div class="alert-box alert-error-box">Rejection failed. You cannot reject your own admin request.</div>
         </c:if>
 
         <div class="page-card">
@@ -293,11 +299,11 @@
                     <c:forEach var="r" items="${adminRequests}">
                         <tr>
                             <td class="mono-id">${r.requestId}</td>
-                            <td>${r.requestedBy}</td>
-                            <td>${r.name}</td>
-                            <td>${r.email}</td>
-                            <td>${r.phone}</td>
-                            <td><span class="perm-pill">${r.permission}</span></td>
+                            <td>${r.requesterAdminId}</td>
+                            <td>${r.requestedName}</td>
+                            <td>${r.requestedEmail}</td>
+                            <td>${r.requestedPhone}</td>
+                            <td><span class="perm-pill">${r.requestedPermission}</span></td>
                             <td>${r.requestedAt}</td>
                             <td>
                                 <div class="action-group">
