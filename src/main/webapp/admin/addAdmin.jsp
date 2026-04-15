@@ -30,17 +30,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request New Admin - EventHorizon</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        * {
+        *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
         }
 
         body {
+            font-family: 'Outfit', sans-serif;
             background:
                 radial-gradient(circle at top left, rgba(38, 200, 255, 0.10), transparent 28%),
                 radial-gradient(circle at top center, rgba(124, 92, 255, 0.14), transparent 35%),
@@ -49,11 +52,13 @@
             min-height: 100vh;
         }
 
+        /* ── Shell ── */
         .admin-shell {
             display: flex;
             min-height: 100vh;
         }
 
+        /* ── Sidebar ── */
         .sidebar {
             width: 260px;
             background: rgba(3, 7, 18, 0.92);
@@ -63,6 +68,9 @@
             flex-direction: column;
             justify-content: space-between;
             backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            height: 100vh;
         }
 
         .brand {
@@ -84,34 +92,37 @@
             color: #ffffff;
             font-size: 15px;
             box-shadow: 0 10px 25px rgba(124, 92, 255, 0.35);
+            flex-shrink: 0;
         }
 
         .brand h2 {
             color: #ffffff;
-            font-size: 1.7rem;
+            font-size: 1.08rem;
             line-height: 1.1;
             margin: 0;
             font-weight: 900;
+            letter-spacing: 0.5px;
         }
 
         .brand p {
             color: #94a3b8;
-            font-size: 0.82rem;
-            margin-top: 3px;
+            font-size: 0.78rem;
+            margin-top: 2px;
         }
 
+        /* ── Nav ── */
         .nav-links a {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px 16px;
-            margin-bottom: 10px;
+            padding: 13px 16px;
+            margin-bottom: 6px;
             border-radius: 14px;
             color: #dbe7ff;
             text-decoration: none;
             font-weight: 700;
-            font-size: 0.96rem;
-            background: rgba(255,255,255,0.02);
+            font-size: 0.93rem;
+            background: rgba(255, 255, 255, 0.02);
             border: 1px solid transparent;
             transition: all 0.2s ease;
         }
@@ -119,70 +130,63 @@
         .nav-links a i {
             width: 18px;
             text-align: center;
-            color: #cbd5e1;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            transition: color 0.2s;
         }
 
         .nav-links a:hover,
         .nav-links a.active {
-            background: linear-gradient(90deg, rgba(124,92,255,0.18), rgba(38,200,255,0.12));
+            background: linear-gradient(90deg, rgba(124, 92, 255, 0.18), rgba(38, 200, 255, 0.12));
             border-color: rgba(124, 92, 255, 0.22);
             color: #ffffff;
         }
 
-        .sidebar-footer .permission-box {
-            padding: 12px 14px;
-            margin-bottom: 12px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.04);
-            color: #cbd5e1;
-            font-size: 0.9rem;
+        .nav-links a:hover i,
+        .nav-links a.active i {
+            color: #26c8ff;
         }
 
-        .permission-box .label {
-            font-size: 0.74rem;
-            text-transform: uppercase;
-            opacity: 0.75;
-            margin-bottom: 4px;
-            letter-spacing: 0.4px;
-        }
-
-        .back-site,
-        .logout-btn {
+        /* ── Sidebar Footer ── */
+        .sidebar-footer a {
             display: flex;
             align-items: center;
             gap: 10px;
-            justify-content: flex-start;
             width: 100%;
             padding: 13px 14px;
             border-radius: 12px;
             text-decoration: none;
             font-weight: 800;
+            font-size: 0.93rem;
             margin-top: 10px;
         }
 
         .back-site {
-            background: rgba(255,255,255,0.04);
+            background: rgba(255, 255, 255, 0.04);
             color: #eef2ff;
-            border: 1px solid rgba(255,255,255,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .logout-btn {
-            background: linear-gradient(90deg, rgba(120,25,35,0.78), rgba(58,10,26,0.96));
+            background: linear-gradient(90deg, rgba(120, 25, 35, 0.78), rgba(58, 10, 26, 0.96));
             color: #ffffff;
-            border: 1px solid rgba(255,255,255,0.04);
+            border: 1px solid rgba(255, 255, 255, 0.04);
         }
 
+        /* ── Main ── */
         .main-content {
             flex: 1;
             padding: 22px 24px 30px;
+            overflow-y: auto;
         }
 
+        /* ── Topbar ── */
         .topbar {
             display: flex;
             align-items: flex-start;
             justify-content: space-between;
             gap: 18px;
-            margin-bottom: 18px;
+            margin-bottom: 22px;
         }
 
         .eyebrow {
@@ -191,62 +195,71 @@
             letter-spacing: 1.4px;
             font-size: 0.78rem;
             font-weight: 800;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .topbar h1 {
-            font-size: 3.15rem;
+            font-size: 2.8rem;
             line-height: 1.05;
-            margin: 0 0 8px;
+            margin: 0 0 6px;
             font-weight: 900;
             color: #f8fbff;
         }
 
         .subtitle {
             color: #9fb0d3;
-            font-size: 1rem;
+            font-size: 0.97rem;
         }
 
         .topbar-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 18px;
+            padding: 11px 18px;
             border-radius: 14px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             color: #ffffff;
             font-weight: 800;
             white-space: nowrap;
+            font-size: 0.93rem;
         }
 
+        .topbar-badge i {
+            color: #26c8ff;
+        }
+
+        /* ── Content Card ── */
         .content-card {
             max-width: 980px;
             background: linear-gradient(135deg, rgba(28, 36, 78, 0.96), rgba(12, 20, 46, 0.94));
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid rgba(255, 255, 255, 0.06);
             border-radius: 26px;
-            padding: 28px 24px 24px;
-            box-shadow: 0 18px 48px rgba(0,0,0,0.28);
+            padding: 28px 26px 26px;
+            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
         }
 
         .content-card h2 {
-            margin: 0 0 10px;
-            font-size: 2.2rem;
+            margin: 0 0 8px;
+            font-size: 1.85rem;
             font-weight: 900;
             color: #f8fbff;
         }
 
-        .content-card p {
+        .content-card > p {
             color: #9fb0d3;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
             line-height: 1.6;
+            font-size: 0.97rem;
         }
 
+        /* ── Alerts ── */
         .alert {
             padding: 14px 16px;
             border-radius: 14px;
             margin-bottom: 18px;
             font-weight: 700;
+            font-size: 0.94rem;
         }
 
         .alert-success {
@@ -261,6 +274,7 @@
             color: #ffb7ad;
         }
 
+        /* ── Form ── */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -277,31 +291,42 @@
         }
 
         .field label {
-            margin-bottom: 10px;
-            font-size: 1rem;
-            font-weight: 800;
-            color: #f3f7ff;
+            margin-bottom: 9px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #c7d5f0;
+            letter-spacing: 0.3px;
         }
 
         .field input,
         .field select {
-            height: 56px;
-            border: 1px solid rgba(255,255,255,0.08);
+            height: 52px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 14px;
             background: rgba(4, 10, 28, 0.95);
             color: #ffffff;
             padding: 0 16px;
-            font-size: 0.98rem;
+            font-size: 0.96rem;
+            font-family: 'Outfit', sans-serif;
             outline: none;
-            transition: all 0.2s ease;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .field select option {
+            background: #0c1230;
         }
 
         .field input:focus,
         .field select:focus {
-            border-color: rgba(124,92,255,0.50);
-            box-shadow: 0 0 0 3px rgba(124,92,255,0.12);
+            border-color: rgba(124, 92, 255, 0.55);
+            box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.12);
         }
 
+        .field input::placeholder {
+            color: #4a5580;
+        }
+
+        /* ── Actions ── */
         .actions {
             display: flex;
             gap: 12px;
@@ -319,51 +344,47 @@
             padding: 0 22px;
             border-radius: 14px;
             text-decoration: none;
+            font-family: 'Outfit', sans-serif;
             font-weight: 800;
+            font-size: 0.95rem;
             border: none;
             cursor: pointer;
-            font-size: 0.96rem;
+            transition: opacity 0.2s, transform 0.15s;
+        }
+
+        .primary-btn:hover,
+        .secondary-btn:hover {
+            opacity: 0.88;
+            transform: translateY(-1px);
         }
 
         .primary-btn {
             background: linear-gradient(90deg, #7c5cff, #26c8ff);
             color: #ffffff;
-            box-shadow: 0 14px 30px rgba(76, 130, 255, 0.22);
+            box-shadow: 0 10px 28px rgba(124, 92, 255, 0.28);
         }
 
         .secondary-btn {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255, 255, 255, 0.05);
             color: #eef2ff;
-            border: 1px solid rgba(255,255,255,0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
+        /* ── Responsive ── */
         @media (max-width: 980px) {
-            .admin-shell {
-                flex-direction: column;
-            }
-
-            .sidebar {
-                width: 100%;
-            }
-
-            .topbar {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .topbar h1 {
-                font-size: 2.4rem;
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
+            .admin-shell { flex-direction: column; }
+            .sidebar { width: 100%; height: auto; position: static; }
+            .topbar { flex-direction: column; align-items: flex-start; }
+            .topbar h1 { font-size: 2.2rem; }
+            .form-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
 <div class="admin-shell">
+
+    <!-- ══ SIDEBAR ══ -->
     <aside class="sidebar">
         <div>
             <div class="brand">
@@ -421,8 +442,8 @@
         </div>
 
         <div class="sidebar-footer">
-            <div class="permission-box">
-                <div class="label">Permission</div>
+            <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
+                <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
                 <strong><%= UserService.permissionLabel(adminPermission) %></strong>
             </div>
 
@@ -438,6 +459,7 @@
         </div>
     </aside>
 
+    <!-- ══ MAIN ══ -->
     <main class="main-content">
         <section class="topbar">
             <div>
@@ -458,12 +480,14 @@
 
             <% if ("requestSubmitted".equals(msg)) { %>
                 <div class="alert alert-success">
+                    <i class="fa-solid fa-circle-check" style="margin-right:8px;"></i>
                     Admin request submitted successfully. Another full-access admin can now review it.
                 </div>
             <% } %>
 
             <% if ("requestFailed".equals(error)) { %>
                 <div class="alert alert-error">
+                    <i class="fa-solid fa-circle-exclamation" style="margin-right:8px;"></i>
                     Request submission failed. Check the fields or verify that the email is not already registered or pending.
                 </div>
             <% } %>
@@ -474,22 +498,22 @@
                 <div class="form-grid">
                     <div class="field">
                         <label for="name">Full Name</label>
-                        <input id="name" type="text" name="name" required>
+                        <input id="name" type="text" name="name" placeholder="Enter full name" required>
                     </div>
 
                     <div class="field">
                         <label for="email">Email Address</label>
-                        <input id="email" type="email" name="email" required>
+                        <input id="email" type="email" name="email" placeholder="Enter email address" required>
                     </div>
 
                     <div class="field">
                         <label for="password">Temporary Password</label>
-                        <input id="password" type="text" name="password" required>
+                        <input id="password" type="text" name="password" placeholder="Set a temporary password" required>
                     </div>
 
                     <div class="field">
                         <label for="phone">Phone Number</label>
-                        <input id="phone" type="text" name="phone" required>
+                        <input id="phone" type="text" name="phone" placeholder="Enter phone number" required>
                     </div>
 
                     <div class="field full">
