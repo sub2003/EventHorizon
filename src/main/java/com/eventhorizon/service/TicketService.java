@@ -12,12 +12,6 @@ import java.util.UUID;
 
 /**
  * TicketService – generates and validates secure QR-code tickets.
- *
- * Security model:
- * - QR stores a secure verification URL containing qrToken
- * - Server validates token from DB
- * - Only APPROVED + CONFIRMED bookings are valid
- * - Fake external QR codes will return INVALID
  */
 public class TicketService {
 
@@ -134,64 +128,14 @@ public class TicketService {
     public enum VerifyResult {
         VALID,
         ALREADY_USED,
-        WRONG_EVENT,
         INVALID
     }
 
-    public VerifyResult verifyAndRedeemTicket(String qrToken, String eventId) {
-        if (qrToken == null || qrToken.isBlank()) return VerifyResult.INVALID;
-        if (eventId == null || eventId.isBlank()) return VerifyResult.INVALID;
-
-        String selectSql = "SELECT * FROM tickets WHERE qr_token = ?";
-
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(selectSql)) {
-
-            ps.setString(1, qrToken.trim());
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (!rs.next()) return VerifyResult.INVALID;
-
-                Ticket t = mapRow(rs);
-
-                if (!eventId.trim().equals(t.getEventId())) {
-                    return VerifyResult.WRONG_EVENT;
-                }
-
-                String bookingSql = "SELECT payment_status, status FROM bookings WHERE booking_id = ?";
-                try (PreparedStatement bps = conn.prepareStatement(bookingSql)) {
-                    bps.setString(1, t.getBookingId());
-
-                    try (ResultSet brs = bps.executeQuery()) {
-                        if (!brs.next()) return VerifyResult.INVALID;
-
-                        String paymentStatus = brs.getString("payment_status");
-                        String bookingStatus = brs.getString("status");
-
-                        if (!"APPROVED".equalsIgnoreCase(paymentStatus)
-                                || !"CONFIRMED".equalsIgnoreCase(bookingStatus)) {
-                            return VerifyResult.INVALID;
-                        }
-                    }
-                }
-
-                if (t.isUsed()) return VerifyResult.ALREADY_USED;
-
-                String updateSql = "UPDATE tickets SET is_used = 1 WHERE ticket_id = ?";
-                try (PreparedStatement upd = conn.prepareStatement(updateSql)) {
-                    upd.setString(1, t.getTicketId());
-                    upd.executeUpdate();
-                }
-
-                return VerifyResult.VALID;
-            }
-
-        } catch (SQLException e) {
-            System.err.println("verifyAndRedeemTicket error: " + e.getMessage());
-            return VerifyResult.INVALID;
-        }
-    }
-
+    /**
+     * Public/browser verification:
+     * - valid only if token exists
+     * - booking must be APPROVED + CONFIRMED
+     */
     public boolean isTicketApprovedForPublicScan(String qrToken) {
         if (qrToken == null || qrToken.isBlank()) return false;
 
@@ -214,6 +158,55 @@ public class TicketService {
         } catch (SQLException e) {
             System.err.println("isTicketApprovedForPublicScan error: " + e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Admin/gate verification:
+     * - token must exist
+     * - booking must be APPROVED + CONFIRMED
+     * - first valid scan marks as used
+     */
+    public VerifyResult verifyAndRedeemTicket(String qrToken) {
+        if (qrToken == null || qrToken.isBlank()) return VerifyResult.INVALID;
+
+        Ticket ticket = getTicketByToken(qrToken);
+        if (ticket == null) return VerifyResult.INVALID;
+
+        String bookingSql = "SELECT payment_status, status FROM bookings WHERE booking_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(bookingSql)) {
+
+            ps.setString(1, ticket.getBookingId());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return VerifyResult.INVALID;
+
+                String paymentStatus = rs.getString("payment_status");
+                String bookingStatus = rs.getString("status");
+
+                if (!"APPROVED".equalsIgnoreCase(paymentStatus)
+                        || !"CONFIRMED".equalsIgnoreCase(bookingStatus)) {
+                    return VerifyResult.INVALID;
+                }
+            }
+
+            if (ticket.isUsed()) {
+                return VerifyResult.ALREADY_USED;
+            }
+
+            String updateSql = "UPDATE tickets SET is_used = 1 WHERE ticket_id = ?";
+            try (PreparedStatement upd = conn.prepareStatement(updateSql)) {
+                upd.setString(1, ticket.getTicketId());
+                upd.executeUpdate();
+            }
+
+            return VerifyResult.VALID;
+
+        } catch (SQLException e) {
+            System.err.println("verifyAndRedeemTicket error: " + e.getMessage());
+            return VerifyResult.INVALID;
         }
     }
 

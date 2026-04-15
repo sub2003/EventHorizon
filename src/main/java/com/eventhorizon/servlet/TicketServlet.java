@@ -190,7 +190,6 @@ public class TicketServlet extends HttpServlet {
                     hints
             );
 
-            // Prevent browser caching old QR images
             resp.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
             resp.setHeader("Pragma", "no-cache");
             resp.setDateHeader("Expires", 0);
@@ -222,10 +221,8 @@ public class TicketServlet extends HttpServlet {
     private void handleVerify(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
-        String qrToken = req.getParameter("qrToken");
-        String eventId = req.getParameter("eventId");
-
-        TicketService.VerifyResult result = ticketService.verifyAndRedeemTicket(qrToken, eventId);
+        String qrToken = req.getParameter("token");
+        TicketService.VerifyResult result = ticketService.verifyAndRedeemTicket(qrToken);
 
         String message;
         switch (result) {
@@ -234,9 +231,6 @@ public class TicketServlet extends HttpServlet {
                 break;
             case ALREADY_USED:
                 message = "Already used";
-                break;
-            case WRONG_EVENT:
-                message = "Wrong event";
                 break;
             default:
                 message = "Not approved";
