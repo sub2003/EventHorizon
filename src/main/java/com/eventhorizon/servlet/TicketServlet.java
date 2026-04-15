@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,10 +27,14 @@ import java.util.Map;
  *
  * GET  /ticket?action=viewTickets&bookingId=BKG001
  * GET  /ticket?action=qr&token=...
+ * GET  /ticket?action=verify&token=...
  * GET  /ticket?action=scanPage
  * POST /ticket?action=verify
  */
 public class TicketServlet extends HttpServlet {
+
+    private static final String PUBLIC_BASE_URL =
+            "https://glistening-light-production-f277.up.railway.app";
 
     private final TicketService ticketService = new TicketService();
     private final BookingService bookingService = new BookingService();
@@ -57,6 +62,10 @@ public class TicketServlet extends HttpServlet {
                     return;
                 }
                 handleQrImage(req, resp, session);
+                break;
+
+            case "verify":
+                handlePublicVerifyPage(req, resp);
                 break;
 
             case "scanPage":
@@ -146,8 +155,8 @@ public class TicketServlet extends HttpServlet {
             return;
         }
 
-        // Security: customer can only generate QR image for own ticket
         boolean allowed = false;
+
         if ("ADMIN".equals(role)) {
             allowed = true;
         } else {
@@ -166,11 +175,15 @@ public class TicketServlet extends HttpServlet {
         }
 
         try {
+            String qrData = PUBLIC_BASE_URL
+                    + "/ticket?action=verify&token="
+                    + URLEncoder.encode(token, "UTF-8");
+
             Map<EncodeHintType, Object> hints = new HashMap<>();
             hints.put(EncodeHintType.MARGIN, 1);
 
             BitMatrix matrix = new MultiFormatWriter().encode(
-                    token,
+                    qrData,
                     BarcodeFormat.QR_CODE,
                     320,
                     320,
@@ -185,6 +198,19 @@ public class TicketServlet extends HttpServlet {
             e.printStackTrace();
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "QR generation failed");
         }
+    }
+
+    private void handlePublicVerifyPage(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        String token = req.getParameter("token");
+
+        Ticket ticket = ticketService.getTicketByToken(token);
+        boolean approved = ticketService.isTicketApprovedForPublicScan(token);
+
+        req.setAttribute("ticket", ticket);
+        req.setAttribute("approved", approved);
+        req.getRequestDispatcher("/verifyTicket.jsp").forward(req, resp);
     }
 
     private void handleVerify(HttpServletRequest req, HttpServletResponse resp)

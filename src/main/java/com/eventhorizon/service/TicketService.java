@@ -14,13 +14,10 @@ import java.util.UUID;
  * TicketService – generates and validates secure QR-code tickets.
  *
  * Security model:
- * - A QR contains only the secure qrToken stored in DB.
- * - Scanner sends qrToken + eventId to server.
- * - Server checks DB:
- *      VALID         -> real approved ticket for that event
- *      ALREADY_USED  -> already scanned
- *      WRONG_EVENT   -> valid ticket but for another event
- *      INVALID       -> fake / external / tampered code
+ * - QR stores a secure verification URL containing qrToken
+ * - Server validates token from DB
+ * - Only APPROVED + CONFIRMED bookings are valid
+ * - Fake external QR codes will return INVALID
  */
 public class TicketService {
 
@@ -57,11 +54,11 @@ public class TicketService {
             ps.executeBatch();
 
         } catch (SQLException e) {
-        System.err.println("generateTickets error: " + e.getMessage());
-        System.err.println("SQL State: " + e.getSQLState());
-        System.err.println("Error Code: " + e.getErrorCode());
-        e.printStackTrace();
-        tickets.clear();
+            System.err.println("generateTickets error: " + e.getMessage());
+            System.err.println("SQL State: " + e.getSQLState());
+            System.err.println("Error Code: " + e.getErrorCode());
+            e.printStackTrace();
+            tickets.clear();
         }
 
         return tickets;
@@ -75,6 +72,7 @@ public class TicketService {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, bookingId);
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     tickets.add(mapRow(rs));
@@ -96,6 +94,7 @@ public class TicketService {
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
             ps.setString(1, customerId);
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     tickets.add(mapRow(rs));
@@ -107,6 +106,29 @@ public class TicketService {
         }
 
         return tickets;
+    }
+
+    public Ticket getTicketByToken(String qrToken) {
+        if (qrToken == null || qrToken.isBlank()) return null;
+
+        String sql = "SELECT * FROM tickets WHERE qr_token = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, qrToken.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapRow(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("getTicketByToken error: " + e.getMessage());
+        }
+
+        return null;
     }
 
     public enum VerifyResult {
@@ -136,10 +158,10 @@ public class TicketService {
                     return VerifyResult.WRONG_EVENT;
                 }
 
-                // Real ticket exists, but only approved bookings are valid
                 String bookingSql = "SELECT payment_status, status FROM bookings WHERE booking_id = ?";
                 try (PreparedStatement bps = conn.prepareStatement(bookingSql)) {
                     bps.setString(1, t.getBookingId());
+
                     try (ResultSet brs = bps.executeQuery()) {
                         if (!brs.next()) return VerifyResult.INVALID;
 
@@ -167,6 +189,31 @@ public class TicketService {
         } catch (SQLException e) {
             System.err.println("verifyAndRedeemTicket error: " + e.getMessage());
             return VerifyResult.INVALID;
+        }
+    }
+
+    public boolean isTicketApprovedForPublicScan(String qrToken) {
+        if (qrToken == null || qrToken.isBlank()) return false;
+
+        String sql = "SELECT t.ticket_id " +
+                "FROM tickets t " +
+                "JOIN bookings b ON t.booking_id = b.booking_id " +
+                "WHERE t.qr_token = ? " +
+                "AND b.payment_status = 'APPROVED' " +
+                "AND b.status = 'CONFIRMED'";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, qrToken.trim());
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (SQLException e) {
+            System.err.println("isTicketApprovedForPublicScan error: " + e.getMessage());
+            return false;
         }
     }
 
