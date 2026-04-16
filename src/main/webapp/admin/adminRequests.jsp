@@ -39,6 +39,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Requests - EventHorizon</title>
 
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -68,119 +70,13 @@
         }
 
         /* ── Sidebar ── */
-        .sidebar {
-            width: 260px;
-            background: rgba(3, 7, 18, 0.92);
-            border-right: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 18px 14px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            height: 100vh;
-        }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 10px;
-            margin-bottom: 18px;
-        }
-
-        .brand-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #7c5cff, #26c8ff);
-            color: #ffffff;
-            font-size: 15px;
-            box-shadow: 0 10px 25px rgba(124, 92, 255, 0.35);
-            flex-shrink: 0;
-        }
-
-        .brand h2 {
-            color: #ffffff;
-            font-size: 1.08rem;
-            line-height: 1.1;
-            margin: 0;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-        }
-
-        .brand p {
-            color: #94a3b8;
-            font-size: 0.78rem;
-            margin-top: 2px;
-        }
 
         /* ── Nav ── */
-        .nav-links a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 13px 16px;
-            margin-bottom: 6px;
-            border-radius: 14px;
-            color: #dbe7ff;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 0.93rem;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid transparent;
-            transition: all 0.2s ease;
-        }
 
-        .nav-links a i {
-            width: 18px;
-            text-align: center;
-            color: #94a3b8;
-            font-size: 0.95rem;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            background: linear-gradient(90deg, rgba(124, 92, 255, 0.18), rgba(38, 200, 255, 0.12));
-            border-color: rgba(124, 92, 255, 0.22);
-            color: #ffffff;
-        }
-
-        .nav-links a:hover i,
-        .nav-links a.active i {
-            color: #26c8ff;
-        }
 
         /* ── Sidebar Footer ── */
-        .sidebar-footer a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            padding: 13px 14px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 0.93rem;
-            margin-top: 10px;
-        }
 
-        .back-site {
-            background: rgba(255, 255, 255, 0.04);
-            color: #eef2ff;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .logout-btn {
-            background: linear-gradient(90deg, rgba(120, 25, 35, 0.78), rgba(58, 10, 26, 0.96));
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-        }
 
         /* ── Main ── */
         .main-content {
@@ -417,10 +313,7 @@
         /* ── Responsive ── */
         @media (max-width: 980px) {
             .admin-shell { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; }
-            .topbar { flex-direction: column; align-items: flex-start; }
-            .topbar h1 { font-size: 2.2rem; }
-        }
+
     </style>
 </head>
 <body>
@@ -429,7 +322,7 @@
 
     <!-- ══ SIDEBAR ══ -->
     <aside class="sidebar">
-        <div>
+        <div class="sidebar-top">
             <div class="brand">
                 <div class="brand-icon">⬡</div>
                 <div>
