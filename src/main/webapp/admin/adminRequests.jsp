@@ -39,397 +39,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Requests - EventHorizon</title>
 
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: "Segoe UI", Arial, sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(38, 200, 255, 0.10), transparent 28%),
-                radial-gradient(circle at top center, rgba(124, 92, 255, 0.14), transparent 35%),
-                linear-gradient(180deg, #020617 0%, #030a1c 45%, #020617 100%);
-            color: #eef2ff;
-            min-height: 100vh;
-        }
-
-        /* ── Shell ── */
-        .admin-shell {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* ── Sidebar ── */
-        .sidebar {
-            width: 260px;
-            background: rgba(3, 7, 18, 0.92);
-            border-right: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 18px 14px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            height: 100vh;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 10px;
-            margin-bottom: 18px;
-        }
-
-        .brand-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #7c5cff, #26c8ff);
-            color: #ffffff;
-            font-size: 15px;
-            box-shadow: 0 10px 25px rgba(124, 92, 255, 0.35);
-            flex-shrink: 0;
-        }
-
-        .brand h2 {
-            color: #ffffff;
-            font-size: 1.08rem;
-            line-height: 1.1;
-            margin: 0;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .brand p {
-            color: #94a3b8;
-            font-size: 0.78rem;
-            margin-top: 2px;
-        }
-
-        /* ── Nav ── */
-        .nav-links a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 13px 16px;
-            margin-bottom: 6px;
-            border-radius: 14px;
-            color: #dbe7ff;
-            text-decoration: none;
-            font-weight: 700;
-            font-size: 16px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .nav-links a i {
-            width: 18px;
-            text-align: center;
-            color: #94a3b8;
-            font-size: 0.95rem;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            background: linear-gradient(90deg, rgba(124, 92, 255, 0.18), rgba(38, 200, 255, 0.12));
-            border-color: rgba(124, 92, 255, 0.22);
-            color: #ffffff;
-        }
-
-        .nav-links a:hover i,
-        .nav-links a.active i {
-            color: #26c8ff;
-        }
-
-        /* ── Sidebar Footer ── */
-        .sidebar-footer a {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            padding: 13px 14px;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 800;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        .back-site {
-            background: rgba(255, 255, 255, 0.04);
-            color: #eef2ff;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .logout-btn {
-            background: linear-gradient(90deg, rgba(120, 25, 35, 0.78), rgba(58, 10, 26, 0.96));
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-        }
-
-        /* ── Main ── */
-        .main-content {
-            flex: 1;
-            padding: 28px;
-            overflow-y: auto;
-        }
-
-        /* ── Topbar ── */
-        .topbar {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 18px;
-            margin-bottom: 24px;
-        }
-
-        .eyebrow {
-            color: #22c7ff;
-            text-transform: uppercase;
-            letter-spacing: 1.4px;
-            font-size: 0.78rem;
-            font-weight: 800;
-            margin-bottom: 6px;
-        }
-
-        .topbar h1 {
-            font-size: 36px;
-            line-height: 1.1;
-            margin: 0 0 6px;
-            font-weight: 900;
-            color: #f8fbff;
-        }
-
-        .subtitle {
-            color: #9fb0d3;
-            font-size: 15px;
-        }
-
-        .topbar-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            color: #ffffff;
-            font-weight: 800;
-            white-space: nowrap;
-            font-size: 16px;
-        }
-
-        .topbar-badge i {
-            color: #26c8ff;
-        }
-
-        /* ── Content Card ── */
         .content-card {
-            background: linear-gradient(135deg, rgba(28, 36, 78, 0.96), rgba(12, 20, 46, 0.94));
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 26px;
-            padding: 26px 24px 24px;
-            box-shadow: 0 18px 48px rgba(0, 0, 0, 0.28);
+            background: linear-gradient(135deg, rgba(18, 24, 56, 0.92), rgba(10, 16, 38, 0.94));
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: var(--shadow);
         }
+        .content-card h2 { font-size: 26px; margin-bottom: 8px; }
+        .content-card > p { color: var(--muted); margin-bottom: 20px; line-height: 1.6; }
 
-        .content-card h2 {
-            margin: 0 0 8px;
-            font-size: 1.85rem;
-            font-weight: 900;
-            color: #f8fbff;
-        }
-
-        .content-card > p {
-            color: #9fb0d3;
-            margin-bottom: 20px;
-            line-height: 1.6;
-            font-size: 0.97rem;
-        }
-
-        /* ── Alerts ── */
-        .alert {
-            padding: 14px 16px;
-            border-radius: 14px;
-            margin-bottom: 18px;
-            font-weight: 700;
-            font-size: 0.94rem;
-        }
-
-        .alert-success {
-            background: rgba(46, 204, 113, 0.14);
-            border: 1px solid rgba(46, 204, 113, 0.30);
-            color: #9af5b6;
-        }
-
-        .alert-error {
-            background: rgba(231, 76, 60, 0.14);
-            border: 1px solid rgba(231, 76, 60, 0.30);
-            color: #ffb7ad;
-        }
-
-        /* ── Table ── */
+        /* Table */
         .table-wrap {
             overflow-x: auto;
-            border-radius: 18px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(2, 8, 23, 0.45);
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            background: rgba(2, 6, 18, 0.50);
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 1000px;
-        }
+        table { width: 100%; border-collapse: collapse; min-width: 960px; }
 
         thead th {
-            background: linear-gradient(90deg, #7c5cff, #26c8ff);
+            background: linear-gradient(135deg, var(--purple-2), var(--cyan));
             color: #fff;
             text-align: left;
-            padding: 16px 14px;
-            font-size: 0.82rem;
-            font-weight: 800;
+            padding: 15px 14px;
+            font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.7px;
         }
+        thead th:first-child { border-radius: 16px 0 0 0; }
+        thead th:last-child  { border-radius: 0 16px 0 0; }
 
-        thead th:first-child { border-radius: 18px 0 0 0; }
-        thead th:last-child  { border-radius: 0 18px 0 0; }
-
-        tbody tr {
-            background: rgba(255, 255, 255, 0.01);
-            transition: background 0.15s;
-        }
-
-        tbody tr:hover {
-            background: rgba(124, 92, 255, 0.06);
-        }
+        tbody tr { transition: background 0.15s; }
+        tbody tr:hover { background: rgba(139, 92, 246, 0.06); }
 
         tbody td {
-            padding: 15px 14px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            color: #eef2ff;
-            vertical-align: top;
-            font-size: 16px;
+            padding: 14px;
+            border-bottom: 1px solid var(--line);
+            color: var(--text);
+            vertical-align: middle;
+            font-size: 14px;
         }
+        tbody tr:last-child td { border-bottom: none; }
 
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* ── Pills ── */
+        /* Pills */
         .pill {
             display: inline-flex;
             align-items: center;
-            padding: 5px 12px;
+            gap: 5px;
+            padding: 5px 11px;
             border-radius: 999px;
-            font-size: 0.76rem;
-            font-weight: 800;
+            font-size: 12px;
+            font-weight: 700;
         }
-
         .pill-self {
-            background: rgba(255, 99, 132, 0.14);
-            border: 1px solid rgba(255, 99, 132, 0.22);
-            color: #ffb4c4;
+            background: rgba(239, 68, 68, 0.14);
+            border: 1px solid rgba(239, 68, 68, 0.22);
+            color: #ffd0d0;
         }
-
         .pill-perm {
-            background: rgba(124, 92, 255, 0.16);
-            border: 1px solid rgba(124, 92, 255, 0.22);
-            color: #d2c7ff;
+            background: rgba(139, 92, 246, 0.16);
+            border: 1px solid rgba(139, 92, 246, 0.24);
+            color: #d4c6ff;
         }
 
-        /* ── Action Buttons ── */
-        .actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
+        /* Action buttons */
+        .row-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
-        .btn {
+        .btn-approve,
+        .btn-reject,
+        .btn-blocked {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 7px;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
             border: none;
-            border-radius: 12px;
-            padding: 9px 14px;
-            font-family: "Segoe UI", Arial, sans-serif;
-            font-weight: 800;
             cursor: pointer;
-            font-size: 0.87rem;
+            font-family: "Segoe UI", Arial, sans-serif;
             transition: opacity 0.2s, transform 0.15s;
         }
-
-        .btn:hover:not(:disabled) {
-            opacity: 0.85;
-            transform: translateY(-1px);
-        }
+        .btn-approve:hover,
+        .btn-reject:hover { opacity: 0.85; transform: translateY(-1px); }
 
         .btn-approve {
-            background: linear-gradient(90deg, #19c37d, #2ed573);
+            background: linear-gradient(135deg, #16a34a, #22c55e);
             color: #fff;
-            box-shadow: 0 6px 18px rgba(46, 213, 115, 0.22);
+            box-shadow: 0 6px 16px rgba(34, 197, 94, 0.22);
         }
-
         .btn-reject {
-            background: linear-gradient(90deg, #ff5f6d, #c44569);
+            background: linear-gradient(135deg, var(--danger), #f87171);
             color: #fff;
-            box-shadow: 0 6px 18px rgba(196, 69, 105, 0.22);
+            box-shadow: 0 6px 16px rgba(239, 68, 68, 0.22);
         }
-
-        .btn-disabled {
-            background: rgba(255, 255, 255, 0.06);
-            color: #6b7aaa;
+        .btn-blocked {
+            background: rgba(255,255,255,0.05);
+            color: #5a6a8a;
+            border: 1px solid var(--line);
             cursor: not-allowed;
-            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .empty {
-            padding: 36px 10px;
-            color: #5a6a9a;
-            font-weight: 700;
+        .empty-row td {
+            padding: 40px 14px;
             text-align: center;
-            font-size: 0.97rem;
+            color: var(--muted);
+            font-size: 15px;
         }
-
-        .empty i {
-            display: block;
-            font-size: 2rem;
-            margin-bottom: 10px;
-            color: #2a3460;
-        }
-
-        /* ── Responsive ── */
-        @media (max-width: 980px) {
-            .admin-shell { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; }
-            .topbar { flex-direction: column; align-items: flex-start; }
-            .topbar h1 { font-size: 2.2rem; }
-        }
+        .empty-row i { display: block; font-size: 28px; margin-bottom: 10px; color: #2a3460; }
     </style>
 </head>
 <body>
-
 <div class="admin-shell">
 
-    <!-- ══ SIDEBAR ══ -->
+    <!-- SIDEBAR — mirrors layout.jsp exactly -->
     <aside class="sidebar">
-        <div>
+        <div class="sidebar-top">
             <div class="brand">
                 <div class="brand-icon">⬡</div>
-                <div>
+                <div class="brand-text">
                     <h2>EVENTHORIZON</h2>
                     <p>Admin Workspace</p>
                 </div>
@@ -444,14 +178,14 @@
                 <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=list">
                     <i class="fa-solid fa-users"></i>
-                    <span>Manage Users</span>
+                    <span>Users</span>
                 </a>
                 <% } %>
 
                 <% if (canManageEvents) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList">
                     <i class="fa-solid fa-calendar-days"></i>
-                    <span>Manage Events</span>
+                    <span>Events</span>
                 </a>
                 <% } %>
 
@@ -460,38 +194,31 @@
                     <i class="fa-solid fa-ticket"></i>
                     <span>Bookings</span>
                 </a>
-
-                <a href="<%= request.getContextPath() %>/booking?action=pendingPayments">
-                    <i class="fa-solid fa-money-check-dollar"></i>
-                    <span>Manage Payments</span>
-                </a>
                 <% } %>
 
                 <% if (hasFullAccess) { %>
-                <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Request New Admin</span>
-                </a>
-
                 <a class="active" href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
+                </a>
+
+                <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Request Admin</span>
                 </a>
                 <% } %>
             </nav>
         </div>
 
         <div class="sidebar-footer">
-            <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
+            <div style="padding:12px 14px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
                 <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
                 <strong><%= UserService.permissionLabel(adminPermission) %></strong>
             </div>
-
             <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
                 <i class="fa-solid fa-globe"></i>
                 <span>Open Website</span>
             </a>
-
             <a class="logout-btn" href="<%= request.getContextPath() %>/user?action=logout">
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <span>Logout</span>
@@ -499,54 +226,51 @@
         </div>
     </aside>
 
-    <!-- ══ MAIN ══ -->
+    <!-- MAIN -->
     <main class="main-content">
-        <section class="topbar">
+        <div class="topbar">
             <div>
                 <p class="eyebrow">Administration</p>
                 <h1>Admin Requests</h1>
-                <p class="subtitle">Welcome back, <strong><%= userName != null ? userName : "Admin" %></strong></p>
             </div>
-
-            <div class="topbar-badge">
-                <i class="fa-solid fa-shield-halved"></i>
-                <span><%= UserService.permissionLabel(adminPermission) %></span>
+            <div class="topbar-user">
+                Welcome, <strong><%= userName != null ? userName : "Admin" %></strong>
             </div>
-        </section>
+        </div>
 
         <section class="content-card">
             <h2>Pending Admin Requests</h2>
             <p>Review and approve or reject admin access requests submitted by full-access admins.</p>
 
             <% if ("requestSubmitted".equals(msg)) { %>
-                <div class="alert alert-success">
+                <div class="alert alert-success" style="margin-bottom:16px;">
                     <i class="fa-solid fa-circle-check" style="margin-right:8px;"></i>
                     New admin request submitted successfully.
                 </div>
             <% } else if ("approved".equals(msg)) { %>
-                <div class="alert alert-success">
+                <div class="alert alert-success" style="margin-bottom:16px;">
                     <i class="fa-solid fa-circle-check" style="margin-right:8px;"></i>
                     Admin request approved successfully.
                 </div>
             <% } else if ("rejected".equals(msg)) { %>
-                <div class="alert alert-success">
+                <div class="alert alert-success" style="margin-bottom:16px;">
                     <i class="fa-solid fa-circle-check" style="margin-right:8px;"></i>
                     Admin request rejected successfully.
                 </div>
             <% } %>
 
             <% if ("requestFailed".equals(error)) { %>
-                <div class="alert alert-error">
+                <div class="alert alert-danger" style="margin-bottom:16px;">
                     <i class="fa-solid fa-circle-exclamation" style="margin-right:8px;"></i>
                     Could not submit the admin request.
                 </div>
             <% } else if ("approveFailed".equals(error)) { %>
-                <div class="alert alert-error">
+                <div class="alert alert-danger" style="margin-bottom:16px;">
                     <i class="fa-solid fa-circle-exclamation" style="margin-right:8px;"></i>
                     Approval failed. A requester cannot approve their own request, and the request may already be processed.
                 </div>
             <% } else if ("rejectFailed".equals(error)) { %>
-                <div class="alert alert-error">
+                <div class="alert alert-danger" style="margin-bottom:16px;">
                     <i class="fa-solid fa-circle-exclamation" style="margin-right:8px;"></i>
                     Rejection failed. A requester cannot reject their own request, and the request may already be processed.
                 </div>
@@ -568,8 +292,8 @@
                     </thead>
                     <tbody>
                     <% if (adminRequests.isEmpty()) { %>
-                        <tr>
-                            <td colspan="8" class="empty">
+                        <tr class="empty-row">
+                            <td colspan="8">
                                 <i class="fa-solid fa-inbox"></i>
                                 No pending admin requests found.
                             </td>
@@ -585,7 +309,7 @@
                                     <% if (ownRequest) { %>
                                         <div style="margin-top:6px;">
                                             <span class="pill pill-self">
-                                                <i class="fa-solid fa-user" style="margin-right:5px; font-size:0.7rem;"></i>
+                                                <i class="fa-solid fa-user" style="font-size:10px;"></i>
                                                 Your request
                                             </span>
                                         </div>
@@ -601,9 +325,9 @@
                                 </td>
                                 <td><%= r.get("requestedAt") %></td>
                                 <td>
-                                    <div class="actions">
+                                    <div class="row-actions">
                                         <% if (ownRequest) { %>
-                                            <button type="button" class="btn btn-disabled" disabled>
+                                            <button type="button" class="btn-blocked" disabled>
                                                 <i class="fa-solid fa-ban"></i>
                                                 <span>Self approval blocked</span>
                                             </button>
@@ -611,16 +335,15 @@
                                             <form action="<%= request.getContextPath() %>/user" method="post" style="display:inline;">
                                                 <input type="hidden" name="action" value="approveAdminRequest">
                                                 <input type="hidden" name="requestId" value="<%= r.get("requestId") %>">
-                                                <button type="submit" class="btn btn-approve">
+                                                <button type="submit" class="btn-approve">
                                                     <i class="fa-solid fa-check"></i>
                                                     <span>Approve</span>
                                                 </button>
                                             </form>
-
                                             <form action="<%= request.getContextPath() %>/user" method="post" style="display:inline;">
                                                 <input type="hidden" name="action" value="rejectAdminRequest">
                                                 <input type="hidden" name="requestId" value="<%= r.get("requestId") %>">
-                                                <button type="submit" class="btn btn-reject">
+                                                <button type="submit" class="btn-reject">
                                                     <i class="fa-solid fa-xmark"></i>
                                                     <span>Reject</span>
                                                 </button>
@@ -637,6 +360,5 @@
         </section>
     </main>
 </div>
-
 </body>
 </html>
