@@ -37,7 +37,6 @@
     <title>Bookings - EventHorizon</title>
 
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
@@ -215,7 +214,7 @@
             font-weight: 600;
         }
 
-        .topbar-badge-lite {
+        .topbar-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -285,11 +284,6 @@
         </div>
 
         <div class="sidebar-footer">
-            <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
-                <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
-                <strong><%= UserService.permissionLabel(adminPermission) %></strong>
-            </div>
-
             <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
                 <i class="fa-solid fa-globe"></i>
                 <span>Open Website</span>
@@ -310,7 +304,7 @@
                 <p class="subtitle">Rejected and cancelled bookings can be removed from this table permanently.</p>
             </div>
 
-            <div class="topbar-badge-lite">
+            <div class="topbar-badge">
                 <i class="fa-solid fa-shield-halved"></i>
                 <span><%= UserService.permissionLabel(adminPermission) %></span>
             </div>

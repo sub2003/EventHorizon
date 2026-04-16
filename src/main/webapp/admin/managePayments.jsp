@@ -37,7 +37,6 @@
     <title>Manage Payments - EventHorizon</title>
 
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
@@ -69,7 +68,7 @@
             color: #aab4d6;
         }
 
-        .topbar-badge-lite {
+        .topbar-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
@@ -263,7 +262,7 @@
                 <p class="subtitle">Check each reference number manually and approve or reject it.</p>
             </div>
 
-            <div class="topbar-badge-lite">
+            <div class="topbar-badge">
                 <i class="fa-solid fa-shield-halved"></i>
                 <span><%= UserService.permissionLabel(adminPermission) %></span>
             </div>

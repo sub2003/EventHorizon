@@ -30,10 +30,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request New Admin - EventHorizon</title>
 
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
@@ -44,7 +40,7 @@
         }
 
         body {
-            font-family: 'Outfit', sans-serif;
+            font-family: "Segoe UI", Arial, sans-serif;
             background:
                 radial-gradient(circle at top left, rgba(38, 200, 255, 0.10), transparent 28%),
                 radial-gradient(circle at top center, rgba(124, 92, 255, 0.14), transparent 35%),
@@ -60,18 +56,124 @@
         }
 
         /* ── Sidebar ── */
+        .sidebar {
+            width: 260px;
+            background: rgba(3, 7, 18, 0.92);
+            border-right: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 18px 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
 
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 10px;
+            margin-bottom: 18px;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #7c5cff, #26c8ff);
+            color: #ffffff;
+            font-size: 15px;
+            box-shadow: 0 10px 25px rgba(124, 92, 255, 0.35);
+            flex-shrink: 0;
+        }
+
+        .brand h2 {
+            color: #ffffff;
+            font-size: 1.08rem;
+            line-height: 1.1;
+            margin: 0;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .brand p {
+            color: #94a3b8;
+            font-size: 0.78rem;
+            margin-top: 2px;
+        }
 
         /* ── Nav ── */
+        .nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            margin-bottom: 6px;
+            border-radius: 14px;
+            color: #dbe7ff;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid transparent;
+            transition: all 0.2s ease;
+        }
 
+        .nav-links a i {
+            width: 18px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            background: linear-gradient(90deg, rgba(124, 92, 255, 0.18), rgba(38, 200, 255, 0.12));
+            border-color: rgba(124, 92, 255, 0.22);
+            color: #ffffff;
+        }
+
+        .nav-links a:hover i,
+        .nav-links a.active i {
+            color: #26c8ff;
+        }
 
         /* ── Sidebar Footer ── */
+        .sidebar-footer a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 16px;
+            margin-top: 10px;
+        }
 
+        .back-site {
+            background: rgba(255, 255, 255, 0.04);
+            color: #eef2ff;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .logout-btn {
+            background: linear-gradient(90deg, rgba(120, 25, 35, 0.78), rgba(58, 10, 26, 0.96));
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
 
         /* ── Main ── */
         .main-content {
             flex: 1;
-            padding: 22px 24px 30px;
+            padding: 28px;
             overflow-y: auto;
         }
 
@@ -81,7 +183,7 @@
             align-items: flex-start;
             justify-content: space-between;
             gap: 18px;
-            margin-bottom: 22px;
+            margin-bottom: 24px;
         }
 
         .eyebrow {
@@ -94,8 +196,8 @@
         }
 
         .topbar h1 {
-            font-size: 2.8rem;
-            line-height: 1.05;
+            font-size: 36px;
+            line-height: 1.1;
             margin: 0 0 6px;
             font-weight: 900;
             color: #f8fbff;
@@ -103,21 +205,21 @@
 
         .subtitle {
             color: #9fb0d3;
-            font-size: 0.97rem;
+            font-size: 15px;
         }
 
         .topbar-badge {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 11px 18px;
+            padding: 12px 16px;
             border-radius: 14px;
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.06);
             color: #ffffff;
             font-weight: 800;
             white-space: nowrap;
-            font-size: 0.93rem;
+            font-size: 16px;
         }
 
         .topbar-badge i {
@@ -143,7 +245,7 @@
 
         .content-card > p {
             color: #9fb0d3;
-            margin-bottom: 22px;
+            margin-bottom: 24px;
             line-height: 1.6;
             font-size: 0.97rem;
         }
@@ -202,7 +304,7 @@
             color: #ffffff;
             padding: 0 16px;
             font-size: 0.96rem;
-            font-family: 'Outfit', sans-serif;
+            font-family: "Segoe UI", Arial, sans-serif;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
@@ -239,7 +341,7 @@
             padding: 0 22px;
             border-radius: 14px;
             text-decoration: none;
-            font-family: 'Outfit', sans-serif;
+            font-family: "Segoe UI", Arial, sans-serif;
             font-weight: 800;
             font-size: 0.95rem;
             border: none;
@@ -268,7 +370,11 @@
         /* ── Responsive ── */
         @media (max-width: 980px) {
             .admin-shell { flex-direction: column; }
-
+            .sidebar { width: 100%; height: auto; position: static; }
+            .topbar { flex-direction: column; align-items: flex-start; }
+            .topbar h1 { font-size: 2.2rem; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -277,7 +383,7 @@
 
     <!-- ══ SIDEBAR ══ -->
     <aside class="sidebar">
-        <div class="sidebar-top">
+        <div>
             <div class="brand">
                 <div class="brand-icon">⬡</div>
                 <div>
