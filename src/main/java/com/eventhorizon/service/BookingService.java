@@ -2,6 +2,7 @@ package com.eventhorizon.service;
 
 import com.eventhorizon.model.Booking;
 import com.eventhorizon.model.Event;
+import com.eventhorizon.model.EventTicketType;
 import com.eventhorizon.model.Ticket;
 import com.eventhorizon.util.DatabaseConnection;
 
@@ -14,15 +15,16 @@ public class BookingService {
 
     private final EventService eventService = new EventService();
     private final TicketService ticketService = new TicketService();
+    private final EventTicketTypeService ticketTypeService = new EventTicketTypeService();
 
-    public String createBooking(String customerId, String eventId,
+    public String createBooking(String customerId, String eventId, int ticketTypeId,
                                 int numberOfTickets, String paymentReference) {
 
         customerId = safeTrim(customerId);
         eventId = safeTrim(eventId);
         paymentReference = safeTrim(paymentReference);
 
-        if (isBlank(customerId) || isBlank(eventId) || numberOfTickets <= 0) {
+        if (isBlank(customerId) || isBlank(eventId) || ticketTypeId <= 0 || numberOfTickets <= 0) {
             System.err.println("createBooking failed: invalid input");
             return null;
         }
@@ -34,51 +36,60 @@ public class BookingService {
             conn.setAutoCommit(false);
 
             Event event = eventService.getEventById(eventId, conn);
-
             if (event == null) {
-                System.err.println("createBooking failed: event not found for ID = " + eventId);
                 conn.rollback();
                 return null;
             }
 
             if (!"ACTIVE".equalsIgnoreCase(event.getStatus())) {
-                System.err.println("createBooking failed: event is not ACTIVE");
                 conn.rollback();
                 return null;
             }
 
-            if (event.getAvailableSeats() < numberOfTickets) {
-                System.err.println("createBooking failed: not enough seats");
+            EventTicketType ticketType = ticketTypeService.getById(ticketTypeId, conn);
+            if (ticketType == null) {
                 conn.rollback();
                 return null;
             }
 
-            boolean reduced = eventService.reduceSeat(eventId, numberOfTickets, conn);
+            if (!eventId.equals(ticketType.getEventId())) {
+                conn.rollback();
+                return null;
+            }
+
+            if (ticketType.getAvailableSeats() < numberOfTickets) {
+                conn.rollback();
+                return null;
+            }
+
+            boolean reduced = ticketTypeService.reduceSeat(ticketTypeId, numberOfTickets, conn);
             if (!reduced) {
-                System.err.println("createBooking failed: reduceSeat returned false");
                 conn.rollback();
                 return null;
             }
+
+            ticketTypeService.refreshEventSummary(eventId, conn);
 
             String bookingId = generateId(conn);
-            double total = event.getTicketPrice() * numberOfTickets;
+            double total = ticketType.getPrice() * numberOfTickets;
             String today = LocalDate.now().toString();
 
             String sql = "INSERT INTO bookings " +
-                    "(booking_id, customer_id, event_id, event_title, " +
-                    "number_of_tickets, total_amount, booking_date, status, " +
-                    "payment_status, payment_reference) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, 'CONFIRMED', 'PENDING', ?)";
+                    "(booking_id, customer_id, event_id, event_title, ticket_type_id, ticket_type_name, " +
+                    "number_of_tickets, total_amount, booking_date, status, payment_status, payment_reference) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'CONFIRMED', 'PENDING', ?)";
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, bookingId);
                 ps.setString(2, customerId);
                 ps.setString(3, eventId);
                 ps.setString(4, event.getTitle());
-                ps.setInt(5, numberOfTickets);
-                ps.setDouble(6, total);
-                ps.setString(7, today);
-                ps.setString(8, paymentReference != null ? paymentReference : "");
+                ps.setInt(5, ticketTypeId);
+                ps.setString(6, ticketType.getTypeName());
+                ps.setInt(7, numberOfTickets);
+                ps.setDouble(8, total);
+                ps.setString(9, today);
+                ps.setString(10, paymentReference != null ? paymentReference : "");
 
                 int rows = ps.executeUpdate();
                 if (rows == 0) {
@@ -113,10 +124,6 @@ public class BookingService {
         }
     }
 
-    public String createBooking(String customerId, String eventId, int numberOfTickets) {
-        return createBooking(customerId, eventId, numberOfTickets, "");
-    }
-
     public boolean approveBooking(String bookingId) {
         bookingId = safeTrim(bookingId);
         if (isBlank(bookingId)) return false;
@@ -135,13 +142,13 @@ public class BookingService {
             conn.setAutoCommit(false);
 
             String sql = "UPDATE bookings " +
-                    "SET payment_status='APPROVED' " +
-                    "WHERE booking_id=? AND status='CONFIRMED' AND payment_status='PENDING'";
+                    "SET payment_status = 'APPROVED' " +
+                    "WHERE booking_id = ? AND status = 'CONFIRMED' AND payment_status = 'PENDING'";
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, bookingId);
-
                 int rows = ps.executeUpdate();
+
                 if (rows == 0) {
                     conn.rollback();
                     return false;
@@ -177,6 +184,8 @@ public class BookingService {
                     booking.getBookingId(),
                     booking.getEventId(),
                     booking.getCustomerId(),
+                    booking.getTicketTypeId(),
+                    booking.getTicketTypeName(),
                     booking.getNumberOfTickets()
             );
 
@@ -203,8 +212,8 @@ public class BookingService {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            boolean restored = eventService.restoreSeat(
-                    booking.getEventId(),
+            boolean restored = ticketTypeService.restoreSeat(
+                    booking.getTicketTypeId(),
                     booking.getNumberOfTickets(),
                     conn
             );
@@ -214,9 +223,11 @@ public class BookingService {
                 return false;
             }
 
+            ticketTypeService.refreshEventSummary(booking.getEventId(), conn);
+
             String sql = "UPDATE bookings " +
-                    "SET payment_status='REJECTED', status='CANCELLED' " +
-                    "WHERE booking_id=? AND payment_status='PENDING'";
+                    "SET payment_status = 'REJECTED', status = 'CANCELLED' " +
+                    "WHERE booking_id = ? AND payment_status = 'PENDING'";
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, bookingId);
@@ -256,7 +267,7 @@ public class BookingService {
     public List<Booking> getPendingBookings() {
         List<Booking> list = new ArrayList<>();
         String sql = "SELECT * FROM bookings " +
-                "WHERE payment_status='PENDING' AND status='CONFIRMED' " +
+                "WHERE payment_status = 'PENDING' AND status = 'CONFIRMED' " +
                 "ORDER BY booking_date DESC, booking_id DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -374,8 +385,8 @@ public class BookingService {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            boolean restored = eventService.restoreSeat(
-                    booking.getEventId(),
+            boolean restored = ticketTypeService.restoreSeat(
+                    booking.getTicketTypeId(),
                     booking.getNumberOfTickets(),
                     conn
             );
@@ -385,7 +396,9 @@ public class BookingService {
                 return false;
             }
 
-            String sql = "UPDATE bookings SET status='CANCELLED' WHERE booking_id=?";
+            ticketTypeService.refreshEventSummary(booking.getEventId(), conn);
+
+            String sql = "UPDATE bookings SET status = 'CANCELLED' WHERE booking_id = ?";
 
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 ps.setString(1, bookingId);
@@ -437,9 +450,7 @@ public class BookingService {
                         "REJECTED".equalsIgnoreCase(booking.getPaymentStatus());
 
         if (!canDelete) {
-            System.err.println("deleteBookingPermanently failed: booking is not deletable. "
-                    + "status=" + booking.getStatus()
-                    + ", paymentStatus=" + booking.getPaymentStatus());
+            System.err.println("deleteBookingPermanently failed: booking is not deletable.");
             return false;
         }
 
@@ -449,15 +460,11 @@ public class BookingService {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // Delete related tickets first if they exist
             try (PreparedStatement deleteTickets = conn.prepareStatement(
                     "DELETE FROM tickets WHERE booking_id = ?")) {
                 deleteTickets.setString(1, bookingId);
-                int ticketRows = deleteTickets.executeUpdate();
-                System.out.println("deleteBookingPermanently: deleted tickets rows = " + ticketRows);
+                deleteTickets.executeUpdate();
             } catch (SQLException e) {
-                // If your tickets table does not exist or booking has no tickets,
-                // do not fail immediately. Log and continue.
                 System.err.println("deleteBookingPermanently warning while deleting tickets: " + e.getMessage());
             }
 
@@ -466,8 +473,6 @@ public class BookingService {
                 deleteBooking.setString(1, bookingId);
 
                 int bookingRows = deleteBooking.executeUpdate();
-                System.out.println("deleteBookingPermanently: deleted booking rows = " + bookingRows);
-
                 if (bookingRows == 0) {
                     conn.rollback();
                     return false;
@@ -479,8 +484,6 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("deleteBookingPermanently error: " + e.getMessage());
-            System.err.println("SQL State: " + e.getSQLState());
-            System.err.println("Error Code: " + e.getErrorCode());
             e.printStackTrace();
 
             if (conn != null) {
@@ -503,8 +506,10 @@ public class BookingService {
     }
 
     private Booking mapRowToBooking(ResultSet rs) throws SQLException {
-        String payStatus = null;
+        String payStatus = "PENDING";
         String payRef = null;
+        int ticketTypeId = 0;
+        String ticketTypeName = null;
 
         try {
             payStatus = rs.getString("payment_status");
@@ -516,11 +521,23 @@ public class BookingService {
         } catch (SQLException ignored) {
         }
 
+        try {
+            ticketTypeId = rs.getInt("ticket_type_id");
+        } catch (SQLException ignored) {
+        }
+
+        try {
+            ticketTypeName = rs.getString("ticket_type_name");
+        } catch (SQLException ignored) {
+        }
+
         return new Booking(
                 rs.getString("booking_id"),
                 rs.getString("customer_id"),
                 rs.getString("event_id"),
                 rs.getString("event_title"),
+                ticketTypeId,
+                ticketTypeName,
                 rs.getInt("number_of_tickets"),
                 rs.getDouble("total_amount"),
                 rs.getString("booking_date"),
@@ -542,7 +559,6 @@ public class BookingService {
 
         } catch (SQLException e) {
             System.err.println("generateId error: " + e.getMessage());
-            e.printStackTrace();
             return "BKG" + System.currentTimeMillis();
         }
     }

@@ -104,7 +104,7 @@
         .booking-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1500px;
+            min-width: 1620px;
         }
 
         .booking-table thead th {
@@ -167,6 +167,20 @@
             color: #fda4af;
             background: rgba(225,29,72,0.16);
             border: 1px solid rgba(225,29,72,0.28);
+        }
+
+        /* Ticket type badge */
+        .type-pill {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            background: rgba(43,192,255,0.13);
+            color: #2bc0ff;
+            border: 1px solid rgba(43,192,255,0.22);
         }
 
         .reference-box {
@@ -337,6 +351,7 @@
                         <th>Booking ID</th>
                         <th>Customer ID</th>
                         <th>Event</th>
+                        <th>Ticket Type</th>
                         <th>Tickets</th>
                         <th>Total (LKR)</th>
                         <th>Date</th>
@@ -356,6 +371,18 @@
                             <td class="mono-id"><%= b.getBookingId() %></td>
                             <td><%= b.getCustomerId() %></td>
                             <td><%= b.getEventTitle() %></td>
+
+                            <td>
+                                <%
+                                    String ttn = b.getTicketTypeName();
+                                    if (ttn != null && !ttn.trim().isEmpty()) {
+                                %>
+                                    <span class="type-pill"><%= ttn %></span>
+                                <%  } else { %>
+                                    <span style="color:#5a6a9a;">—</span>
+                                <%  } %>
+                            </td>
+
                             <td><%= b.getNumberOfTickets() %></td>
                             <td><%= String.format("%.1f", b.getTotalAmount()) %></td>
                             <td><%= b.getBookingDate() %></td>
@@ -410,7 +437,7 @@
 
                     <% if (bookings.isEmpty()) { %>
                         <tr>
-                            <td colspan="10" class="leave-note" style="padding:24px;">No bookings found.</td>
+                            <td colspan="11" class="leave-note" style="padding:24px;">No bookings found.</td>
                         </tr>
                     <% } %>
                     </tbody>

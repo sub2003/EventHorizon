@@ -1,382 +1,414 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-
+<%@ page import="com.eventhorizon.model.Event" %>
+<%@ page import="com.eventhorizon.model.EventTicketType" %>
 <%
-    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-
-    Object userId = session.getAttribute("userId");
-    Object role = session.getAttribute("role");
-
-    if (userId == null || role == null || !"CUSTOMER".equals(role.toString())) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
-        return;
-    }
+    Event event = (Event) request.getAttribute("event");
+    EventTicketType ticketType = (EventTicketType) request.getAttribute("ticketType");
+    Integer tickets = (Integer) request.getAttribute("tickets");
+    Double total = (Double) request.getAttribute("total");
+    String error = request.getParameter("error");
 %>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Checkout – EventHorizon</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        body { background: #020617; min-height: 100vh; }
-
-        .checkout-wrapper {
-            max-width: 860px;
-            margin: 100px auto 60px;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 28px;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
         }
 
-        @media (max-width: 720px) {
-            .checkout-wrapper { grid-template-columns: 1fr; margin-top: 80px; }
+        body {
+            background: #050816;
+            color: #e8ecff;
+            min-height: 100vh;
         }
 
-        .card {
-            background: rgba(15,23,42,0.85);
-            border: 1px solid rgba(255,255,255,0.09);
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-            backdrop-filter: blur(12px);
+        /* ── Navbar ── */
+        .navbar {
+            width: 100%;
+            background: linear-gradient(90deg, #060b1f, #0b1434);
+            border-bottom: 1px solid rgba(130, 90, 255, 0.22);
+            padding: 18px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .card-title {
-            font-size: 1.1rem;
+        .brand {
+            font-size: 32px;
             font-weight: 800;
-            color: #f1f5f9;
-            margin: 0 0 20px;
+            letter-spacing: 1px;
+            color: #7c5cff;
+            text-decoration: none;
+        }
+
+        .nav-links {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 22px;
         }
 
-        .card-title i { color: #7c3aed; font-size: 1.15rem; }
-
-        .order-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            font-size: 0.92rem;
-            color: #94a3b8;
-            gap: 16px;
+        .nav-links a {
+            color: #d9defa;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s ease;
         }
 
-        .order-row:last-child { border-bottom: none; }
+        .nav-links a:hover { color: #8c6cff; }
 
-        .order-row .val {
-            color: #f1f5f9;
-            font-weight: 700;
-            text-align: right;
+        /* ── Page shell ── */
+        .container {
+            width: 92%;
+            max-width: 860px;
+            margin: 40px auto 60px;
         }
 
-        .order-total-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px 0 0;
-            font-size: 1.12rem;
-            font-weight: 800;
-            color: #f1f5f9;
-            border-top: 2px solid rgba(124,58,237,0.35);
-            margin-top: 12px;
-            gap: 16px;
-        }
-
-        .order-total-row .val { color: #a78bfa; font-size: 1.3rem; }
-
-        .bank-box {
-            background: rgba(124,58,237,0.08);
-            border: 1px solid rgba(124,58,237,0.25);
-            border-radius: 16px;
-            padding: 18px;
-            margin: 16px 0 0;
-        }
-
-        .bank-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: flex-start;
-        }
-
-        .bank-row:last-child { margin-bottom: 0; }
-
-        .bank-label {
-            font-size: 0.78rem;
-            text-transform: uppercase;
-            letter-spacing: 0.07em;
-            color: #7c3aed;
-            font-weight: 700;
-            min-width: 110px;
-            padding-top: 2px;
-        }
-
-        .bank-val {
-            color: #e2e8f0;
-            font-weight: 700;
-            font-size: 0.95rem;
-            word-break: break-all;
-        }
-
-        .bank-notice {
-            margin-top: 14px;
-            padding: 12px 14px;
-            background: rgba(250,204,21,0.07);
-            border: 1px solid rgba(250,204,21,0.2);
-            border-radius: 12px;
-            font-size: 0.84rem;
-            color: #fde68a;
-            line-height: 1.55;
-        }
-
-        .form-group { margin-bottom: 20px; }
-
-        label {
-            display: block;
-            font-size: 0.83rem;
-            font-weight: 700;
-            color: #94a3b8;
-            margin-bottom: 8px;
-            letter-spacing: 0.05em;
-            text-transform: uppercase;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 14px 16px;
-            background: rgba(2,6,23,0.6);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 14px;
-            color: #f1f5f9;
-            font-size: 0.96rem;
-            outline: none;
-            transition: border 0.2s;
-            box-sizing: border-box;
-        }
-
-        input[type="text"]:focus {
-            border-color: #7c3aed;
-            box-shadow: 0 0 0 3px rgba(124,58,237,0.18);
-        }
-
-        input[type="text"]::placeholder { color: #475569; }
-
-        .btn-pay {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
-            border: none;
-            border-radius: 14px;
-            color: #fff;
-            font-size: 1.02rem;
-            font-weight: 800;
-            cursor: pointer;
-            transition: opacity 0.2s, transform 0.2s;
-            margin-top: 6px;
-        }
-
-        .btn-pay:hover { opacity: 0.92; transform: translateY(-1px); }
-
-        .btn-pay:disabled {
-            opacity: 0.75;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .alert-error {
-            padding: 12px 16px;
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.3);
-            border-radius: 12px;
-            color: #fca5a5;
+        .breadcrumb {
             font-size: 0.9rem;
-            margin-bottom: 18px;
+            color: #7c8ab8;
+            margin-bottom: 24px;
         }
 
-        .steps {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 18px;
+        .breadcrumb a {
+            color: #7c8ab8;
+            text-decoration: none;
         }
 
-        .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
+        .breadcrumb a:hover { color: #a0aee0; }
+
+        /* ── Card ── */
+        .card {
+            background: linear-gradient(180deg, #0b1431, #09112a);
+            border: 1px solid rgba(126, 93, 255, 0.18);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
 
-        .step-num {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #7c3aed, #06b6d4);
-            color: #fff;
-            font-size: 0.8rem;
+        .card-head {
+            padding: 24px 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.018);
+        }
+
+        .card-head h1 {
+            font-size: 28px;
             font-weight: 800;
+            color: #ffffff;
+        }
+
+        .card-body {
+            padding: 28px;
+        }
+
+        /* ── Error alert ── */
+        .alert-error {
+            background: rgba(231, 76, 60, 0.12);
+            border: 1px solid rgba(231, 76, 60, 0.35);
+            color: #ffb1a8;
+            border-radius: 14px;
+            padding: 14px 16px;
+            font-weight: 700;
+            margin-bottom: 22px;
+        }
+
+        /* ── Order summary ── */
+        .summary {
+            background: rgba(124, 92, 255, 0.06);
+            border: 1px solid rgba(124, 92, 255, 0.18);
+            border-radius: 18px;
+            padding: 22px;
+            margin-bottom: 28px;
+        }
+
+        .summary-title {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #7c8ab8;
+            margin-bottom: 16px;
+        }
+
+        .summary-row {
             display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 11px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            flex-wrap: wrap;
+        }
+
+        .summary-row:last-child { border-bottom: none; }
+
+        .s-label { color: #9ba8d8; font-size: 14px; font-weight: 600; }
+        .s-value { color: #f3f6ff; font-size: 14px; font-weight: 800; text-align: right; }
+
+        .type-badge {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            background: rgba(43, 192, 255, 0.14);
+            color: #2bc0ff;
+            border: 1px solid rgba(43, 192, 255, 0.25);
         }
 
-        .step-text {
-            font-size: 0.88rem;
-            color: #94a3b8;
+        .total-row {
+            margin-top: 6px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.10);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .total-label {
+            font-size: 14px;
+            color: #9ba8d8;
+            font-weight: 700;
+        }
+
+        .total-amount {
+            font-size: 26px;
+            font-weight: 800;
+            color: #2bc0ff;
+            font-family: 'Orbitron', monospace, Arial, sans-serif;
+        }
+
+        /* ── Form ── */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            background: rgba(7, 13, 28, 0.92);
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-group input:focus {
+            border-color: rgba(124, 92, 255, 0.45);
+        }
+
+        .form-group input::placeholder { color: #5a6a9a; }
+
+        .hint {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #7c8ab8;
             line-height: 1.5;
-            padding-top: 4px;
         }
 
-        .step-text strong { color: #e2e8f0; }
+        /* ── Buttons ── */
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 14px 22px;
+            border-radius: 14px;
+            border: none;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s ease;
+            gap: 8px;
+        }
+
+        .btn:hover { transform: translateY(-1px); opacity: 0.94; }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #7c5cff, #2bc0ff);
+            color: #ffffff;
+            box-shadow: 0 10px 28px rgba(124, 92, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: #d9defa;
+            border: 1px solid rgba(255, 255, 255, 0.10);
+        }
+
+        /* ── Invalid / empty state ── */
+        .empty-card {
+            text-align: center;
+            padding: 48px 28px;
+        }
+
+        .empty-card p {
+            color: #7c8ab8;
+            margin-bottom: 20px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .navbar { flex-direction: column; gap: 12px; padding: 16px 18px; }
+            .nav-links { flex-wrap: wrap; justify-content: center; gap: 14px; }
+            .total-amount { font-size: 22px; }
+        }
     </style>
 </head>
 <body>
 
-<nav class="navbar">
-    <a href="${pageContext.request.contextPath}/index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
-    <div class="hamburger"><span></span><span></span><span></span></div>
-    <ul class="navbar-links">
-        <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
-        <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
-        <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
-        <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
-        <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
-    </ul>
-</nav>
-
-<div class="checkout-wrapper">
-
-    <div>
-        <div class="card">
-            <p class="card-title"><i class="fa-solid fa-receipt"></i> Order Summary</p>
-
-            <div class="order-row">
-                <span>Event</span>
-                <span class="val">${event.title}</span>
-            </div>
-            <div class="order-row">
-                <span>Date</span>
-                <span class="val">${event.date}</span>
-            </div>
-            <div class="order-row">
-                <span>Time</span>
-                <span class="val">${event.time}</span>
-            </div>
-            <div class="order-row">
-                <span>Venue</span>
-                <span class="val">${event.venue}</span>
-            </div>
-            <div class="order-row">
-                <span>Tickets</span>
-                <span class="val">${tickets}</span>
-            </div>
-            <div class="order-row">
-                <span>Price per ticket</span>
-                <span class="val">LKR ${event.ticketPrice}</span>
-            </div>
-
-            <div class="order-total-row">
-                <span>Total Payable</span>
-                <span class="val">LKR ${total}</span>
-            </div>
-        </div>
-
-        <div class="card" style="margin-top: 20px;">
-            <p class="card-title"><i class="fa-solid fa-circle-info"></i> How it works</p>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-num">1</div>
-                    <div class="step-text">Transfer <strong>LKR ${total}</strong> to the bank account shown on the right.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">2</div>
-                    <div class="step-text">Copy your bank's <strong>Transaction Reference / Slip Number</strong>.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">3</div>
-                    <div class="step-text">Paste the reference and click <strong>Confirm Payment</strong>.</div>
-                </div>
-                <div class="step">
-                    <div class="step-num">4</div>
-                    <div class="step-text">After admin verifies, your <strong>unique QR tickets</strong> will be issued automatically.</div>
-                </div>
-            </div>
-        </div>
+<div class="navbar">
+    <a href="<%= request.getContextPath() %>/index.jsp" class="brand">EVENTHORIZON</a>
+    <div class="nav-links">
+        <a href="<%= request.getContextPath() %>/index.jsp">Home</a>
+        <a href="<%= request.getContextPath() %>/event?action=list">Events</a>
+        <a href="<%= request.getContextPath() %>/booking?action=myBookings">My Bookings</a>
+        <a href="<%= request.getContextPath() %>/user?action=logout">Logout</a>
     </div>
-
-    <div class="card">
-        <p class="card-title"><i class="fa-solid fa-building-columns"></i> Payment Details</p>
-
-        <div class="bank-box">
-            <div class="bank-row">
-                <span class="bank-label">Bank</span>
-                <span class="bank-val">Bank of Ceylon</span>
-            </div>
-            <div class="bank-row">
-                <span class="bank-label">Branch</span>
-                <span class="bank-val">Colombo 03</span>
-            </div>
-            <div class="bank-row">
-                <span class="bank-label">Account Name</span>
-                <span class="bank-val">EventHorizon Pvt Ltd</span>
-            </div>
-            <div class="bank-row">
-                <span class="bank-label">Account No.</span>
-                <span class="bank-val">76543210</span>
-            </div>
-            <div class="bank-row">
-                <span class="bank-label">Amount</span>
-                <span class="bank-val" style="color:#a78bfa; font-size:1.1rem;">LKR <strong>${total}</strong></span>
-            </div>
-        </div>
-
-        <div class="bank-notice">
-            ⚠ Use <strong>${event.title}</strong> as your transfer description or remark so we can match your payment quickly.
-        </div>
-
-        <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.07); margin: 22px 0;">
-
-        <c:if test="${param.error == 'noReference'}">
-            <div class="alert-error">⚠ Please enter your transaction reference before confirming.</div>
-        </c:if>
-
-        <form action="${pageContext.request.contextPath}/booking" method="post" id="paymentForm">
-            <input type="hidden" name="action" value="confirmPayment">
-            <input type="hidden" name="eventId" value="${event.eventId}">
-            <input type="hidden" name="numberOfTickets" value="${tickets}">
-
-            <div class="form-group">
-                <label for="paymentReference">Transaction Reference / Slip Number</label>
-                <input type="text"
-                       id="paymentReference"
-                       name="paymentReference"
-                       placeholder="e.g. TXN20260414123456"
-                       required
-                       autocomplete="off">
-            </div>
-
-            <button type="submit" class="btn-pay" id="confirmPayBtn">
-                <i class="fa-solid fa-lock"></i>&nbsp; Confirm Payment – LKR ${total}
-            </button>
-        </form>
-    </div>
-
 </div>
 
-<script src="${pageContext.request.contextPath}/js/main.js"></script>
-<script>
-    document.getElementById('paymentForm').addEventListener('submit', function () {
-        var btn = document.getElementById('confirmPayBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>&nbsp; Processing...';
-    });
-</script>
+<div class="container">
+    <div class="breadcrumb">
+        <a href="<%= request.getContextPath() %>/event?action=list">Events</a>
+        &nbsp;/&nbsp;
+        <% if (event != null) { %>
+            <a href="<%= request.getContextPath() %>/event?action=view&id=<%= event.getEventId() %>"><%= event.getTitle() %></a>
+            &nbsp;/&nbsp;
+        <% } %>
+        Checkout
+    </div>
+
+    <% if (event == null || ticketType == null || tickets == null || total == null) { %>
+
+        <div class="card">
+            <div class="card-body empty-card">
+                <p>Invalid checkout request. Please go back and select a ticket.</p>
+                <a class="btn btn-secondary" href="<%= request.getContextPath() %>/event?action=list">← Back to Events</a>
+            </div>
+        </div>
+
+    <% } else { %>
+
+        <div class="card">
+            <div class="card-head">
+                <h1>🎟️ Order Checkout</h1>
+            </div>
+
+            <div class="card-body">
+
+                <% if ("noReference".equals(error)) { %>
+                    <div class="alert-error">⚠ Payment reference is required. Please enter your transfer/reference number.</div>
+                <% } %>
+
+                <!-- Order Summary -->
+                <div class="summary">
+                    <div class="summary-title">Order Summary</div>
+
+                    <div class="summary-row">
+                        <span class="s-label">Event</span>
+                        <span class="s-value"><%= event.getTitle() %></span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="s-label">Venue</span>
+                        <span class="s-value"><%= event.getVenue() %></span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="s-label">Date &amp; Time</span>
+                        <span class="s-value"><%= event.getDate() %> &nbsp; <%= event.getTime() %></span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="s-label">Ticket Type</span>
+                        <span class="s-value">
+                            <span class="type-badge"><%= ticketType.getTypeName() %></span>
+                        </span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="s-label">Price per Ticket</span>
+                        <span class="s-value">LKR <%= String.format("%.2f", ticketType.getPrice()) %></span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="s-label">Quantity</span>
+                        <span class="s-value"><%= tickets %> ticket<%= tickets > 1 ? "s" : "" %></span>
+                    </div>
+
+                    <div class="total-row">
+                        <span class="total-label">Total Amount</span>
+                        <span class="total-amount">LKR <%= String.format("%.2f", total) %></span>
+                    </div>
+                </div>
+
+                <!-- Payment form -->
+                <form action="<%= request.getContextPath() %>/booking" method="post">
+                    <input type="hidden" name="action"          value="confirmPayment">
+                    <input type="hidden" name="eventId"         value="<%= event.getEventId() %>">
+                    <input type="hidden" name="ticketTypeId"    value="<%= ticketType.getTicketTypeId() %>">
+                    <input type="hidden" name="numberOfTickets" value="<%= tickets %>">
+
+                    <div class="form-group">
+                        <label for="paymentReference">Payment Reference Number</label>
+                        <input type="text"
+                               id="paymentReference"
+                               name="paymentReference"
+                               placeholder="Enter your bank transfer / payment slip reference"
+                               required
+                               autocomplete="off">
+                        <div class="hint">
+                            Transfer the total amount shown above and enter the reference number or slip ID here.
+                            An admin will review and approve your booking.
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button type="submit" class="btn btn-primary">
+                            ✅ Confirm Payment Submission
+                        </button>
+                        <a class="btn btn-secondary"
+                           href="<%= request.getContextPath() %>/event?action=view&id=<%= event.getEventId() %>">
+                            ← Go Back
+                        </a>
+                    </div>
+                </form>
+
+            </div>
+        </div>
+
+    <% } %>
+</div>
+
 </body>
 </html>

@@ -107,6 +107,22 @@
             word-break: break-word;
         }
 
+        /* Ticket type badge */
+        .type-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 13px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            background: rgba(43, 192, 255, 0.13);
+            color: #2bc0ff;
+            border: 1px solid rgba(43, 192, 255, 0.24);
+        }
+
         .note {
             margin-top: 24px;
             color: #9eabd9;
@@ -143,7 +159,7 @@
         <div class="title">Ticket Verification</div>
 
         <% if (approved && ticket != null && booking != null) { %>
-            <div class="status-box approved">APPROVED</div>
+            <div class="status-box approved">✓ APPROVED</div>
 
             <div class="row">
                 <div class="label">Ticket ID</div>
@@ -165,6 +181,21 @@
                 <div class="value"><%= ticket.getCustomerId() %></div>
             </div>
 
+            <%-- Ticket type --%>
+            <div class="row">
+                <div class="label">Ticket Type</div>
+                <div class="value">
+                    <%
+                        String ttn = ticket.getTicketTypeName();
+                        if (ttn != null && !ttn.trim().isEmpty()) {
+                    %>
+                        <span class="type-pill"><%= ttn %></span>
+                    <%  } else { %>
+                        <span style="color:#5a6a9a;">—</span>
+                    <%  } %>
+                </div>
+            </div>
+
             <div class="row">
                 <div class="label">Booking Payment</div>
                 <div class="value"><%= booking.getPaymentStatus() %></div>
@@ -183,8 +214,9 @@
             <div class="note">
                 This is a valid ticket issued by the EventHorizon system.
             </div>
+
         <% } else { %>
-            <div class="status-box not-approved">NOT APPROVED</div>
+            <div class="status-box not-approved">✕ NOT APPROVED</div>
 
             <div class="row">
                 <div class="label">Scanned Token</div>

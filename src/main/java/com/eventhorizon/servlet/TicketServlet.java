@@ -246,7 +246,7 @@ public class TicketServlet extends HttpServlet {
 
         resp.setContentType("application/json;charset=UTF-8");
         PrintWriter out = resp.getWriter();
-        out.print("{\"result\":\"" + result.name() + "\",\"message\":\"" + message + "\"}");
+        out.print("{\"result\":\"" + message + "\"}");
         out.flush();
     }
 }

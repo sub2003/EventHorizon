@@ -206,6 +206,22 @@
             color: #ff9f95;
         }
 
+        /* Ticket type badge */
+        .ticket-type-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 5px 11px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.4px;
+            text-transform: uppercase;
+            background: rgba(43, 192, 255, 0.13);
+            color: #2bc0ff;
+            border: 1px solid rgba(43, 192, 255, 0.24);
+        }
+
         .actions {
             margin-top: 20px;
             display: flex;
@@ -372,6 +388,20 @@
             <div class="booking-row">
                 <div class="booking-label">Event ID</div>
                 <div class="booking-value"><%= b.getEventId() %></div>
+            </div>
+
+            <div class="booking-row">
+                <div class="booking-label">Ticket Type</div>
+                <div class="booking-value">
+                    <%
+                        String ttn = b.getTicketTypeName();
+                        if (ttn != null && !ttn.trim().isEmpty()) {
+                    %>
+                        <span class="ticket-type-pill"><%= ttn %></span>
+                    <%  } else { %>
+                        <span style="color:#5a6a9a;">—</span>
+                    <%  } %>
+                </div>
             </div>
 
             <div class="booking-row">

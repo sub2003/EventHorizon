@@ -18,12 +18,13 @@ public class TicketService {
                     : "EH@T1cket$3cr3tK3y_2026!#Horizon";
 
     public List<Ticket> generateTickets(String bookingId, String eventId,
-                                        String customerId, int count) {
+                                        String customerId, int ticketTypeId,
+                                        String ticketTypeName, int count) {
         List<Ticket> tickets = new ArrayList<>();
 
         String sql = "INSERT INTO tickets " +
-                "(ticket_id, booking_id, event_id, customer_id, qr_token, is_used) " +
-                "VALUES (?, ?, ?, ?, ?, 0)";
+                "(ticket_id, booking_id, event_id, customer_id, ticket_type_id, ticket_type_name, qr_token, is_used) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, 0)";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -36,18 +37,28 @@ public class TicketService {
                 ps.setString(2, bookingId);
                 ps.setString(3, eventId);
                 ps.setString(4, customerId);
-                ps.setString(5, qrToken);
+                ps.setInt(5, ticketTypeId);
+                ps.setString(6, ticketTypeName);
+                ps.setString(7, qrToken);
                 ps.addBatch();
 
-                tickets.add(new Ticket(ticketId, bookingId, eventId, customerId, qrToken, false, null));
+                tickets.add(new Ticket(
+                        ticketId,
+                        bookingId,
+                        eventId,
+                        customerId,
+                        ticketTypeId,
+                        ticketTypeName,
+                        qrToken,
+                        false,
+                        null
+                ));
             }
 
             ps.executeBatch();
 
         } catch (SQLException e) {
             System.err.println("generateTickets error: " + e.getMessage());
-            System.err.println("SQL State: " + e.getSQLState());
-            System.err.println("Error Code: " + e.getErrorCode());
             e.printStackTrace();
             tickets.clear();
         }
@@ -198,9 +209,27 @@ public class TicketService {
                 rs.getString("booking_id"),
                 rs.getString("event_id"),
                 rs.getString("customer_id"),
+                safeInt(rs, "ticket_type_id"),
+                safeString(rs, "ticket_type_name"),
                 rs.getString("qr_token"),
                 rs.getInt("is_used") == 1,
-                rs.getString("created_at")
+                safeString(rs, "created_at")
         );
+    }
+
+    private int safeInt(ResultSet rs, String column) {
+        try {
+            return rs.getInt(column);
+        } catch (SQLException e) {
+            return 0;
+        }
+    }
+
+    private String safeString(ResultSet rs, String column) {
+        try {
+            return rs.getString(column);
+        } catch (SQLException e) {
+            return null;
+        }
     }
 }

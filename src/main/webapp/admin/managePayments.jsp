@@ -105,7 +105,7 @@
         .payment-table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 1250px;
+            min-width: 1380px;
         }
 
         .payment-table th,
@@ -126,6 +126,20 @@
             color: #7dd3fc;
             font-family: Consolas, monospace;
             font-weight: 700;
+        }
+
+        /* Ticket type badge */
+        .type-pill {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            background: rgba(43,192,255,0.13);
+            color: #2bc0ff;
+            border: 1px solid rgba(43,192,255,0.22);
         }
 
         .reference-box {
@@ -291,6 +305,7 @@
                         <th>Booking ID</th>
                         <th>Customer ID</th>
                         <th>Event</th>
+                        <th>Ticket Type</th>
                         <th>Tickets</th>
                         <th>Total</th>
                         <th>Date</th>
@@ -305,6 +320,18 @@
                             <td class="mono-id"><%= b.getBookingId() %></td>
                             <td><%= b.getCustomerId() %></td>
                             <td><%= b.getEventTitle() %></td>
+
+                            <td>
+                                <%
+                                    String ttn = b.getTicketTypeName();
+                                    if (ttn != null && !ttn.trim().isEmpty()) {
+                                %>
+                                    <span class="type-pill"><%= ttn %></span>
+                                <%  } else { %>
+                                    <span style="color:#5a6a9a;">—</span>
+                                <%  } %>
+                            </td>
+
                             <td><%= b.getNumberOfTickets() %></td>
                             <td>LKR <%= String.format("%.1f", b.getTotalAmount()) %></td>
                             <td><%= b.getBookingDate() %></td>
@@ -339,7 +366,7 @@
 
                     <% if (pendingBookings.isEmpty()) { %>
                         <tr>
-                            <td colspan="9" class="muted" style="padding:24px;">No pending payments found.</td>
+                            <td colspan="10" class="muted" style="padding:24px;">No pending payments found.</td>
                         </tr>
                     <% } %>
                     </tbody>

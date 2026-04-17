@@ -2,6 +2,8 @@ package com.eventhorizon.model;
 
 /**
  * Event model - encapsulates all event data.
+ * ticketPrice / totalSeats / availableSeats are now summary values
+ * derived from event_ticket_types for compatibility with old pages.
  */
 public class Event {
 
@@ -11,16 +13,18 @@ public class Event {
     private String date;
     private String time;
     private String venue;
-    private double ticketPrice;
-    private int totalSeats;
-    private int availableSeats;
+    private double ticketPrice;   // summary: lowest ticket type price
+    private int totalSeats;       // summary: total of all ticket types
+    private int availableSeats;   // summary: total available of all ticket types
     private String description;
     private String status;
     private String imagePath;
 
-    // New fields for DB-stored images
     private byte[] imageData;
     private String imageType;
+
+    public Event() {
+    }
 
     public Event(String eventId, String title, String category, String date,
                  String time, String venue, double ticketPrice,
@@ -39,8 +43,6 @@ public class Event {
         this.status = status;
         this.imagePath = imagePath;
     }
-
-    public Event() {}
 
     public boolean hasAvailableSeats() {
         return availableSeats > 0;
@@ -110,32 +112,32 @@ public class Event {
         return ticketPrice;
     }
 
-    public void setTicketPrice(double price) {
-        this.ticketPrice = price;
+    public void setTicketPrice(double ticketPrice) {
+        this.ticketPrice = ticketPrice;
     }
 
     public int getTotalSeats() {
         return totalSeats;
     }
 
-    public void setTotalSeats(int seats) {
-        this.totalSeats = seats;
+    public void setTotalSeats(int totalSeats) {
+        this.totalSeats = totalSeats;
     }
 
     public int getAvailableSeats() {
         return availableSeats;
     }
 
-    public void setAvailableSeats(int seats) {
-        this.availableSeats = seats;
+    public void setAvailableSeats(int availableSeats) {
+        this.availableSeats = availableSeats;
     }
 
     public String getDescription() {
         return description;
     }
 
-    public void setDescription(String desc) {
-        this.description = desc;
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getStatus() {

@@ -3,8 +3,10 @@ package com.eventhorizon.servlet;
 import com.eventhorizon.model.Admin;
 import com.eventhorizon.model.Booking;
 import com.eventhorizon.model.Event;
+import com.eventhorizon.model.EventTicketType;
 import com.eventhorizon.service.BookingService;
 import com.eventhorizon.service.EventService;
+import com.eventhorizon.service.EventTicketTypeService;
 import com.eventhorizon.service.UserService;
 
 import javax.servlet.ServletException;
@@ -18,6 +20,7 @@ public class BookingServlet extends HttpServlet {
 
     private final BookingService bookingService = new BookingService();
     private final EventService eventService = new EventService();
+    private final EventTicketTypeService ticketTypeService = new EventTicketTypeService();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
@@ -148,9 +151,12 @@ public class BookingServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String eventId = req.getParameter("eventId");
+        String ticketTypeIdParam = req.getParameter("ticketTypeId");
         String ticketsParam = req.getParameter("tickets");
 
         int tickets = 1;
+        int ticketTypeId = 0;
+
         try {
             tickets = Integer.parseInt(ticketsParam);
             if (tickets <= 0) tickets = 1;
@@ -158,9 +164,16 @@ public class BookingServlet extends HttpServlet {
             tickets = 1;
         }
 
-        Event event = eventService.getEventById(eventId);
+        try {
+            ticketTypeId = Integer.parseInt(ticketTypeIdParam);
+        } catch (Exception ignored) {
+            ticketTypeId = 0;
+        }
 
-        if (event == null) {
+        Event event = eventService.getEventById(eventId);
+        EventTicketType ticketType = ticketTypeService.getById(ticketTypeId);
+
+        if (event == null || ticketType == null || !eventId.equals(ticketType.getEventId())) {
             resp.sendRedirect(req.getContextPath() + "/event?action=list");
             return;
         }
@@ -170,14 +183,15 @@ public class BookingServlet extends HttpServlet {
             return;
         }
 
-        if (event.getAvailableSeats() < tickets) {
+        if (ticketType.getAvailableSeats() < tickets) {
             resp.sendRedirect(req.getContextPath() + "/event?action=view&id=" + eventId + "&error=noSeats");
             return;
         }
 
         req.setAttribute("event", event);
+        req.setAttribute("ticketType", ticketType);
         req.setAttribute("tickets", tickets);
-        req.setAttribute("total", event.getTicketPrice() * tickets);
+        req.setAttribute("total", ticketType.getPrice() * tickets);
         req.getRequestDispatcher("/checkout.jsp").forward(req, resp);
     }
 
@@ -189,6 +203,8 @@ public class BookingServlet extends HttpServlet {
         String paymentReference = req.getParameter("paymentReference");
 
         int tickets;
+        int ticketTypeId;
+
         try {
             tickets = Integer.parseInt(req.getParameter("numberOfTickets"));
             if (tickets <= 0) tickets = 1;
@@ -196,13 +212,19 @@ public class BookingServlet extends HttpServlet {
             tickets = 1;
         }
 
+        try {
+            ticketTypeId = Integer.parseInt(req.getParameter("ticketTypeId"));
+        } catch (Exception e) {
+            ticketTypeId = 0;
+        }
+
         if (paymentReference == null || paymentReference.trim().isEmpty()) {
             resp.sendRedirect(req.getContextPath() + "/booking?action=checkout&eventId="
-                    + eventId + "&tickets=" + tickets + "&error=noReference");
+                    + eventId + "&ticketTypeId=" + ticketTypeId + "&tickets=" + tickets + "&error=noReference");
             return;
         }
 
-        String bookingId = bookingService.createBooking(customerId, eventId, tickets, paymentReference);
+        String bookingId = bookingService.createBooking(customerId, eventId, ticketTypeId, tickets, paymentReference);
 
         if (bookingId != null) {
             resp.sendRedirect(req.getContextPath() + "/booking?action=myBookings&msg=paymentPending&id=" + bookingId);

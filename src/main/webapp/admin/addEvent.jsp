@@ -1,3 +1,4 @@
+<!-- addEvent.jsp -->
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.eventhorizon.model.Event" %>
@@ -37,6 +38,8 @@
             --accent-light: #8b5cf6;
             --success-soft: rgba(16, 185, 129, 0.16);
             --danger-soft: rgba(239, 68, 68, 0.16);
+            --warning-soft: rgba(245, 158, 11, 0.16);
+            --info-soft: rgba(6, 182, 212, 0.12);
             --shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
             --radius-xl: 26px;
             --radius-lg: 20px;
@@ -119,7 +122,8 @@
             transform: translateY(-1px);
         }
 
-        .btn-primary {
+        .btn-primary,
+        .btn-save {
             color: white;
             background: linear-gradient(135deg, var(--accent), var(--accent-light));
             box-shadow: 0 12px 28px rgba(109, 40, 217, 0.35);
@@ -179,6 +183,12 @@
             background: var(--danger-soft);
             color: #fecaca;
             border-color: rgba(239, 68, 68, 0.35);
+        }
+
+        .alert-info {
+            background: var(--info-soft);
+            color: #bae6fd;
+            border-color: rgba(6, 182, 212, 0.30);
         }
 
         .form-grid {
@@ -247,10 +257,128 @@
             margin-top: 20px;
         }
 
-        .btn-save {
+        .ticket-types-box {
+            margin-top: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.02);
+            overflow: hidden;
+        }
+
+        .ticket-types-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 18px 18px 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.015);
+            flex-wrap: wrap;
+        }
+
+        .ticket-types-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .ticket-types-sub {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .ticket-type-list {
+            padding: 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .ticket-row {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr auto;
+            gap: 12px;
+            align-items: end;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .ticket-row .mini-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ticket-row .mini-group label {
+            font-size: 12px;
+            font-weight: 800;
+            color: #cbd5e1;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+
+        .ticket-row .mini-group input {
+            width: 100%;
+            padding: 12px 13px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(7, 13, 28, 0.92);
             color: white;
-            background: linear-gradient(135deg, var(--accent), var(--accent-light));
-            box-shadow: 0 12px 28px rgba(109, 40, 217, 0.30);
+            font-size: 14px;
+            outline: none;
+        }
+
+        .ticket-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        .btn-add-type {
+            color: white;
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            box-shadow: 0 10px 24px rgba(6, 182, 212, 0.25);
+        }
+
+        .btn-remove-type {
+            color: #fecaca;
+            background: rgba(239, 68, 68, 0.16);
+            border: 1px solid rgba(239, 68, 68, 0.28);
+            padding: 11px 14px;
+            min-width: 88px;
+        }
+
+        .summary-bar {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 16px;
+        }
+
+        .summary-card {
+            border-radius: 16px;
+            padding: 16px 18px;
+            background: rgba(255,255,255,0.025);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .summary-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .summary-value {
+            color: #ffffff;
+            font-size: 24px;
+            font-weight: 800;
         }
 
         .toolbar {
@@ -449,6 +577,14 @@
             .form-group.span-3 {
                 grid-column: span 2;
             }
+
+            .ticket-row {
+                grid-template-columns: 1fr;
+            }
+
+            .ticket-actions {
+                justify-content: flex-start;
+            }
         }
 
         @media (max-width: 720px) {
@@ -483,6 +619,10 @@
 
             .search-box {
                 min-width: 100%;
+            }
+
+            .summary-bar {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -562,8 +702,80 @@
             }
         }
 
+        function addTicketTypeRow(defaultName, defaultPrice, defaultSeats) {
+            const list = document.getElementById("ticketTypeList");
+            const row = document.createElement("div");
+            row.className = "ticket-row";
+
+            row.innerHTML =
+                '<div class="mini-group">' +
+                    '<label>Type Name</label>' +
+                    '<input type="text" name="typeName" required placeholder="e.g. VIP, Standard, Gold" value="' + (defaultName || '') + '">' +
+                '</div>' +
+                '<div class="mini-group">' +
+                    '<label>Price (LKR)</label>' +
+                    '<input type="number" name="typePrice" step="0.01" min="0" required placeholder="0.00" value="' + (defaultPrice || '') + '">' +
+                '</div>' +
+                '<div class="mini-group">' +
+                    '<label>Total Seats</label>' +
+                    '<input type="number" name="typeSeats" min="1" required placeholder="Enter seats" value="' + (defaultSeats || '') + '">' +
+                '</div>' +
+                '<div class="ticket-actions">' +
+                    '<button type="button" class="btn btn-remove-type" onclick="removeTicketTypeRow(this)">Remove</button>' +
+                '</div>';
+
+            list.appendChild(row);
+            updateTicketSummary();
+        }
+
+        function removeTicketTypeRow(button) {
+            const rows = document.querySelectorAll("#ticketTypeList .ticket-row");
+            if (rows.length <= 1) {
+                alert("At least one ticket type is required.");
+                return;
+            }
+            button.closest(".ticket-row").remove();
+            updateTicketSummary();
+        }
+
+        function updateTicketSummary() {
+            const priceInputs = document.querySelectorAll('input[name="typePrice"]');
+            const seatInputs = document.querySelectorAll('input[name="typeSeats"]');
+
+            let minPrice = 0;
+            let totalSeats = 0;
+            let foundPrice = false;
+
+            priceInputs.forEach(function(input) {
+                const val = parseFloat(input.value || "0");
+                if (!isNaN(val) && val >= 0) {
+                    if (!foundPrice || val < minPrice) {
+                        minPrice = val;
+                    }
+                    foundPrice = true;
+                }
+            });
+
+            seatInputs.forEach(function(input) {
+                const val = parseInt(input.value || "0", 10);
+                if (!isNaN(val) && val > 0) {
+                    totalSeats += val;
+                }
+            });
+
+            document.getElementById("summaryMinPrice").innerText = "LKR " + minPrice.toFixed(2);
+            document.getElementById("summaryTotalSeats").innerText = totalSeats;
+        }
+
         window.onload = function () {
+            addTicketTypeRow("Standard", "", "");
             filterEvents();
+
+            document.addEventListener("input", function (e) {
+                if (e.target && (e.target.name === "typePrice" || e.target.name === "typeSeats")) {
+                    updateTicketSummary();
+                }
+            });
         };
     </script>
 </head>
@@ -578,9 +790,6 @@
             <div class="top-actions-left">
                 <a href="<%=request.getContextPath()%>/admin/dashboard.jsp" class="btn btn-outline">Dashboard</a>
                 <a href="<%=request.getContextPath()%>/user?action=list" class="btn btn-outline">Manage Users</a>
-            </div>
-            <div class="top-actions-right">
-                <a href="<%=request.getContextPath()%>/event?action=adminList" class="btn btn-primary">Refresh</a>
             </div>
         </div>
     </div>
@@ -602,7 +811,7 @@
     <div class="panel">
         <div class="panel-head">
             <h2>Add New Event</h2>
-            <p>This form matches your servlet field names and saves images to the database.</p>
+            <p>This form now supports multiple ticket types per event without changing your existing event management features.</p>
         </div>
 
         <div class="panel-body">
@@ -648,16 +857,6 @@
                     </div>
 
                     <div class="form-group">
-                        <label>Ticket Price</label>
-                        <input type="number" name="ticketPrice" step="0.01" min="0" required placeholder="0.00">
-                    </div>
-
-                    <div class="form-group">
-                        <label>Total Seats</label>
-                        <input type="number" name="totalSeats" min="1" required placeholder="Enter seat count">
-                    </div>
-
-                    <div class="form-group">
                         <label>Event Image</label>
                         <input type="file" name="eventImage" accept="image/*" onchange="previewNewEventImage(this)">
                         <img id="newEventPreview" class="upload-preview" alt="New event preview">
@@ -667,6 +866,40 @@
                     <div class="form-group span-3">
                         <label>Description</label>
                         <textarea name="description" required placeholder="Write the event description"></textarea>
+                    </div>
+
+                    <div class="form-group span-3">
+                        <label>Ticket Types</label>
+
+                        <div class="ticket-types-box">
+                            <div class="ticket-types-head">
+                                <div>
+                                    <div class="ticket-types-title">Per-event ticket categories</div>
+                                    <div class="ticket-types-sub">Add VIP, Standard, Gold, Early Bird, or any custom ticket type with separate prices and seat counts.</div>
+                                </div>
+
+                                <button type="button" class="btn btn-add-type" onclick="addTicketTypeRow('', '', '')">
+                                    + Add Ticket Type
+                                </button>
+                            </div>
+
+                            <div id="ticketTypeList" class="ticket-type-list"></div>
+                        </div>
+
+                        <div class="summary-bar">
+                            <div class="summary-card">
+                                <div class="summary-label">Lowest Ticket Price</div>
+                                <div class="summary-value" id="summaryMinPrice">LKR 0.00</div>
+                            </div>
+                            <div class="summary-card">
+                                <div class="summary-label">Total Seats Across Types</div>
+                                <div class="summary-value" id="summaryTotalSeats">0</div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info" style="margin-top:16px;">
+                            The event summary price and total seats will be calculated automatically from the ticket types you add.
+                        </div>
                     </div>
                 </div>
 
@@ -775,7 +1008,7 @@
                             <td class="muted"><%= event.getDate() %></td>
                             <td class="muted"><%= event.getTime() %></td>
                             <td class="muted"><%= event.getVenue() %></td>
-                            <td class="muted">LKR <%= event.getTicketPrice() %></td>
+                            <td class="muted">LKR <%= String.format("%.2f", event.getTicketPrice()) %></td>
                             <td class="muted"><%= event.getTotalSeats() %></td>
                             <td class="muted"><%= event.getAvailableSeats() %></td>
 
