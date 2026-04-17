@@ -60,12 +60,14 @@
             transition: 0.2s ease;
         }
 
-        .nav-links a:hover { color: #8c6cff; }
+        .nav-links a:hover {
+            color: #8c6cff;
+        }
 
         /* ── Page shell ── */
         .container {
             width: 92%;
-            max-width: 860px;
+            max-width: 1040px;
             margin: 40px auto 60px;
         }
 
@@ -80,7 +82,9 @@
             text-decoration: none;
         }
 
-        .breadcrumb a:hover { color: #a0aee0; }
+        .breadcrumb a:hover {
+            color: #a0aee0;
+        }
 
         /* ── Card ── */
         .card {
@@ -118,16 +122,25 @@
             margin-bottom: 22px;
         }
 
+        /* ── Layout ── */
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+            align-items: start;
+        }
+
         /* ── Order summary ── */
         .summary {
             background: rgba(124, 92, 255, 0.06);
             border: 1px solid rgba(124, 92, 255, 0.18);
             border-radius: 18px;
             padding: 22px;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
 
-        .summary-title {
+        .summary-title,
+        .panel-title {
             font-size: 12px;
             font-weight: 800;
             text-transform: uppercase;
@@ -146,10 +159,22 @@
             flex-wrap: wrap;
         }
 
-        .summary-row:last-child { border-bottom: none; }
+        .summary-row:last-child {
+            border-bottom: none;
+        }
 
-        .s-label { color: #9ba8d8; font-size: 14px; font-weight: 600; }
-        .s-value { color: #f3f6ff; font-size: 14px; font-weight: 800; text-align: right; }
+        .s-label {
+            color: #9ba8d8;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .s-value {
+            color: #f3f6ff;
+            font-size: 14px;
+            font-weight: 800;
+            text-align: right;
+        }
 
         .type-badge {
             display: inline-flex;
@@ -183,13 +208,139 @@
         }
 
         .total-amount {
-            font-size: 26px;
+            font-size: 30px;
             font-weight: 800;
             color: #2bc0ff;
             font-family: 'Orbitron', monospace, Arial, sans-serif;
         }
 
+        /* ── Side panels ── */
+        .side-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 18px;
+        }
+
+        .bank-card {
+            background: linear-gradient(180deg, rgba(43, 192, 255, 0.08), rgba(124, 92, 255, 0.05));
+            border: 1px solid rgba(43, 192, 255, 0.18);
+        }
+
+        .bank-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .bank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #79d8ff;
+            background: rgba(43, 192, 255, 0.12);
+            border: 1px solid rgba(43, 192, 255, 0.2);
+        }
+
+        .bank-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .bank-item {
+            background: rgba(7, 13, 28, 0.55);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+
+        .bank-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #7c8ab8;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .bank-value {
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 800;
+            word-break: break-word;
+        }
+
+        .bank-note {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(255, 193, 7, 0.08);
+            border: 1px solid rgba(255, 193, 7, 0.16);
+            color: #ffe59b;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .steps {
+            display: grid;
+            gap: 12px;
+        }
+
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .step:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .step-number {
+            min-width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #7c5cff, #2bc0ff);
+            color: #ffffff;
+            box-shadow: 0 6px 16px rgba(124, 92, 255, 0.22);
+        }
+
+        .step-text {
+            color: #dbe3ff;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .step-text strong {
+            color: #ffffff;
+        }
+
         /* ── Form ── */
+        .form-panel {
+            background: rgba(124, 92, 255, 0.04);
+            border: 1px solid rgba(124, 92, 255, 0.14);
+            border-radius: 18px;
+            padding: 22px;
+            margin-top: 4px;
+        }
+
         .form-group {
             margin-bottom: 20px;
         }
@@ -213,20 +364,23 @@
             color: #ffffff;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
         .form-group input:focus {
             border-color: rgba(124, 92, 255, 0.45);
+            box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.08);
         }
 
-        .form-group input::placeholder { color: #5a6a9a; }
+        .form-group input::placeholder {
+            color: #5a6a9a;
+        }
 
         .hint {
             margin-top: 8px;
             font-size: 13px;
             color: #7c8ab8;
-            line-height: 1.5;
+            line-height: 1.55;
         }
 
         /* ── Buttons ── */
@@ -252,7 +406,10 @@
             gap: 8px;
         }
 
-        .btn:hover { transform: translateY(-1px); opacity: 0.94; }
+        .btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.94;
+        }
 
         .btn-primary {
             background: linear-gradient(90deg, #7c5cff, #2bc0ff);
@@ -277,11 +434,36 @@
             margin-bottom: 20px;
         }
 
-        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (max-width: 600px) {
-            .navbar { flex-direction: column; gap: 12px; padding: 16px 18px; }
-            .nav-links { flex-wrap: wrap; justify-content: center; gap: 14px; }
-            .total-amount { font-size: 22px; }
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+                padding: 16px 18px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 14px;
+            }
+
+            .total-amount {
+                font-size: 24px;
+            }
+
+            .card-body {
+                padding: 20px;
+            }
+
+            .card-head {
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -330,79 +512,194 @@
                     <div class="alert-error">⚠ Payment reference is required. Please enter your transfer/reference number.</div>
                 <% } %>
 
-                <!-- Order Summary -->
-                <div class="summary">
-                    <div class="summary-title">Order Summary</div>
+                <div class="checkout-grid">
 
-                    <div class="summary-row">
-                        <span class="s-label">Event</span>
-                        <span class="s-value"><%= event.getTitle() %></span>
-                    </div>
+                    <!-- Left Column -->
+                    <div>
+                        <!-- Order Summary -->
+                        <div class="summary">
+                            <div class="summary-title">Order Summary</div>
 
-                    <div class="summary-row">
-                        <span class="s-label">Venue</span>
-                        <span class="s-value"><%= event.getVenue() %></span>
-                    </div>
+                            <div class="summary-row">
+                                <span class="s-label">Event</span>
+                                <span class="s-value"><%= event.getTitle() %></span>
+                            </div>
 
-                    <div class="summary-row">
-                        <span class="s-label">Date &amp; Time</span>
-                        <span class="s-value"><%= event.getDate() %> &nbsp; <%= event.getTime() %></span>
-                    </div>
+                            <div class="summary-row">
+                                <span class="s-label">Venue</span>
+                                <span class="s-value"><%= event.getVenue() %></span>
+                            </div>
 
-                    <div class="summary-row">
-                        <span class="s-label">Ticket Type</span>
-                        <span class="s-value">
-                            <span class="type-badge"><%= ticketType.getTypeName() %></span>
-                        </span>
-                    </div>
+                            <div class="summary-row">
+                                <span class="s-label">Date &amp; Time</span>
+                                <span class="s-value"><%= event.getDate() %> &nbsp; <%= event.getTime() %></span>
+                            </div>
 
-                    <div class="summary-row">
-                        <span class="s-label">Price per Ticket</span>
-                        <span class="s-value">LKR <%= String.format("%.2f", ticketType.getPrice()) %></span>
-                    </div>
+                            <div class="summary-row">
+                                <span class="s-label">Ticket Type</span>
+                                <span class="s-value">
+                                    <span class="type-badge"><%= ticketType.getTypeName() %></span>
+                                </span>
+                            </div>
 
-                    <div class="summary-row">
-                        <span class="s-label">Quantity</span>
-                        <span class="s-value"><%= tickets %> ticket<%= tickets > 1 ? "s" : "" %></span>
-                    </div>
+                            <div class="summary-row">
+                                <span class="s-label">Price per Ticket</span>
+                                <span class="s-value">LKR <%= String.format("%.2f", ticketType.getPrice()) %></span>
+                            </div>
 
-                    <div class="total-row">
-                        <span class="total-label">Total Amount</span>
-                        <span class="total-amount">LKR <%= String.format("%.2f", total) %></span>
-                    </div>
-                </div>
+                            <div class="summary-row">
+                                <span class="s-label">Quantity</span>
+                                <span class="s-value"><%= tickets %> ticket<%= tickets > 1 ? "s" : "" %></span>
+                            </div>
 
-                <!-- Payment form -->
-                <form action="<%= request.getContextPath() %>/booking" method="post">
-                    <input type="hidden" name="action"          value="confirmPayment">
-                    <input type="hidden" name="eventId"         value="<%= event.getEventId() %>">
-                    <input type="hidden" name="ticketTypeId"    value="<%= ticketType.getTicketTypeId() %>">
-                    <input type="hidden" name="numberOfTickets" value="<%= tickets %>">
+                            <div class="total-row">
+                                <span class="total-label">Total Amount</span>
+                                <span class="total-amount">LKR <%= String.format("%.2f", total) %></span>
+                            </div>
+                        </div>
 
-                    <div class="form-group">
-                        <label for="paymentReference">Payment Reference Number</label>
-                        <input type="text"
-                               id="paymentReference"
-                               name="paymentReference"
-                               placeholder="Enter your bank transfer / payment slip reference"
-                               required
-                               autocomplete="off">
-                        <div class="hint">
-                            Transfer the total amount shown above and enter the reference number or slip ID here.
-                            An admin will review and approve your booking.
+                        <!-- Payment Form -->
+                        <div class="form-panel">
+                            <form action="<%= request.getContextPath() %>/booking" method="post">
+                                <input type="hidden" name="action" value="confirmPayment">
+                                <input type="hidden" name="eventId" value="<%= event.getEventId() %>">
+                                <input type="hidden" name="ticketTypeId" value="<%= ticketType.getTicketTypeId() %>">
+                                <input type="hidden" name="numberOfTickets" value="<%= tickets %>">
+
+                                <div class="form-group">
+                                    <label for="paymentReference">Payment Reference Number</label>
+                                    <input type="text"
+                                           id="paymentReference"
+                                           name="paymentReference"
+                                           placeholder="Enter your bank transfer / payment slip reference"
+                                           required
+                                           autocomplete="off">
+                                    <div class="hint">
+                                        After completing the transfer, enter the transaction reference number, bank slip number, or payment note ID here.
+                                    </div>
+                                </div>
+
+                                <div class="actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        ✅ Confirm Payment Submission
+                                    </button>
+                                    <a class="btn btn-secondary"
+                                       href="<%= request.getContextPath() %>/event?action=view&id=<%= event.getEventId() %>">
+                                        ← Go Back
+                                    </a>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
-                    <div class="actions">
-                        <button type="submit" class="btn btn-primary">
-                            ✅ Confirm Payment Submission
-                        </button>
-                        <a class="btn btn-secondary"
-                           href="<%= request.getContextPath() %>/event?action=view&id=<%= event.getEventId() %>">
-                            ← Go Back
-                        </a>
+                    <!-- Right Column -->
+                    <div>
+                        <!-- Bank Details -->
+                        <div class="side-panel bank-card">
+                            <div class="bank-header">
+                                <div class="panel-title" style="margin-bottom:0;">Bank Transfer Details</div>
+                                <span class="bank-badge">Official Payment</span>
+                            </div>
+
+                            <div class="bank-grid">
+                                <div class="bank-item">
+                                    <div class="bank-label">Bank Name</div>
+                                    <div class="bank-value">HNB</div>
+                                </div>
+
+                                <div class="bank-item">
+                                    <div class="bank-label">Account Number</div>
+                                    <div class="bank-value">013020763635</div>
+                                </div>
+
+                                <div class="bank-item">
+                                    <div class="bank-label">Account Name</div>
+                                    <div class="bank-value">EventHorizon</div>
+                                </div>
+
+                                <div class="bank-item">
+                                    <div class="bank-label">Payment Amount</div>
+                                    <div class="bank-value">LKR <%= String.format("%.2f", total) %></div>
+                                </div>
+                            </div>
+
+                            <div class="bank-note">
+                                Please transfer the <strong>exact total amount</strong> shown on this page. Keep your bank slip or transaction receipt safe until your booking is approved.
+                            </div>
+                        </div>
+
+                        <!-- Procedure Details -->
+                        <div class="side-panel">
+                            <div class="panel-title">Payment Procedure</div>
+
+                            <div class="steps">
+                                <div class="step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-text">
+                                        Transfer <strong>LKR <%= String.format("%.2f", total) %></strong> to the bank account shown above.
+                                    </div>
+                                </div>
+
+                                <div class="step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-text">
+                                        Copy the <strong>transaction reference number</strong> or keep a clear payment slip screenshot.
+                                    </div>
+                                </div>
+
+                                <div class="step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-text">
+                                        Enter that reference number in the <strong>Payment Reference Number</strong> field on this page.
+                                    </div>
+                                </div>
+
+                                <div class="step">
+                                    <div class="step-number">4</div>
+                                    <div class="step-text">
+                                        Click <strong>Confirm Payment Submission</strong> to send your booking for admin review.
+                                    </div>
+                                </div>
+
+                                <div class="step">
+                                    <div class="step-number">5</div>
+                                    <div class="step-text">
+                                        Once approved, your booking will appear in <strong>My Bookings</strong> and your digital tickets will be generated.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Important Notes -->
+                        <div class="side-panel">
+                            <div class="panel-title">Important Notes</div>
+
+                            <div class="steps">
+                                <div class="step">
+                                    <div class="step-number">!</div>
+                                    <div class="step-text">
+                                        Your booking is not fully completed until the payment is reviewed and approved by an admin.
+                                    </div>
+                                </div>
+
+                                <div class="step">
+                                    <div class="step-number">!</div>
+                                    <div class="step-text">
+                                        Please make sure the payment reference is entered correctly to avoid approval delays.
+                                    </div>
+                                </div>
+
+                                <div class="step">
+                                    <div class="step-number">!</div>
+                                    <div class="step-text">
+                                        If you pay a different amount or submit a wrong reference number, your booking may be rejected.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </form>
+
+                </div>
 
             </div>
         </div>
