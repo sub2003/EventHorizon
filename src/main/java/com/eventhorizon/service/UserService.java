@@ -186,6 +186,7 @@ public class UserService {
     }
 
     public boolean approveAdminRequest(String requestId, String approverAdminId) {
+
         String selectSql = "SELECT * FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
 
         String insertAdminSql =
@@ -212,7 +213,6 @@ public class UserService {
                         return false;
                     }
 
-                    String requesterAdminId = rs.getString("requester_admin_id");
                     String name = rs.getString("requested_name");
                     String email = normalizeEmail(rs.getString("requested_email"));
                     String password = rs.getString("requested_password");
@@ -224,12 +224,10 @@ public class UserService {
                     } catch (SQLException e) {
                         permission = Admin.CORE_ADMIN;
                     }
+
                     permission = normalizeAdminPermission(permission);
 
-                    if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
-                        conn.rollback();
-                        return false;
-                    }
+                    // ❌ REMOVED SELF APPROVAL BLOCK
 
                     if (getUserByEmail(email) != null) {
                         conn.rollback();
@@ -265,8 +263,7 @@ public class UserService {
             if (conn != null) {
                 try {
                     conn.rollback();
-                } catch (SQLException ignored) {
-                }
+                } catch (SQLException ignored) {}
             }
             return false;
 
@@ -275,15 +272,12 @@ public class UserService {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException ignored) {
-                }
+                } catch (SQLException ignored) {}
             }
         }
     }
 
     public boolean rejectAdminRequest(String requestId, String approverAdminId) {
-        String selectSql =
-                "SELECT requester_admin_id FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
 
         String updateSql =
                 "UPDATE admin_requests " +
@@ -291,21 +285,9 @@ public class UserService {
                         "WHERE request_id = ? AND status = 'PENDING'";
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement selectPs = conn.prepareStatement(selectSql);
              PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
 
-            selectPs.setString(1, requestId);
-
-            try (ResultSet rs = selectPs.executeQuery()) {
-                if (!rs.next()) {
-                    return false;
-                }
-
-                String requesterAdminId = rs.getString("requester_admin_id");
-                if (requesterAdminId != null && requesterAdminId.equals(approverAdminId)) {
-                    return false;
-                }
-            }
+            // ❌ REMOVED SELF REJECT BLOCK
 
             updatePs.setString(1, approverAdminId);
             updatePs.setString(2, requestId);
