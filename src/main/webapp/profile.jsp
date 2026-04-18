@@ -45,7 +45,7 @@
     </ul>
 </nav>
 
-<div class="container" style="max-width:600px;padding-top:40px;padding-bottom:60px;">
+<div class="container" style="max-width:700px;padding-top:40px;padding-bottom:60px;">
     <h1 class="page-title" style="margin-bottom:32px;">👤 My Profile</h1>
 
     <c:if test="${param.msg == 'updated'}">
@@ -57,6 +57,18 @@
     <c:if test="${param.error == 'updateFailed'}">
         <div class="alert alert-danger" data-auto-dismiss>
             ❌ Update failed. Please try again.
+        </div>
+    </c:if>
+
+    <c:if test="${param.error == 'deleteFailed'}">
+        <div class="alert alert-danger" data-auto-dismiss>
+            ❌ Account deletion failed. Please try again.
+        </div>
+    </c:if>
+
+    <c:if test="${param.error == 'notAllowed'}">
+        <div class="alert alert-danger" data-auto-dismiss>
+            ❌ You are not allowed to perform that action.
         </div>
     </c:if>
 
@@ -117,6 +129,26 @@
             </button>
         </form>
     </div>
+
+    <% if ("CUSTOMER".equals(role)) { %>
+    <div style="margin-top:24px;background:rgba(220,53,69,0.08);border:1px solid rgba(220,53,69,0.25);border-radius:16px;padding:24px;">
+        <h3 style="margin:0 0 10px 0;color:#dc3545;">⚠ Delete My Account</h3>
+        <p style="margin:0 0 18px 0;color:var(--text-muted);line-height:1.6;">
+            This action is permanent. Your account and related booking records may be removed and cannot be recovered.
+        </p>
+
+        <form action="${pageContext.request.contextPath}/user" method="post"
+              onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');">
+            <input type="hidden" name="action" value="selfDelete">
+
+            <button type="submit"
+                    class="btn"
+                    style="background:#dc3545;color:#ffffff;border:none;padding:12px 22px;border-radius:10px;font-weight:700;cursor:pointer;">
+                🗑 Delete My Account
+            </button>
+        </form>
+    </div>
+    <% } %>
 
     <div style="text-align:center;margin-top:24px;">
         <% if ("CUSTOMER".equals(role)) { %>

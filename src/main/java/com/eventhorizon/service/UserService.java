@@ -227,8 +227,6 @@ public class UserService {
 
                     permission = normalizeAdminPermission(permission);
 
-                    // ❌ REMOVED SELF APPROVAL BLOCK
-
                     if (getUserByEmail(email) != null) {
                         conn.rollback();
                         return false;
@@ -263,7 +261,8 @@ public class UserService {
             if (conn != null) {
                 try {
                     conn.rollback();
-                } catch (SQLException ignored) {}
+                } catch (SQLException ignored) {
+                }
             }
             return false;
 
@@ -272,7 +271,8 @@ public class UserService {
                 try {
                     conn.setAutoCommit(true);
                     conn.close();
-                } catch (SQLException ignored) {}
+                } catch (SQLException ignored) {
+                }
             }
         }
     }
@@ -286,8 +286,6 @@ public class UserService {
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
-
-            // ❌ REMOVED SELF REJECT BLOCK
 
             updatePs.setString(1, approverAdminId);
             updatePs.setString(2, requestId);
@@ -566,18 +564,43 @@ public class UserService {
     }
 
     public boolean deleteUser(String userId) {
-        return deleteUser(userId, null);
+        return deleteUser(userId, null, null, null);
     }
 
-    public boolean deleteUser(String userId, String currentAdminId) {
+    public boolean deleteUser(String userId, String currentUserId, String role, String adminPermission) {
         userId = safeTrim(userId);
-        currentAdminId = safeTrim(currentAdminId);
+        currentUserId = safeTrim(currentUserId);
+        role = safeTrim(role);
+        adminPermission = safeTrim(adminPermission);
 
         if (isBlank(userId)) {
             return false;
         }
 
-        if (userId.equals(currentAdminId)) {
+        User targetUser = getUserById(userId);
+        if (targetUser == null) {
+            return false;
+        }
+
+        boolean isSelfDelete = currentUserId != null && currentUserId.equals(userId);
+
+        if ("CUSTOMER".equalsIgnoreCase(role)) {
+            if (!isSelfDelete) {
+                return false;
+            }
+
+            if (!"CUSTOMER".equalsIgnoreCase(targetUser.getRole())) {
+                return false;
+            }
+        } else if ("ADMIN".equalsIgnoreCase(role)) {
+            if (!hasFullAccess(adminPermission)) {
+                return false;
+            }
+
+            if (isSelfDelete) {
+                return false;
+            }
+        } else {
             return false;
         }
 

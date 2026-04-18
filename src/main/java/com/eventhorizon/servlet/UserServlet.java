@@ -39,6 +39,10 @@ public class UserServlet extends HttpServlet {
                 handleUpdateProfile(req, resp);
                 break;
 
+            case "selfDelete":
+                handleSelfDelete(req, resp);
+                break;
+
             case "adminUpdate":
                 requireFullAccessAdmin(req, resp);
                 if (resp.isCommitted()) return;
@@ -221,6 +225,34 @@ public class UserServlet extends HttpServlet {
         }
     }
 
+    private void handleSelfDelete(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        HttpSession session = req.getSession(false);
+        if (session == null) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String currentUserId = (String) session.getAttribute("userId");
+        String role = (String) session.getAttribute("role");
+        String adminPermission = (String) session.getAttribute("adminPermission");
+
+        if (!"CUSTOMER".equalsIgnoreCase(role)) {
+            resp.sendRedirect(req.getContextPath() + "/profile.jsp?error=deleteNotAllowed");
+            return;
+        }
+
+        boolean deleted = userService.deleteUser(currentUserId, currentUserId, role, adminPermission);
+
+        if (deleted) {
+            session.invalidate();
+            resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=accountDeleted");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/profile.jsp?error=deleteFailed");
+        }
+    }
+
     private void handleAdminUpdate(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
@@ -272,9 +304,11 @@ public class UserServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         String currentAdminId = (String) session.getAttribute("userId");
+        String role = (String) session.getAttribute("role");
+        String adminPermission = (String) session.getAttribute("adminPermission");
         String userId = trim(req.getParameter("userId"));
 
-        boolean deleted = userService.deleteUser(userId, currentAdminId);
+        boolean deleted = userService.deleteUser(userId, currentAdminId, role, adminPermission);
 
         if (deleted) {
             resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=deleted");
@@ -352,7 +386,6 @@ public class UserServlet extends HttpServlet {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noCoreAccess");
         }
     }
-
 
     private void requireRequestAdminAccess(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
