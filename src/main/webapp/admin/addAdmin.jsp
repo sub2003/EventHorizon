@@ -7,13 +7,13 @@
     String userName = currentSession != null ? (String) currentSession.getAttribute("userName") : null;
     String adminPermission = currentSession != null ? (String) currentSession.getAttribute("adminPermission") : null;
 
-    if (currentSession == null || role == null || !"ADMIN".equals(role) || !"FULL_ACCESS".equals(adminPermission)) {
+    if (currentSession == null || role == null || !"ADMIN".equals(role) || !UserService.canRequestAdmin(adminPermission)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
 
     if (adminPermission == null || adminPermission.trim().isEmpty()) {
-        adminPermission = Admin.FULL_ACCESS;
+        adminPermission = Admin.CORE_ADMIN;
     }
 
     boolean canManageEvents = UserService.hasEventAccess(adminPermission);
@@ -168,16 +168,18 @@
                 </a>
                 <% } %>
 
-                <% if (hasFullAccess) { %>
+                <% if (UserService.canRequestAdmin(adminPermission)) { %>
                 <a class="active" href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
                 </a>
 
+                <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
+                <% } %>
                 <% } %>
             </nav>
         </div>
@@ -216,12 +218,12 @@
 
         <section class="content-card">
             <h2>New Admin Request Form</h2>
-            <p>Submit a new admin access request. The request will stay pending until another full-access admin reviews it.</p>
+            <p>Submit a new admin access request. Only a Core Admin can approve or reject a pending admin request.</p>
 
             <% if ("requestSubmitted".equals(msg)) { %>
                 <div class="alert alert-success" style="margin-bottom:18px;">
                     <i class="fa-solid fa-circle-check" style="margin-right:8px;"></i>
-                    Admin request submitted successfully. Another full-access admin can now review it.
+                    Admin request submitted successfully. A Core Admin can now review it.
                 </div>
             <% } %>
 
@@ -260,10 +262,10 @@
                         <label for="adminPermission">Permission Type</label>
                         <select id="adminPermission" name="adminPermission" required>
                             <option value="">Select permission</option>
-                            <option value="FULL_ACCESS">Full Access</option>
+                            <option value="CORE_ADMIN">Core Admin</option>
+                            <option value="EVENTS_BOOKINGS_REQUEST_ADMIN">Events + Bookings + New Admin Requests</option>
                             <option value="EVENTS_ONLY">Events Only</option>
                             <option value="BOOKINGS_ONLY">Bookings Only</option>
-                            <option value="EVENTS_BOOKINGS">Events + Bookings</option>
                         </select>
                     </div>
                 </div>

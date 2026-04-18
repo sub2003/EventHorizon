@@ -15,7 +15,7 @@
     }
 
     if (adminPermission == null || adminPermission.trim().isEmpty()) {
-        adminPermission = Admin.FULL_ACCESS;
+        adminPermission = Admin.CORE_ADMIN;
     }
 
     if (!UserService.hasBookingAccess(adminPermission)) {

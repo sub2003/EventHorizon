@@ -10,13 +10,13 @@
     String adminPermission = currentSession != null ? (String) currentSession.getAttribute("adminPermission") : null;
     String currentAdminId = currentSession != null ? (String) currentSession.getAttribute("userId") : null;
 
-    if (currentSession == null || role == null || !"ADMIN".equals(role) || !"FULL_ACCESS".equals(adminPermission)) {
+    if (currentSession == null || role == null || !"ADMIN".equals(role) || !UserService.hasFullAccess(adminPermission)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }
 
     if (adminPermission == null || adminPermission.trim().isEmpty()) {
-        adminPermission = Admin.FULL_ACCESS;
+        adminPermission = Admin.CORE_ADMIN;
     }
 
     boolean canManageEvents = UserService.hasEventAccess(adminPermission);
@@ -229,16 +229,18 @@
                 </a>
                 <% } %>
 
-                <% if (hasFullAccess) { %>
+                <% if (UserService.canRequestAdmin(adminPermission)) { %>
                 <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
                 </a>
 
+                <% if (hasFullAccess) { %>
                 <a class="active" href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
+                <% } %>
                 <% } %>
             </nav>
         </div>

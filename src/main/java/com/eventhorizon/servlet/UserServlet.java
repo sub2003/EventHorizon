@@ -52,7 +52,7 @@ public class UserServlet extends HttpServlet {
                 break;
 
             case "requestAdmin":
-                requireFullAccessAdmin(req, resp);
+                requireRequestAdminAccess(req, resp);
                 if (resp.isCommitted()) return;
                 handleRequestAdmin(req, resp);
                 break;
@@ -160,11 +160,13 @@ public class UserServlet extends HttpServlet {
                 session.setAttribute("canManageEvents", admin.canManageEvents());
                 session.setAttribute("canManageBookings", admin.canManageBookings());
                 session.setAttribute("hasFullAccess", UserService.hasFullAccess(permission));
+                session.setAttribute("canRequestAdmins", UserService.canRequestAdmin(permission));
             } else {
                 session.removeAttribute("adminPermission");
                 session.removeAttribute("canManageEvents");
                 session.removeAttribute("canManageBookings");
                 session.removeAttribute("hasFullAccess");
+                session.removeAttribute("canRequestAdmins");
             }
 
             session.setMaxInactiveInterval(30 * 60);
@@ -250,11 +252,13 @@ public class UserServlet extends HttpServlet {
                     session.setAttribute("canManageEvents", UserService.hasEventAccess(normalizedPermission));
                     session.setAttribute("canManageBookings", UserService.hasBookingAccess(normalizedPermission));
                     session.setAttribute("hasFullAccess", UserService.hasFullAccess(normalizedPermission));
+                    session.setAttribute("canRequestAdmins", UserService.canRequestAdmin(normalizedPermission));
                 } else {
                     session.removeAttribute("adminPermission");
                     session.removeAttribute("canManageEvents");
                     session.removeAttribute("canManageBookings");
                     session.removeAttribute("hasFullAccess");
+                    session.removeAttribute("canRequestAdmins");
                 }
             }
             resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=updated");
@@ -296,7 +300,7 @@ public class UserServlet extends HttpServlet {
         );
 
         if (created) {
-            resp.sendRedirect(req.getContextPath() + "/user?action=listAdminRequests&msg=requestSubmitted");
+            resp.sendRedirect(req.getContextPath() + "/user?action=addAdminForm&msg=requestSubmitted");
         } else {
             resp.sendRedirect(req.getContextPath() + "/user?action=addAdminForm&error=requestFailed");
         }
@@ -345,7 +349,23 @@ public class UserServlet extends HttpServlet {
 
         String permission = (String) session.getAttribute("adminPermission");
         if (!UserService.hasFullAccess(permission)) {
-            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noFullAccess");
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noCoreAccess");
+        }
+    }
+
+
+    private void requireRequestAdminAccess(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        HttpSession session = req.getSession(false);
+        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            return;
+        }
+
+        String permission = (String) session.getAttribute("adminPermission");
+        if (!UserService.canRequestAdmin(permission)) {
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noRequestPermission");
         }
     }
 

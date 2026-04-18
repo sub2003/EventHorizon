@@ -664,7 +664,7 @@
                     <% for (User user : users) { %>
                         <%
                             boolean isAdmin = "ADMIN".equals(user.getRole());
-                            String permissionValue = Admin.FULL_ACCESS;
+                            String permissionValue = Admin.CORE_ADMIN;
                             String permissionLabel = "Not Applicable";
 
                             if (isAdmin && user instanceof Admin) {
@@ -787,10 +787,10 @@
                                                 <label>Admin Permission</label>
                                                 <select name="adminPermission"
                                                         <%= ("CUSTOMER".equals(user.getRole())) ? "" : "" %>>
+                                                    <option value="CORE_ADMIN" <%= "CORE_ADMIN".equals(permissionValue) ? "selected" : "" %>>Core Admin</option>
+                                                    <option value="EVENTS_BOOKINGS_REQUEST_ADMIN" <%= "EVENTS_BOOKINGS_REQUEST_ADMIN".equals(permissionValue) ? "selected" : "" %>>Events + Bookings + New Admin Requests</option>
                                                     <option value="EVENTS_ONLY" <%= "EVENTS_ONLY".equals(permissionValue) ? "selected" : "" %>>Events only</option>
                                                     <option value="BOOKINGS_ONLY" <%= "BOOKINGS_ONLY".equals(permissionValue) ? "selected" : "" %>>Bookings only</option>
-                                                    <option value="EVENTS_BOOKINGS" <%= "EVENTS_BOOKINGS".equals(permissionValue) ? "selected" : "" %>>Events + Bookings</option>
-                                                    <option value="FULL_ACCESS" <%= "FULL_ACCESS".equals(permissionValue) ? "selected" : "" %>>Full Access</option>
                                                 </select>
                                             </div>
                                         </div>

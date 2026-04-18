@@ -276,7 +276,7 @@ public class BookingServlet extends HttpServlet {
                                       HttpSession session) throws IOException {
 
         String permission = (String) session.getAttribute("adminPermission");
-        if (permission == null) permission = Admin.FULL_ACCESS;
+        if (permission == null) permission = Admin.CORE_ADMIN;
 
         if (!UserService.hasBookingAccess(permission)) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
@@ -294,7 +294,7 @@ public class BookingServlet extends HttpServlet {
                                      HttpSession session) throws IOException {
 
         String permission = (String) session.getAttribute("adminPermission");
-        if (permission == null) permission = Admin.FULL_ACCESS;
+        if (permission == null) permission = Admin.CORE_ADMIN;
 
         if (!UserService.hasBookingAccess(permission)) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
@@ -312,7 +312,7 @@ public class BookingServlet extends HttpServlet {
                                                 HttpSession session) throws IOException {
 
         String permission = (String) session.getAttribute("adminPermission");
-        if (permission == null) permission = Admin.FULL_ACCESS;
+        if (permission == null) permission = Admin.CORE_ADMIN;
 
         if (!UserService.hasBookingAccess(permission)) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
@@ -343,7 +343,7 @@ public class BookingServlet extends HttpServlet {
         }
 
         String permission = (String) session.getAttribute("adminPermission");
-        if (permission == null) permission = Admin.FULL_ACCESS;
+        if (permission == null) permission = Admin.CORE_ADMIN;
 
         if (!UserService.hasBookingAccess(permission)) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");

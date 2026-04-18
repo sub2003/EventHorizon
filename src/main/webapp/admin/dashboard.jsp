@@ -13,7 +13,7 @@
     }
 
     if (adminPermission == null || adminPermission.trim().isEmpty()) {
-        adminPermission = Admin.FULL_ACCESS;
+        adminPermission = Admin.CORE_ADMIN;
     }
 
     boolean canManageEvents = UserService.hasEventAccess(adminPermission);
@@ -76,16 +76,18 @@
                 </a>
                 <% } %>
 
-                <% if (hasFullAccess) { %>
+                <% if (UserService.canRequestAdmin(adminPermission)) { %>
                 <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
                 </a>
 
+                <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
+                <% } %>
                 <% } %>
             </nav>
         </div>
@@ -130,8 +132,8 @@
             <div class="alert alert-danger" style="margin-bottom:16px;">You do not have permission to manage bookings.</div>
         <% } %>
 
-        <% if ("noFullAccess".equals(request.getParameter("error"))) { %>
-            <div class="alert alert-danger" style="margin-bottom:16px;">You do not have permission to access that admin section.</div>
+        <% if ("noCoreAccess".equals(request.getParameter("error"))) { %>
+            <div class="alert alert-danger" style="margin-bottom:16px;">Only a Core Admin can access that admin section.</div>
         <% } %>
 
         <section class="hero-panel">

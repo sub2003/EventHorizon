@@ -1,6 +1,8 @@
 <!-- editEvent.jsp -->
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
+<%@ page import="com.eventhorizon.model.Admin" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
 <%@ page import="com.eventhorizon.service.EventService" %>
 <%@ page import="com.eventhorizon.service.EventTicketTypeService" %>
 <%@ page import="com.eventhorizon.model.Event" %>
@@ -10,7 +12,10 @@
     response.setHeader("Pragma", "no-cache");
     response.setDateHeader("Expires", 0);
 
-    if (session.getAttribute("userId") == null || !"ADMIN".equals(session.getAttribute("role"))) {
+    String adminPermission = (String) session.getAttribute("adminPermission");
+    if (adminPermission == null || adminPermission.trim().isEmpty()) adminPermission = Admin.CORE_ADMIN;
+
+    if (session.getAttribute("userId") == null || !"ADMIN".equals(session.getAttribute("role")) || !UserService.hasEventAccess(adminPermission)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }

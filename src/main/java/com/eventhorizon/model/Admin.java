@@ -6,10 +6,10 @@ package com.eventhorizon.model;
  */
 public class Admin extends User {
 
+    public static final String CORE_ADMIN = "CORE_ADMIN";
+    public static final String EVENTS_BOOKINGS_REQUEST_ADMIN = "EVENTS_BOOKINGS_REQUEST_ADMIN";
     public static final String EVENTS_ONLY = "EVENTS_ONLY";
     public static final String BOOKINGS_ONLY = "BOOKINGS_ONLY";
-    public static final String EVENTS_BOOKINGS = "EVENTS_BOOKINGS";
-    public static final String FULL_ACCESS = "FULL_ACCESS";
 
     private String adminPermission;
 
@@ -21,7 +21,7 @@ public class Admin extends User {
 
     public Admin() {
         super();
-        this.adminPermission = FULL_ACCESS;
+        this.adminPermission = CORE_ADMIN;
     }
 
     @Override
@@ -35,45 +35,54 @@ public class Admin extends User {
 
     public void setAdminPermission(String adminPermission) {
         if (adminPermission == null || adminPermission.trim().isEmpty()) {
-            this.adminPermission = FULL_ACCESS;
+            this.adminPermission = CORE_ADMIN;
             return;
         }
 
         String normalized = adminPermission.trim().toUpperCase();
         switch (normalized) {
+            case CORE_ADMIN:
+            case EVENTS_BOOKINGS_REQUEST_ADMIN:
             case EVENTS_ONLY:
             case BOOKINGS_ONLY:
-            case EVENTS_BOOKINGS:
-            case FULL_ACCESS:
                 this.adminPermission = normalized;
                 break;
             default:
-                this.adminPermission = FULL_ACCESS;
+                this.adminPermission = CORE_ADMIN;
         }
     }
 
     public boolean canManageEvents() {
-        return FULL_ACCESS.equals(adminPermission)
-                || EVENTS_ONLY.equals(adminPermission)
-                || EVENTS_BOOKINGS.equals(adminPermission);
+        return CORE_ADMIN.equals(adminPermission)
+                || EVENTS_BOOKINGS_REQUEST_ADMIN.equals(adminPermission)
+                || EVENTS_ONLY.equals(adminPermission);
     }
 
     public boolean canManageBookings() {
-        return FULL_ACCESS.equals(adminPermission)
-                || BOOKINGS_ONLY.equals(adminPermission)
-                || EVENTS_BOOKINGS.equals(adminPermission);
+        return CORE_ADMIN.equals(adminPermission)
+                || EVENTS_BOOKINGS_REQUEST_ADMIN.equals(adminPermission)
+                || BOOKINGS_ONLY.equals(adminPermission);
+    }
+
+    public boolean canRequestAdmins() {
+        return CORE_ADMIN.equals(adminPermission)
+                || EVENTS_BOOKINGS_REQUEST_ADMIN.equals(adminPermission);
+    }
+
+    public boolean canApproveAdmins() {
+        return CORE_ADMIN.equals(adminPermission);
     }
 
     public String getPermissionLabel() {
         switch (adminPermission) {
+            case EVENTS_BOOKINGS_REQUEST_ADMIN:
+                return "Events + Bookings + New Admin Requests";
             case EVENTS_ONLY:
                 return "Events only";
             case BOOKINGS_ONLY:
                 return "Bookings only";
-            case EVENTS_BOOKINGS:
-                return "Events + Bookings";
             default:
-                return "Full Access";
+                return "Core Admin";
         }
     }
 }

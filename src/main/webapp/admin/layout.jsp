@@ -13,7 +13,7 @@
     }
 
     if (adminPermission == null || adminPermission.trim().isEmpty()) {
-        adminPermission = Admin.FULL_ACCESS;
+        adminPermission = Admin.CORE_ADMIN;
     }
 
     boolean canManageEvents = UserService.hasEventAccess(adminPermission);
@@ -84,7 +84,9 @@
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
+                <% } %>
 
+                <% if (UserService.canRequestAdmin(adminPermission)) { %>
                 <a href="<%= request.getContextPath() %>/user?action=addAdminForm"
                    class="<%= "Request Admin".equals(pageTitle) ? "active" : "" %>">
                     <i class="fa-solid fa-user-plus"></i>

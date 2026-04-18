@@ -1,10 +1,15 @@
 <!-- addEvent.jsp -->
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
+<%@ page import="com.eventhorizon.model.Admin" %>
+<%@ page import="com.eventhorizon.service.UserService" %>
 <%@ page import="com.eventhorizon.model.Event" %>
 <%
     Object roleObj = session.getAttribute("role");
-    if (roleObj == null || !"ADMIN".equals(roleObj.toString())) {
+    String adminPermission = (String) session.getAttribute("adminPermission");
+    if (adminPermission == null || adminPermission.trim().isEmpty()) adminPermission = Admin.CORE_ADMIN;
+
+    if (roleObj == null || !"ADMIN".equals(roleObj.toString()) || !UserService.hasEventAccess(adminPermission)) {
         response.sendRedirect(request.getContextPath() + "/login.jsp");
         return;
     }

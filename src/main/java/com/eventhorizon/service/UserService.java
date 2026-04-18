@@ -169,7 +169,7 @@ public class UserService {
                 try {
                     requestedPermission = rs.getString("requested_permission");
                 } catch (SQLException e) {
-                    requestedPermission = Admin.FULL_ACCESS;
+                    requestedPermission = Admin.CORE_ADMIN;
                 }
 
                 row.put("requestedPermission", normalizeAdminPermission(requestedPermission));
@@ -222,7 +222,7 @@ public class UserService {
                     try {
                         permission = rs.getString("requested_permission");
                     } catch (SQLException e) {
-                        permission = Admin.FULL_ACCESS;
+                        permission = Admin.CORE_ADMIN;
                     }
                     permission = normalizeAdminPermission(permission);
 
@@ -448,7 +448,7 @@ public class UserService {
             System.err.println("getAdminPermission error: " + e.getMessage());
         }
 
-        return Admin.FULL_ACCESS;
+        return Admin.CORE_ADMIN;
     }
 
     public boolean updateUser(String userId, String newName, String newPhone, String newPassword) {
@@ -702,7 +702,7 @@ public class UserService {
             try {
                 permission = rs.getString("admin_permission");
             } catch (SQLException e) {
-                permission = Admin.FULL_ACCESS;
+                permission = Admin.CORE_ADMIN;
             }
 
             return new Admin(id, name, email, pass, phone, normalizeAdminPermission(permission));
@@ -765,61 +765,69 @@ public class UserService {
     }
 
     public static boolean hasEventAccess(String permission) {
-        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
-        return Admin.FULL_ACCESS.equals(p)
-                || Admin.EVENTS_ONLY.equals(p)
-                || Admin.EVENTS_BOOKINGS.equals(p);
+        String p = permission == null ? Admin.CORE_ADMIN : permission.trim().toUpperCase();
+        return Admin.CORE_ADMIN.equals(p)
+                || Admin.EVENTS_BOOKINGS_REQUEST_ADMIN.equals(p)
+                || Admin.EVENTS_ONLY.equals(p);
     }
 
     public static boolean hasBookingAccess(String permission) {
-        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
-        return Admin.FULL_ACCESS.equals(p)
-                || Admin.BOOKINGS_ONLY.equals(p)
-                || Admin.EVENTS_BOOKINGS.equals(p);
+        String p = permission == null ? Admin.CORE_ADMIN : permission.trim().toUpperCase();
+        return Admin.CORE_ADMIN.equals(p)
+                || Admin.EVENTS_BOOKINGS_REQUEST_ADMIN.equals(p)
+                || Admin.BOOKINGS_ONLY.equals(p);
     }
 
     public static boolean hasFullAccess(String permission) {
-        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
-        return Admin.FULL_ACCESS.equals(p);
+        String p = permission == null ? Admin.CORE_ADMIN : permission.trim().toUpperCase();
+        return Admin.CORE_ADMIN.equals(p);
+    }
+
+    public static boolean canRequestAdmin(String permission) {
+        String p = permission == null ? Admin.CORE_ADMIN : permission.trim().toUpperCase();
+        return Admin.CORE_ADMIN.equals(p)
+                || Admin.EVENTS_BOOKINGS_REQUEST_ADMIN.equals(p);
     }
 
     public static String permissionLabel(String permission) {
-        String p = permission == null ? Admin.FULL_ACCESS : permission.trim().toUpperCase();
+        String p = permission == null ? Admin.CORE_ADMIN : permission.trim().toUpperCase();
         switch (p) {
+            case Admin.EVENTS_BOOKINGS_REQUEST_ADMIN:
+                return "Events + Bookings + New Admin Requests";
             case Admin.EVENTS_ONLY:
-                return "Events Only";
+                return "Events only";
             case Admin.BOOKINGS_ONLY:
-                return "Bookings Only";
-            case Admin.EVENTS_BOOKINGS:
-                return "Events + Bookings";
+                return "Bookings only";
             default:
-                return "Full Access";
+                return "Core Admin";
         }
     }
 
     private String normalizeAdminPermission(String permission) {
         if (permission == null || permission.trim().isEmpty()) {
-            return Admin.FULL_ACCESS;
+            return Admin.CORE_ADMIN;
         }
 
         String p = permission.trim().toUpperCase();
 
         switch (p) {
+            case "CORE_ADMIN":
+            case "FULL":
+            case "FULL_ACCESS":
+                return Admin.CORE_ADMIN;
+            case "EVENTS_BOOKINGS_REQUEST_ADMIN":
+            case "EVENTS_BOOKINGS":
+            case "EVENTS_BOOKINGS_REQUESTS":
+            case "EVENTS+BOOKINGS+REQUESTS":
+                return Admin.EVENTS_BOOKINGS_REQUEST_ADMIN;
             case "EVENTS":
             case "EVENTS_ONLY":
                 return Admin.EVENTS_ONLY;
             case "BOOKINGS":
             case "BOOKINGS_ONLY":
                 return Admin.BOOKINGS_ONLY;
-            case "EVENTS_BOOKINGS":
-            case "EVENTS+BOOKINGS":
-            case "EVENTS_AND_BOOKINGS":
-                return Admin.EVENTS_BOOKINGS;
-            case "FULL":
-            case "FULL_ACCESS":
-                return Admin.FULL_ACCESS;
             default:
-                return Admin.FULL_ACCESS;
+                return Admin.CORE_ADMIN;
         }
     }
 

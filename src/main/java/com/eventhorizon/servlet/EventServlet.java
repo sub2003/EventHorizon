@@ -71,7 +71,7 @@ public class EventServlet extends HttpServlet {
         }
 
         String permission = (String) session.getAttribute("adminPermission");
-        if (permission == null) permission = Admin.FULL_ACCESS;
+        if (permission == null) permission = Admin.CORE_ADMIN;
 
         if (!UserService.hasEventAccess(permission)) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noEventPermission");
@@ -400,7 +400,7 @@ public class EventServlet extends HttpServlet {
         }
 
         String permission = (String) session.getAttribute("adminPermission");
-        if (permission == null) permission = Admin.FULL_ACCESS;
+        if (permission == null) permission = Admin.CORE_ADMIN;
 
         if (!UserService.hasEventAccess(permission)) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noEventPermission");
