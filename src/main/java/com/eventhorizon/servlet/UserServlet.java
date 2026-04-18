@@ -79,6 +79,7 @@ public class UserServlet extends HttpServlet {
     }
 
     @Override
+    @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
@@ -99,7 +100,7 @@ public class UserServlet extends HttpServlet {
                 return;
 
             case "addAdminForm":
-                requireFullAccessAdmin(req, resp);
+                requireRequestAdminAccess(req, resp);
                 if (resp.isCommitted()) return;
 
                 req.getRequestDispatcher("/admin/addAdmin.jsp").forward(req, resp);
