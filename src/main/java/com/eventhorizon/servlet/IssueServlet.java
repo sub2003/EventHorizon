@@ -21,7 +21,9 @@ public class IssueServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
-        if (action == null) action = "report";
+        if (action == null) {
+            action = "report";
+        }
 
         HttpSession session = request.getSession(false);
 
@@ -29,7 +31,7 @@ public class IssueServlet extends HttpServlet {
 
             case "report": {
                 if (session != null && session.getAttribute("userId") != null) {
-                    int userId = Integer.parseInt(String.valueOf(session.getAttribute("userId")));
+                    int userId = parseSessionUserId(session);
                     List<Issue> myIssues = issueService.getIssuesByUser(userId);
                     request.setAttribute("myIssues", myIssues);
                 }
@@ -44,7 +46,7 @@ public class IssueServlet extends HttpServlet {
                     return;
                 }
 
-                int userId = Integer.parseInt(String.valueOf(session.getAttribute("userId")));
+                int userId = parseSessionUserId(session);
                 List<Issue> myIssues = issueService.getIssuesByUser(userId);
                 request.setAttribute("myIssues", myIssues);
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
@@ -109,6 +111,7 @@ public class IssueServlet extends HttpServlet {
 
             default:
                 response.sendRedirect(request.getContextPath() + "/IssueServlet?action=report");
+                break;
         }
     }
 
@@ -128,7 +131,7 @@ public class IssueServlet extends HttpServlet {
                     return;
                 }
 
-                int userId = Integer.parseInt(String.valueOf(session.getAttribute("userId")));
+                int userId = parseSessionUserId(session);
 
                 String category = request.getParameter("category");
                 String subject = request.getParameter("subject");
@@ -140,10 +143,8 @@ public class IssueServlet extends HttpServlet {
                 String bookingStr = request.getParameter("bookingId");
                 String ticketStr = request.getParameter("ticketId");
 
-                Integer bookingId = (bookingStr != null && !bookingStr.trim().isEmpty())
-                        ? Integer.parseInt(bookingStr) : null;
-                Integer ticketId = (ticketStr != null && !ticketStr.trim().isEmpty())
-                        ? Integer.parseInt(ticketStr) : null;
+                Integer bookingId = parseOptionalInteger(bookingStr);
+                Integer ticketId = parseOptionalInteger(ticketStr);
 
                 String assignedType = IssueService.resolveAdminType(category);
 
@@ -183,7 +184,7 @@ public class IssueServlet extends HttpServlet {
                 int issueId = Integer.parseInt(request.getParameter("issueId"));
                 String message = request.getParameter("replyMessage");
                 String newStatus = request.getParameter("newStatus");
-                int adminId = Integer.parseInt(String.valueOf(session.getAttribute("userId")));
+                int adminId = parseSessionUserId(session);
 
                 if (message != null && !message.trim().isEmpty()) {
                     IssueReply reply = new IssueReply(issueId, adminId, message.trim());
@@ -219,30 +220,86 @@ public class IssueServlet extends HttpServlet {
 
             default:
                 response.sendRedirect(request.getContextPath() + "/index.jsp");
+                break;
         }
     }
 
     private boolean isAdmin(HttpSession session) {
-        if (session == null) return false;
+        if (session == null) {
+            return false;
+        }
 
         Object roleObj = session.getAttribute("role");
-        if (roleObj == null) return false;
+        if (roleObj == null) {
+            return false;
+        }
 
         String role = String.valueOf(roleObj);
         return "ADMIN".equalsIgnoreCase(role);
     }
 
     private String getAdminType(HttpSession session) {
-        if (session == null) return "CORE_ADMIN";
+        if (session == null) {
+            return "CORE_ADMIN";
+        }
 
         Object permissionObj = session.getAttribute("adminPermission");
         String permission = permissionObj != null ? String.valueOf(permissionObj).toUpperCase() : "";
 
-        if (permission.contains("FULL") || permission.contains("CORE")) return "CORE_ADMIN";
-        if (permission.contains("EVENT") && permission.contains("BOOKING")) return "EVENTS_AND_BOOKINGS_ADMIN";
-        if (permission.contains("EVENT")) return "EVENTS_ADMIN";
-        if (permission.contains("BOOKING")) return "BOOKINGS_ADMIN";
+        if (permission.contains("FULL") || permission.contains("CORE")) {
+            return "CORE_ADMIN";
+        }
+        if (permission.contains("EVENT") && permission.contains("BOOKING")) {
+            return "EVENTS_AND_BOOKINGS_ADMIN";
+        }
+        if (permission.contains("EVENT")) {
+            return "EVENTS_ADMIN";
+        }
+        if (permission.contains("BOOKING")) {
+            return "BOOKINGS_ADMIN";
+        }
 
         return "CORE_ADMIN";
+    }
+
+    private int parseSessionUserId(HttpSession session) {
+        Object userIdObj = session.getAttribute("userId");
+
+        if (userIdObj == null) {
+            throw new IllegalArgumentException("Session userId is missing.");
+        }
+
+        return parseFlexibleId(String.valueOf(userIdObj));
+    }
+
+    private Integer parseOptionalInteger(String value) {
+        if (value == null || value.trim().isEmpty()) {
+            return null;
+        }
+        return Integer.parseInt(value.trim());
+    }
+
+    private int parseFlexibleId(String rawValue) {
+        if (rawValue == null) {
+            throw new IllegalArgumentException("ID value is null.");
+        }
+
+        String value = rawValue.trim();
+        if (value.isEmpty()) {
+            throw new IllegalArgumentException("ID value is empty.");
+        }
+
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException ignored) {
+            // Continue and try extracting numeric part from IDs like USR001 / ADM002
+        }
+
+        String numericPart = value.replaceAll("\\D+", "");
+        if (numericPart.isEmpty()) {
+            throw new IllegalArgumentException("Invalid ID format: " + value);
+        }
+
+        return Integer.parseInt(numericPart);
     }
 }
