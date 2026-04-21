@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventHorizon – Book Your Experience</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 
@@ -57,6 +57,9 @@
             <a href="${pageContext.request.contextPath}/event?action=list" class="btn btn-primary">🎟 Browse Events</a>
             <c:if test="${empty sessionScope.userId}">
                 <a href="${pageContext.request.contextPath}/register.jsp" class="btn btn-outline">Create Account</a>
+            </c:if>
+            <c:if test="${not empty sessionScope.userId}">
+                <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="btn btn-outline">Report an Issue</a>
             </c:if>
         </div>
     </div>

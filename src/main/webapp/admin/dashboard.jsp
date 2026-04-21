@@ -76,18 +76,23 @@
                 </a>
                 <% } %>
 
+                <a href="<%= request.getContextPath() %>/IssueServlet?action=adminList">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Issue Requests</span>
+                </a>
+
                 <% if (UserService.canRequestAdmin(adminPermission)) { %>
                 <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
                 </a>
+                <% } %>
 
                 <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
-                <% } %>
                 <% } %>
             </nav>
         </div>
@@ -98,7 +103,7 @@
                 <strong><%= UserService.permissionLabel(adminPermission) %></strong>
             </div>
 
-            <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
+            <a class="back-site" href="<%= request.getContextPath() %>/index.jsp">
                 <i class="fa-solid fa-globe"></i>
                 <span>Open Website</span>
             </a>
@@ -133,7 +138,7 @@
         <% } %>
 
         <% if ("noCoreAccess".equals(request.getParameter("error"))) { %>
-            <div class="alert alert-danger" style="margin-bottom:16px;">Only a Core Admin can access that admin section.</div>
+            <div class="alert alert-danger" style="margin-bottom:16px;">Only an authorized admin can access that section.</div>
         <% } %>
 
         <section class="hero-panel">
@@ -163,6 +168,11 @@
                     <span>Approve Payments</span>
                 </a>
                 <% } %>
+
+                <a href="<%= request.getContextPath() %>/IssueServlet?action=adminList" class="secondary-btn">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Issue Requests</span>
+                </a>
 
                 <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=list" class="secondary-btn">
@@ -212,6 +222,14 @@
             </div>
             <% } %>
 
+            <div class="mini-card pink">
+                <div class="mini-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+                <div>
+                    <h3>Issue Requests</h3>
+                    <p>Receive and respond to customer support issues</p>
+                </div>
+            </div>
+
             <% if (hasFullAccess) { %>
             <div class="mini-card pink">
                 <div class="mini-icon"><i class="fa-solid fa-user-check"></i></div>
@@ -238,6 +256,8 @@
                     <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Bookings</span></span>
                     <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Payment Approval</span></span>
                 <% } %>
+
+                <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Issue Requests</span></span>
 
                 <% if (hasFullAccess) { %>
                     <span class="topbar-badge"><i class="fa-solid fa-check"></i><span>Users & Admin Requests</span></span>
