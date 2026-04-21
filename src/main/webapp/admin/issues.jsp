@@ -1,7 +1,20 @@
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ page import="java.util.List" %>
+<%@ page import="com.eventhorizon.model.Issue" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"  prefix="fmt" %>
 <%
     request.setAttribute("pageTitle", "Issue Requests");
+
+    List<Issue> issueListRaw = (List<Issue>) request.getAttribute("issueList");
+    Integer showingCountRaw = (Integer) request.getAttribute("showingCount");
+
+    int safeShowingCount = 0;
+    if (showingCountRaw != null) {
+        safeShowingCount = showingCountRaw;
+    } else if (issueListRaw != null) {
+        safeShowingCount = issueListRaw.size();
+    }
 %>
 <%@ include file="layout.jsp" %>
 
@@ -307,7 +320,7 @@
             <span class="stat-lbl">Resolved</span>
         </div>
         <div class="stat-card" style="border-left:3px solid var(--accent);">
-            <span class="stat-val" style="color:var(--accent);">${showingCount}</span>
+            <span class="stat-val" style="color:var(--accent);"><%= safeShowingCount %></span>
             <span class="stat-lbl">Showing</span>
         </div>
     </div>
@@ -359,78 +372,98 @@
     </form>
 
     <div class="table-wrap">
-        <c:choose>
-            <c:when test="${not empty issueList}">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Customer</th>
-                            <th>Category</th>
-                            <th>Subject</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Submitted</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach var="issue" items="${issueList}">
-                            <tr>
-                                <td class="id-cell">#${issue.issueId}</td>
-                                <td>
-                                    <div style="font-weight:500;">
-                                        <c:choose>
-                                            <c:when test="${not empty issue.userName}">
-                                                ${issue.userName}
-                                            </c:when>
-                                            <c:otherwise>
-                                                Customer #${issue.userId}
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </div>
-                                    <div style="font-size:.76rem;color:var(--muted);">${issue.customerEmail}</div>
-                                </td>
-                                <td><span class="cat-chip">${issue.category}</span></td>
-                                <td style="max-width:220px;">
-                                    <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;" title="${issue.subject}">
-                                        ${issue.subject}
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="priority-dot p-${issue.priority.toLowerCase()}"></span>
-                                    ${issue.priority}
-                                </td>
-                                <td>
-                                    <span class="badge badge-${issue.status == 'IN_PROGRESS' ? 'progress' : issue.status.toLowerCase()}">
-                                        <c:choose>
-                                            <c:when test="${issue.status == 'OPEN'}"><i class="fas fa-circle-dot"></i> Open</c:when>
-                                            <c:when test="${issue.status == 'IN_PROGRESS'}"><i class="fas fa-spinner"></i> In Progress</c:when>
-                                            <c:when test="${issue.status == 'RESOLVED'}"><i class="fas fa-check-circle"></i> Resolved</c:when>
-                                            <c:otherwise><i class="fas fa-ban"></i> Rejected</c:otherwise>
-                                        </c:choose>
-                                    </span>
-                                </td>
-                                <td style="white-space:nowrap;color:var(--muted);font-size:.8rem;">
-                                    <fmt:formatDate value="${issue.createdAt}" pattern="dd MMM yyyy" />
-                                </td>
-                                <td>
-                                    <a href="${pageContext.request.contextPath}/IssueServlet?action=adminDetail&id=${issue.issueId}" class="btn-view">
-                                        <i class="fas fa-eye"></i> View
-                                    </a>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
-            </c:when>
-            <c:otherwise>
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    No issues found matching your filters.
-                </div>
-            </c:otherwise>
-        </c:choose>
+        <%
+            if (issueListRaw != null && !issueListRaw.isEmpty()) {
+        %>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Customer</th>
+                    <th>Category</th>
+                    <th>Subject</th>
+                    <th>Priority</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <%
+                    for (Issue issue : issueListRaw) {
+                        String priority = issue.getPriority() != null ? issue.getPriority() : "MEDIUM";
+                        String priorityClass = priority.toLowerCase();
+
+                        String status = issue.getStatus() != null ? issue.getStatus() : "OPEN";
+                        String badgeClass = "badge-" + status.toLowerCase();
+                        if ("IN_PROGRESS".equals(status)) {
+                            badgeClass = "badge-progress";
+                        }
+                %>
+                <tr>
+                    <td class="id-cell">#<%= issue.getIssueId() %></td>
+                    <td>
+                        <div style="font-weight:500;">
+                            <%= (issue.getUserName() != null && !issue.getUserName().trim().isEmpty())
+                                    ? issue.getUserName()
+                                    : "Customer #" + issue.getUserId() %>
+                        </div>
+                        <div style="font-size:.76rem;color:var(--muted);">
+                            <%= issue.getCustomerEmail() != null ? issue.getCustomerEmail() : "" %>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="cat-chip"><%= issue.getCategory() != null ? issue.getCategory() : "" %></span>
+                    </td>
+                    <td style="max-width:220px;">
+                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px;"
+                             title="<%= issue.getSubject() != null ? issue.getSubject() : "" %>">
+                            <%= issue.getSubject() != null ? issue.getSubject() : "" %>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="priority-dot p-<%= priorityClass %>"></span>
+                        <%= priority %>
+                    </td>
+                    <td>
+                        <span class="badge <%= badgeClass %>">
+                            <%= status %>
+                        </span>
+                    </td>
+                    <td style="white-space:nowrap;color:var(--muted);font-size:.8rem;">
+                        <%
+                            if (issue.getCreatedAt() != null) {
+                        %>
+                            <fmt:formatDate value="<%= issue.getCreatedAt() %>" pattern="dd MMM yyyy" />
+                        <%
+                            } else {
+                        %>
+                            -
+                        <%
+                            }
+                        %>
+                    </td>
+                    <td>
+                        <a href="<%= request.getContextPath() %>/IssueServlet?action=adminDetail&id=<%= issue.getIssueId() %>" class="btn-view">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </td>
+                </tr>
+                <%
+                    }
+                %>
+            </tbody>
+        </table>
+        <%
+            } else {
+        %>
+        <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            No issues found matching your filters.
+        </div>
+        <%
+            }
+        %>
     </div>
 
 </div>
