@@ -307,7 +307,7 @@
             <span class="stat-lbl">Resolved</span>
         </div>
         <div class="stat-card" style="border-left:3px solid var(--accent);">
-            <span class="stat-val" style="color:var(--accent);">${issues.size()}</span>
+            <span class="stat-val" style="color:var(--accent);">${showingCount}</span>
             <span class="stat-lbl">Showing</span>
         </div>
     </div>
@@ -360,7 +360,7 @@
 
     <div class="table-wrap">
         <c:choose>
-            <c:when test="${not empty issues}">
+            <c:when test="${not empty issueList}">
                 <table>
                     <thead>
                         <tr>
@@ -375,7 +375,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach var="issue" items="${issues}">
+                        <c:forEach var="issue" items="${issueList}">
                             <tr>
                                 <td class="id-cell">#${issue.issueId}</td>
                                 <td>
