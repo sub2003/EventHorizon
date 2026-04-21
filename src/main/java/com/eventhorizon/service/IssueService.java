@@ -67,7 +67,7 @@ public class IssueService {
                 }
                 return true;
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
@@ -87,12 +87,18 @@ public class IssueService {
     public List<Issue> getIssuesByFilter(String adminTypeFilter, String categoryFilter, String statusFilter) {
         List<Issue> list = new ArrayList<>();
 
-        StringBuilder sb = new StringBuilder("SELECT * FROM issues WHERE 1=1 ");
+        // FIX: JOIN with users table to get the actual user name
+        StringBuilder sb = new StringBuilder(
+                "SELECT i.*, u.name AS user_name " +
+                        "FROM issues i " +
+                        "LEFT JOIN users u ON i.user_id = u.user_id " +
+                        "WHERE 1=1 "
+        );
         List<Object> params = new ArrayList<>();
 
         if (adminTypeFilter != null && !adminTypeFilter.trim().isEmpty()) {
             String[] types = adminTypeFilter.split(",");
-            sb.append("AND assigned_admin_type IN (");
+            sb.append("AND i.assigned_admin_type IN (");
             for (int i = 0; i < types.length; i++) {
                 if (i > 0) sb.append(",");
                 sb.append("?");
@@ -102,16 +108,16 @@ public class IssueService {
         }
 
         if (categoryFilter != null && !categoryFilter.trim().isEmpty()) {
-            sb.append("AND category = ? ");
+            sb.append("AND i.category = ? ");
             params.add(categoryFilter.trim());
         }
 
         if (statusFilter != null && !statusFilter.trim().isEmpty()) {
-            sb.append("AND status = ? ");
+            sb.append("AND i.status = ? ");
             params.add(statusFilter.trim());
         }
 
-        sb.append("ORDER BY created_at DESC");
+        sb.append("ORDER BY i.created_at DESC");
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sb.toString())) {
@@ -126,7 +132,10 @@ public class IssueService {
                 }
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            // FIX: catch Exception (not just SQLException) so ClassCastException
+            // and other mapping errors are visible instead of silently returning []
+            System.err.println("[IssueService] getIssuesByFilter error: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -134,7 +143,11 @@ public class IssueService {
     }
 
     public Issue getIssueById(int issueId) {
-        String sql = "SELECT * FROM issues WHERE issue_id = ?";
+        // FIX: JOIN with users table here too
+        String sql = "SELECT i.*, u.name AS user_name " +
+                "FROM issues i " +
+                "LEFT JOIN users u ON i.user_id = u.user_id " +
+                "WHERE i.issue_id = ?";
         Issue issue = null;
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -149,7 +162,8 @@ public class IssueService {
                 }
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            System.err.println("[IssueService] getIssueById error: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -158,7 +172,11 @@ public class IssueService {
 
     public List<Issue> getIssuesByUser(int userId) {
         List<Issue> list = new ArrayList<>();
-        String sql = "SELECT * FROM issues WHERE user_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT i.*, u.name AS user_name " +
+                "FROM issues i " +
+                "LEFT JOIN users u ON i.user_id = u.user_id " +
+                "WHERE i.user_id = ? " +
+                "ORDER BY i.created_at DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -171,7 +189,8 @@ public class IssueService {
                 }
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            System.err.println("[IssueService] getIssuesByUser error: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -188,7 +207,8 @@ public class IssueService {
             ps.setInt(2, issueId);
             return ps.executeUpdate() > 0;
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            System.err.println("[IssueService] updateStatus error: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -209,7 +229,8 @@ public class IssueService {
                 return true;
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            System.err.println("[IssueService] addReply error: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -224,14 +245,20 @@ public class IssueService {
             ps.setInt(1, issueId);
             ps.executeUpdate();
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            System.err.println("[IssueService] updateStatusIfOpen error: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public List<IssueReply> getRepliesByIssueId(int issueId) {
         List<IssueReply> list = new ArrayList<>();
-        String sql = "SELECT * FROM issue_replies WHERE issue_id = ? ORDER BY replied_at ASC";
+        // FIX: JOIN with admins/users table to get real admin name
+        String sql = "SELECT r.*, u.name AS admin_name " +
+                "FROM issue_replies r " +
+                "LEFT JOIN users u ON r.admin_id = u.user_id " +
+                "WHERE r.issue_id = ? " +
+                "ORDER BY r.replied_at ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -246,12 +273,17 @@ public class IssueService {
                     reply.setAdminId(rs.getInt("admin_id"));
                     reply.setReplyMessage(rs.getString("reply_message"));
                     reply.setRepliedAt(rs.getTimestamp("replied_at"));
-                    reply.setAdminName("Admin #" + rs.getInt("admin_id"));
+
+                    // FIX: use actual admin name from JOIN, fallback gracefully
+                    String adminName = rs.getString("admin_name");
+                    reply.setAdminName(adminName != null ? adminName : "Admin #" + rs.getInt("admin_id"));
+
                     list.add(reply);
                 }
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            System.err.println("[IssueService] getRepliesByIssueId error: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -285,7 +317,8 @@ public class IssueService {
                 if (rs.next()) return rs.getInt(1);
             }
 
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            System.err.println("[IssueService] countByStatus error: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -296,8 +329,15 @@ public class IssueService {
         Issue i = new Issue();
         i.setIssueId(rs.getInt("issue_id"));
         i.setUserId(rs.getInt("user_id"));
-        i.setBookingId((Integer) rs.getObject("booking_id"));
-        i.setTicketId((Integer) rs.getObject("ticket_id"));
+
+        // FIX: safe null-aware extraction — avoids ClassCastException when
+        // the DB column type is BIGINT (Long) instead of INT (Integer)
+        Object bookingIdObj = rs.getObject("booking_id");
+        i.setBookingId(bookingIdObj != null ? ((Number) bookingIdObj).intValue() : null);
+
+        Object ticketIdObj = rs.getObject("ticket_id");
+        i.setTicketId(ticketIdObj != null ? ((Number) ticketIdObj).intValue() : null);
+
         i.setCategory(rs.getString("category"));
         i.setSubject(rs.getString("subject"));
         i.setDescription(rs.getString("description"));
@@ -308,7 +348,11 @@ public class IssueService {
         i.setCustomerPhone(rs.getString("customer_phone"));
         i.setCreatedAt(rs.getTimestamp("created_at"));
         i.setUpdatedAt(rs.getTimestamp("updated_at"));
-        i.setUserName(rs.getString("customer_email"));
+
+        // FIX: use actual user name from JOIN, fallback to email if null
+        String userName = rs.getString("user_name");
+        i.setUserName(userName != null ? userName : rs.getString("customer_email"));
+
         return i;
     }
 }
