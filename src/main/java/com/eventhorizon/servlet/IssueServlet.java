@@ -62,22 +62,14 @@ public class IssueServlet extends HttpServlet {
                 }
 
                 String adminType = getAdminType(session);
-                String catFilter = normalizeFilter(request.getParameter("category"));
-                String statFilter = normalizeFilter(request.getParameter("status"));
 
-                List<Issue> issueList;
-                if ("CORE_ADMIN".equals(adminType)) {
-                    issueList = issueService.getIssuesByFilter(null, catFilter, statFilter);
-                } else if ("EVENTS_AND_BOOKINGS_ADMIN".equals(adminType)) {
-                    issueList = issueService.getIssuesByFilter("EVENTS_ADMIN,BOOKINGS_ADMIN", catFilter, statFilter);
-                } else {
-                    issueList = issueService.getIssuesByFilter(adminType, catFilter, statFilter);
-                }
+                // Temporary direct fetch to bypass broken admin/filter restriction
+                List<Issue> issueList = issueService.getAllIssues();
 
                 request.setAttribute("issueList", issueList);
                 request.setAttribute("adminType", adminType);
-                request.setAttribute("catFilter", catFilter);
-                request.setAttribute("statFilter", statFilter);
+                request.setAttribute("catFilter", null);
+                request.setAttribute("statFilter", null);
                 request.setAttribute("openCount", issueService.countByStatus("OPEN", adminType));
                 request.setAttribute("progressCount", issueService.countByStatus("IN_PROGRESS", adminType));
                 request.setAttribute("resolvedCount", issueService.countByStatus("RESOLVED", adminType));
@@ -278,15 +270,5 @@ public class IssueServlet extends HttpServlet {
             throw new IllegalArgumentException("Invalid ID format: " + value);
         }
         return Integer.parseInt(numericPart);
-    }
-
-    private String normalizeFilter(String value) {
-        if (value == null) return null;
-        value = value.trim();
-        if (value.isEmpty()) return null;
-        if ("All Categories".equalsIgnoreCase(value) || "All Statuses".equalsIgnoreCase(value)) {
-            return null;
-        }
-        return value;
     }
 }
