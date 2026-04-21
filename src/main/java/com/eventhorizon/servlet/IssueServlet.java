@@ -2,11 +2,13 @@ package com.eventhorizon.servlet;
 
 import com.eventhorizon.model.Issue;
 import com.eventhorizon.model.IssueReply;
-import com.eventhorizon.model.User;
 import com.eventhorizon.service.IssueService;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 
@@ -26,10 +28,8 @@ public class IssueServlet extends HttpServlet {
         switch (action) {
 
             case "report": {
-                if (session != null && session.getAttribute("user") != null) {
-                    User user = (User) session.getAttribute("user");
-                    int userId = Integer.parseInt(user.getUserId());
-
+                if (session != null && session.getAttribute("userId") != null) {
+                    int userId = Integer.parseInt(String.valueOf(session.getAttribute("userId")));
                     List<Issue> myIssues = issueService.getIssuesByUser(userId);
                     request.setAttribute("myIssues", myIssues);
                 }
@@ -39,14 +39,12 @@ public class IssueServlet extends HttpServlet {
             }
 
             case "myIssues": {
-                if (session == null || session.getAttribute("user") == null) {
+                if (session == null || session.getAttribute("userId") == null) {
                     response.sendRedirect(request.getContextPath() + "/login.jsp");
                     return;
                 }
 
-                User user = (User) session.getAttribute("user");
-                int userId = Integer.parseInt(user.getUserId());
-
+                int userId = Integer.parseInt(String.valueOf(session.getAttribute("userId")));
                 List<Issue> myIssues = issueService.getIssuesByUser(userId);
                 request.setAttribute("myIssues", myIssues);
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
@@ -59,8 +57,7 @@ public class IssueServlet extends HttpServlet {
                     return;
                 }
 
-                User admin = (User) session.getAttribute("user");
-                String adminType = getAdminType(admin);
+                String adminType = getAdminType(session);
                 String catFilter = request.getParameter("category");
                 String statFilter = request.getParameter("status");
 
@@ -126,13 +123,12 @@ public class IssueServlet extends HttpServlet {
         switch (action != null ? action : "") {
 
             case "submit": {
-                if (session == null || session.getAttribute("user") == null) {
+                if (session == null || session.getAttribute("userId") == null) {
                     response.sendRedirect(request.getContextPath() + "/login.jsp");
                     return;
                 }
 
-                User u = (User) session.getAttribute("user");
-                int userId = Integer.parseInt(u.getUserId());
+                int userId = Integer.parseInt(String.valueOf(session.getAttribute("userId")));
 
                 String category = request.getParameter("category");
                 String subject = request.getParameter("subject");
@@ -167,10 +163,10 @@ public class IssueServlet extends HttpServlet {
                 boolean ok = issueService.submitIssue(issue);
 
                 if (ok) {
-                    request.getSession().setAttribute("successMsg",
+                    session.setAttribute("successMsg",
                             "Your issue has been submitted successfully. Issue ID: #" + issue.getIssueId());
                 } else {
-                    request.getSession().setAttribute("errorMsg",
+                    session.setAttribute("errorMsg",
                             "Failed to submit issue. Please try again.");
                 }
 
@@ -187,9 +183,7 @@ public class IssueServlet extends HttpServlet {
                 int issueId = Integer.parseInt(request.getParameter("issueId"));
                 String message = request.getParameter("replyMessage");
                 String newStatus = request.getParameter("newStatus");
-
-                User adm = (User) session.getAttribute("user");
-                int adminId = Integer.parseInt(adm.getUserId());
+                int adminId = Integer.parseInt(String.valueOf(session.getAttribute("userId")));
 
                 if (message != null && !message.trim().isEmpty()) {
                     IssueReply reply = new IssueReply(issueId, adminId, message.trim());
@@ -231,20 +225,23 @@ public class IssueServlet extends HttpServlet {
     private boolean isAdmin(HttpSession session) {
         if (session == null) return false;
 
-        User u = (User) session.getAttribute("user");
-        if (u == null) return false;
+        Object roleObj = session.getAttribute("role");
+        if (roleObj == null) return false;
 
-        String role = u.getRole();
-        return role != null && role.toLowerCase().contains("admin");
+        String role = String.valueOf(roleObj);
+        return "ADMIN".equalsIgnoreCase(role);
     }
 
-    private String getAdminType(User admin) {
-        String role = admin.getRole() != null ? admin.getRole().toUpperCase() : "";
+    private String getAdminType(HttpSession session) {
+        if (session == null) return "CORE_ADMIN";
 
-        if (role.contains("FULL") || role.contains("CORE")) return "CORE_ADMIN";
-        if (role.contains("EVENT") && role.contains("BOOKING")) return "EVENTS_AND_BOOKINGS_ADMIN";
-        if (role.contains("EVENT")) return "EVENTS_ADMIN";
-        if (role.contains("BOOKING")) return "BOOKINGS_ADMIN";
+        Object permissionObj = session.getAttribute("adminPermission");
+        String permission = permissionObj != null ? String.valueOf(permissionObj).toUpperCase() : "";
+
+        if (permission.contains("FULL") || permission.contains("CORE")) return "CORE_ADMIN";
+        if (permission.contains("EVENT") && permission.contains("BOOKING")) return "EVENTS_AND_BOOKINGS_ADMIN";
+        if (permission.contains("EVENT")) return "EVENTS_ADMIN";
+        if (permission.contains("BOOKING")) return "BOOKINGS_ADMIN";
 
         return "CORE_ADMIN";
     }
