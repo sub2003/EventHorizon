@@ -20,9 +20,7 @@
         --muted:    #7b859e;
     }
 
-    .admin-content {
-        width: 100%;
-    }
+    .admin-content { width: 100%; }
 
     .stat-grid {
         display: grid;
@@ -381,7 +379,16 @@
                             <tr>
                                 <td class="id-cell">#${issue.issueId}</td>
                                 <td>
-                                    <div style="font-weight:500;">${issue.userName}</div>
+                                    <div style="font-weight:500;">
+                                        <c:choose>
+                                            <c:when test="${not empty issue.userName}">
+                                                ${issue.userName}
+                                            </c:when>
+                                            <c:otherwise>
+                                                Customer #${issue.userId}
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </div>
                                     <div style="font-size:.76rem;color:var(--muted);">${issue.customerEmail}</div>
                                 </td>
                                 <td><span class="cat-chip">${issue.category}</span></td>
@@ -428,7 +435,7 @@
 
 </div>
 
-    </main>
+</main>
 </div>
 
 </body>

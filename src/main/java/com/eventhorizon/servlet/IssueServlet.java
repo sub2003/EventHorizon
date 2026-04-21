@@ -21,7 +21,7 @@ public class IssueServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String action = request.getParameter("action");
-        if (action == null) {
+        if (action == null || action.trim().isEmpty()) {
             action = "report";
         }
 
@@ -40,7 +40,7 @@ public class IssueServlet extends HttpServlet {
                 request.setAttribute("myIssues", myIssues);
 
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
-                break;
+                return;
             }
 
             case "myIssues": {
@@ -52,8 +52,9 @@ public class IssueServlet extends HttpServlet {
                 int userId = parseSessionUserId(session);
                 List<Issue> myIssues = issueService.getIssuesByUser(userId);
                 request.setAttribute("myIssues", myIssues);
+
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
-                break;
+                return;
             }
 
             case "adminList": {
@@ -63,28 +64,22 @@ public class IssueServlet extends HttpServlet {
                 }
 
                 String adminType = getAdminType(session);
-                String catFilter = request.getParameter("category");
-                String statFilter = request.getParameter("status");
+                String catFilter = normalizeFilter(request.getParameter("category"));
+                String statFilter = normalizeFilter(request.getParameter("status"));
 
-                List<Issue> issues;
-                if ("CORE_ADMIN".equals(adminType)) {
-                    issues = issueService.getIssuesByFilter(null, catFilter, statFilter);
-                } else if ("EVENTS_AND_BOOKINGS_ADMIN".equals(adminType)) {
-                    issues = issueService.getIssuesByFilter("EVENTS_ADMIN,BOOKINGS_ADMIN", catFilter, statFilter);
-                } else {
-                    issues = issueService.getIssuesByFilter(adminType, catFilter, statFilter);
-                }
+                List<Issue> issues = issueService.getIssuesByAdminView(adminType, catFilter, statFilter);
 
                 request.setAttribute("issues", issues);
                 request.setAttribute("adminType", adminType);
                 request.setAttribute("catFilter", catFilter);
                 request.setAttribute("statFilter", statFilter);
+
                 request.setAttribute("openCount", issueService.countByStatus("OPEN", adminType));
                 request.setAttribute("progressCount", issueService.countByStatus("IN_PROGRESS", adminType));
                 request.setAttribute("resolvedCount", issueService.countByStatus("RESOLVED", adminType));
 
                 request.getRequestDispatcher("/admin/issues.jsp").forward(request, response);
-                break;
+                return;
             }
 
             case "adminDetail": {
@@ -99,7 +94,7 @@ public class IssueServlet extends HttpServlet {
                     return;
                 }
 
-                int issueId = Integer.parseInt(idParam);
+                int issueId = Integer.parseInt(idParam.trim());
                 Issue issue = issueService.getIssueById(issueId);
 
                 if (issue == null) {
@@ -109,12 +104,11 @@ public class IssueServlet extends HttpServlet {
 
                 request.setAttribute("issue", issue);
                 request.getRequestDispatcher("/admin/issueDetails.jsp").forward(request, response);
-                break;
+                return;
             }
 
             default:
                 response.sendRedirect(request.getContextPath() + "/IssueServlet?action=report");
-                break;
         }
     }
 
@@ -136,18 +130,15 @@ public class IssueServlet extends HttpServlet {
 
                 int userId = parseSessionUserId(session);
 
-                String category = request.getParameter("category");
-                String subject = request.getParameter("subject");
-                String desc = request.getParameter("description");
-                String priority = request.getParameter("priority");
-                String email = request.getParameter("customerEmail");
-                String phone = request.getParameter("customerPhone");
+                String category = safeTrim(request.getParameter("category"));
+                String subject = safeTrim(request.getParameter("subject"));
+                String desc = safeTrim(request.getParameter("description"));
+                String priority = safeTrim(request.getParameter("priority"));
+                String email = safeTrim(request.getParameter("customerEmail"));
+                String phone = safeTrim(request.getParameter("customerPhone"));
 
-                String bookingStr = request.getParameter("bookingId");
-                String ticketStr = request.getParameter("ticketId");
-
-                Integer bookingId = parseOptionalInteger(bookingStr);
-                Integer ticketId = parseOptionalInteger(ticketStr);
+                Integer bookingId = parseOptionalInteger(request.getParameter("bookingId"));
+                Integer ticketId = parseOptionalInteger(request.getParameter("ticketId"));
 
                 String assignedType = IssueService.resolveAdminType(category);
 
@@ -175,7 +166,7 @@ public class IssueServlet extends HttpServlet {
                 }
 
                 response.sendRedirect(request.getContextPath() + "/IssueServlet?action=report");
-                break;
+                return;
             }
 
             case "reply": {
@@ -185,22 +176,22 @@ public class IssueServlet extends HttpServlet {
                 }
 
                 int issueId = Integer.parseInt(request.getParameter("issueId"));
-                String message = request.getParameter("replyMessage");
-                String newStatus = request.getParameter("newStatus");
+                String message = safeTrim(request.getParameter("replyMessage"));
+                String newStatus = safeTrim(request.getParameter("newStatus"));
                 int adminId = parseSessionUserId(session);
 
-                if (message != null && !message.trim().isEmpty()) {
-                    IssueReply reply = new IssueReply(issueId, adminId, message.trim());
+                if (message != null && !message.isEmpty()) {
+                    IssueReply reply = new IssueReply(issueId, adminId, message);
                     issueService.addReply(reply);
                 }
 
-                if (newStatus != null && !newStatus.trim().isEmpty()) {
+                if (newStatus != null && !newStatus.isEmpty()) {
                     issueService.updateStatus(issueId, newStatus);
                 }
 
                 response.sendRedirect(request.getContextPath()
                         + "/IssueServlet?action=adminDetail&id=" + issueId);
-                break;
+                return;
             }
 
             case "updateStatus": {
@@ -210,20 +201,19 @@ public class IssueServlet extends HttpServlet {
                 }
 
                 int issueId = Integer.parseInt(request.getParameter("issueId"));
-                String status = request.getParameter("status");
+                String status = safeTrim(request.getParameter("status"));
 
-                if (status != null && !status.trim().isEmpty()) {
+                if (status != null && !status.isEmpty()) {
                     issueService.updateStatus(issueId, status);
                 }
 
                 response.sendRedirect(request.getContextPath()
                         + "/IssueServlet?action=adminDetail&id=" + issueId);
-                break;
+                return;
             }
 
             default:
                 response.sendRedirect(request.getContextPath() + "/index.jsp");
-                break;
         }
     }
 
@@ -237,8 +227,7 @@ public class IssueServlet extends HttpServlet {
             return false;
         }
 
-        String role = String.valueOf(roleObj);
-        return "ADMIN".equalsIgnoreCase(role);
+        return "ADMIN".equalsIgnoreCase(String.valueOf(roleObj));
     }
 
     private String getAdminType(HttpSession session) {
@@ -247,7 +236,7 @@ public class IssueServlet extends HttpServlet {
         }
 
         Object permissionObj = session.getAttribute("adminPermission");
-        String permission = permissionObj != null ? String.valueOf(permissionObj).toUpperCase() : "";
+        String permission = permissionObj != null ? String.valueOf(permissionObj).trim().toUpperCase() : "";
 
         if (permission.contains("FULL") || permission.contains("CORE")) {
             return "CORE_ADMIN";
@@ -303,5 +292,20 @@ public class IssueServlet extends HttpServlet {
         }
 
         return Integer.parseInt(numericPart);
+    }
+
+    private String normalizeFilter(String value) {
+        value = safeTrim(value);
+        if (value == null || value.isEmpty()) {
+            return null;
+        }
+        if ("all categories".equalsIgnoreCase(value) || "all statuses".equalsIgnoreCase(value)) {
+            return null;
+        }
+        return value;
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? null : value.trim();
     }
 }
