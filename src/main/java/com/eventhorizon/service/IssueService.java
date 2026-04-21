@@ -68,6 +68,7 @@ public class IssueService {
                 return true;
             }
         } catch (Exception e) {
+            System.err.println("[IssueService] submitIssue error: " + e.getMessage());
             e.printStackTrace();
         }
         return false;
@@ -87,18 +88,13 @@ public class IssueService {
     public List<Issue> getIssuesByFilter(String adminTypeFilter, String categoryFilter, String statusFilter) {
         List<Issue> list = new ArrayList<>();
 
-        // FIX: JOIN with users table to get the actual user name
-        StringBuilder sb = new StringBuilder(
-                "SELECT i.*, u.name AS user_name " +
-                        "FROM issues i " +
-                        "LEFT JOIN users u ON i.user_id = u.user_id " +
-                        "WHERE 1=1 "
-        );
+        // Plain SELECT * — no JOIN to avoid schema mismatch errors
+        StringBuilder sb = new StringBuilder("SELECT * FROM issues WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
 
         if (adminTypeFilter != null && !adminTypeFilter.trim().isEmpty()) {
             String[] types = adminTypeFilter.split(",");
-            sb.append("AND i.assigned_admin_type IN (");
+            sb.append("AND assigned_admin_type IN (");
             for (int i = 0; i < types.length; i++) {
                 if (i > 0) sb.append(",");
                 sb.append("?");
@@ -108,16 +104,18 @@ public class IssueService {
         }
 
         if (categoryFilter != null && !categoryFilter.trim().isEmpty()) {
-            sb.append("AND i.category = ? ");
+            sb.append("AND category = ? ");
             params.add(categoryFilter.trim());
         }
 
         if (statusFilter != null && !statusFilter.trim().isEmpty()) {
-            sb.append("AND i.status = ? ");
+            sb.append("AND status = ? ");
             params.add(statusFilter.trim());
         }
 
-        sb.append("ORDER BY i.created_at DESC");
+        sb.append("ORDER BY created_at DESC");
+
+        System.out.println("[IssueService] Query: " + sb);
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sb.toString())) {
@@ -128,13 +126,20 @@ public class IssueService {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    list.add(mapIssue(rs));
+                    try {
+                        list.add(mapIssue(rs));
+                    } catch (Exception rowEx) {
+                        // Per-row catch: one bad row won't kill the whole list
+                        System.err.println("[IssueService] Failed mapping issue_id="
+                                + safeGetInt(rs, "issue_id") + " — " + rowEx.getMessage());
+                        rowEx.printStackTrace();
+                    }
                 }
             }
 
+            System.out.println("[IssueService] Loaded " + list.size() + " issues.");
+
         } catch (Exception e) {
-            // FIX: catch Exception (not just SQLException) so ClassCastException
-            // and other mapping errors are visible instead of silently returning []
             System.err.println("[IssueService] getIssuesByFilter error: " + e.getMessage());
             e.printStackTrace();
         }
@@ -143,11 +148,7 @@ public class IssueService {
     }
 
     public Issue getIssueById(int issueId) {
-        // FIX: JOIN with users table here too
-        String sql = "SELECT i.*, u.name AS user_name " +
-                "FROM issues i " +
-                "LEFT JOIN users u ON i.user_id = u.user_id " +
-                "WHERE i.issue_id = ?";
+        String sql = "SELECT * FROM issues WHERE issue_id = ?";
         Issue issue = null;
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -172,11 +173,7 @@ public class IssueService {
 
     public List<Issue> getIssuesByUser(int userId) {
         List<Issue> list = new ArrayList<>();
-        String sql = "SELECT i.*, u.name AS user_name " +
-                "FROM issues i " +
-                "LEFT JOIN users u ON i.user_id = u.user_id " +
-                "WHERE i.user_id = ? " +
-                "ORDER BY i.created_at DESC";
+        String sql = "SELECT * FROM issues WHERE user_id = ? ORDER BY created_at DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -253,12 +250,7 @@ public class IssueService {
 
     public List<IssueReply> getRepliesByIssueId(int issueId) {
         List<IssueReply> list = new ArrayList<>();
-        // FIX: JOIN with admins/users table to get real admin name
-        String sql = "SELECT r.*, u.name AS admin_name " +
-                "FROM issue_replies r " +
-                "LEFT JOIN users u ON r.admin_id = u.user_id " +
-                "WHERE r.issue_id = ? " +
-                "ORDER BY r.replied_at ASC";
+        String sql = "SELECT * FROM issue_replies WHERE issue_id = ? ORDER BY replied_at ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -273,11 +265,7 @@ public class IssueService {
                     reply.setAdminId(rs.getInt("admin_id"));
                     reply.setReplyMessage(rs.getString("reply_message"));
                     reply.setRepliedAt(rs.getTimestamp("replied_at"));
-
-                    // FIX: use actual admin name from JOIN, fallback gracefully
-                    String adminName = rs.getString("admin_name");
-                    reply.setAdminName(adminName != null ? adminName : "Admin #" + rs.getInt("admin_id"));
-
+                    reply.setAdminName("Admin #" + rs.getInt("admin_id"));
                     list.add(reply);
                 }
             }
@@ -325,13 +313,16 @@ public class IssueService {
         return 0;
     }
 
+    // -------------------------------------------------------------------------
+    // Helpers
+    // -------------------------------------------------------------------------
+
     private Issue mapIssue(ResultSet rs) throws SQLException {
         Issue i = new Issue();
         i.setIssueId(rs.getInt("issue_id"));
         i.setUserId(rs.getInt("user_id"));
 
-        // FIX: safe null-aware extraction — avoids ClassCastException when
-        // the DB column type is BIGINT (Long) instead of INT (Integer)
+        // Safe extraction — avoids ClassCastException when DB column is BIGINT
         Object bookingIdObj = rs.getObject("booking_id");
         i.setBookingId(bookingIdObj != null ? ((Number) bookingIdObj).intValue() : null);
 
@@ -349,10 +340,13 @@ public class IssueService {
         i.setCreatedAt(rs.getTimestamp("created_at"));
         i.setUpdatedAt(rs.getTimestamp("updated_at"));
 
-        // FIX: use actual user name from JOIN, fallback to email if null
-        String userName = rs.getString("user_name");
-        i.setUserName(userName != null ? userName : rs.getString("customer_email"));
+        // Use email as the display name — no JOIN required
+        i.setUserName(rs.getString("customer_email"));
 
         return i;
+    }
+
+    private int safeGetInt(ResultSet rs, String col) {
+        try { return rs.getInt(col); } catch (Exception e) { return -1; }
     }
 }
