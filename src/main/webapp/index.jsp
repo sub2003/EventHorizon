@@ -11,32 +11,32 @@
 <body>
 
 <nav class="navbar">
-    <a href="index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
+    <a href="${pageContext.request.contextPath}/index.jsp" class="navbar-brand">⬡ EVENTHORIZON</a>
 
     <div class="hamburger">
         <span></span><span></span><span></span>
     </div>
 
     <ul class="navbar-links">
-        <li><a href="index.jsp" class="active">Home</a></li>
-        <li><a href="event?action=list">Events</a></li>
+        <li><a href="${pageContext.request.contextPath}/index.jsp" class="active">Home</a></li>
+        <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
 
         <c:choose>
             <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
-                <li><a href="admin/dashboard.jsp">Dashboard</a></li>
-                <li><a href="profile.jsp">Profile</a></li>
-                <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
+                <li><a href="${pageContext.request.contextPath}/admin/dashboard.jsp">Dashboard</a></li>
+                <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
+                <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
             </c:when>
 
             <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
-                <li><a href="booking?action=myBookings">My Bookings</a></li>
-                <li><a href="profile.jsp">Profile</a></li>
-                <li><a href="user?action=logout" class="btn-nav">Logout</a></li>
+                <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
+                <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
+                <li><a href="${pageContext.request.contextPath}/user?action=logout" class="btn-nav">Logout</a></li>
             </c:when>
 
             <c:otherwise>
-                <li><a href="login.jsp">Login</a></li>
-                <li><a href="register.jsp" class="btn-nav">Sign Up</a></li>
+                <li><a href="${pageContext.request.contextPath}/login.jsp">Login</a></li>
+                <li><a href="${pageContext.request.contextPath}/register.jsp" class="btn-nav">Sign Up</a></li>
             </c:otherwise>
         </c:choose>
     </ul>
@@ -54,9 +54,9 @@
         </p>
 
         <div class="hero-actions">
-            <a href="event?action=list" class="btn btn-primary">🎟 Browse Events</a>
+            <a href="${pageContext.request.contextPath}/event?action=list" class="btn btn-primary">🎟 Browse Events</a>
             <c:if test="${empty sessionScope.userId}">
-                <a href="register.jsp" class="btn btn-outline">Create Account</a>
+                <a href="${pageContext.request.contextPath}/register.jsp" class="btn btn-outline">Create Account</a>
             </c:if>
         </div>
     </div>
@@ -81,7 +81,7 @@
 
             <div class="card feature-card">
                 <div class="feature-icon">🔒</div>
-                <h3>Secure & Safe</h3>
+                <h3>Secure &amp; Safe</h3>
                 <p>Your account, payments, and bookings stay protected and reliable.</p>
             </div>
 
@@ -105,7 +105,7 @@
         <div class="cta-box">
             <h2>Ready to book your next experience?</h2>
             <p>Explore trending events and reserve your seat before they sell out.</p>
-            <a href="event?action=list" class="btn btn-primary">Explore Events</a>
+            <a href="${pageContext.request.contextPath}/event?action=list" class="btn btn-primary">Explore Events</a>
         </div>
     </div>
 </section>
@@ -123,13 +123,13 @@
         <div class="footer-col">
             <h4>Quick Links</h4>
             <ul>
-                <li><a href="index.jsp">Home</a></li>
-                <li><a href="event?action=list">Events</a></li>
+                <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
+                <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
                 <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
-                    <li><a href="booking?action=myBookings">My Bookings</a></li>
+                    <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
                 </c:if>
                 <c:if test="${not empty sessionScope.userId}">
-                    <li><a href="profile.jsp">Profile</a></li>
+                    <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
                 </c:if>
             </ul>
         </div>
@@ -140,7 +140,7 @@
                 <li><a href="#">About Us</a></li>
                 <li><a href="#">Contact</a></li>
                 <li><a href="#">Privacy Policy</a></li>
-                <li><a href="#">Terms & Conditions</a></li>
+                <li><a href="#">Terms &amp; Conditions</a></li>
             </ul>
         </div>
 
@@ -150,7 +150,7 @@
                 <li><a href="#">Help Center</a></li>
                 <li><a href="#">FAQs</a></li>
                 <li><a href="#">Ticket Policy</a></li>
-                <li><a href="#">Report an Issue</a></li>
+                <li><a href="${pageContext.request.contextPath}/IssueServlet?action=report">Report an Issue</a></li>
             </ul>
         </div>
     </div>
@@ -163,6 +163,6 @@
     </div>
 </footer>
 
-<script src="js/main.js"></script>
+<script src="${pageContext.request.contextPath}/js/main.js"></script>
 </body>
 </html>
