@@ -1,4 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.eventhorizon.model.Admin" %>
 <%@ page import="com.eventhorizon.service.UserService" %>
 <%
@@ -21,7 +21,9 @@
     boolean hasFullAccess = UserService.hasFullAccess(adminPermission);
 
     String pageTitle = (String) request.getAttribute("pageTitle");
-    if (pageTitle == null) pageTitle = "Admin Panel";
+    if (pageTitle == null || pageTitle.trim().isEmpty()) {
+        pageTitle = "Admin Panel";
+    }
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -31,6 +33,7 @@
     <title><%= pageTitle %> - EventHorizon</title>
 
     <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 <body>
@@ -58,7 +61,7 @@
                 <a href="<%= request.getContextPath() %>/user?action=list"
                    class="<%= "Users".equals(pageTitle) ? "active" : "" %>">
                     <i class="fa-solid fa-users"></i>
-                    <span>Users</span>
+                    <span>Manage Users</span>
                 </a>
                 <% } %>
 
@@ -66,7 +69,7 @@
                 <a href="<%= request.getContextPath() %>/event?action=adminList"
                    class="<%= "Events".equals(pageTitle) ? "active" : "" %>">
                     <i class="fa-solid fa-calendar-days"></i>
-                    <span>Events</span>
+                    <span>Manage Events</span>
                 </a>
                 <% } %>
 
@@ -76,6 +79,26 @@
                     <i class="fa-solid fa-ticket"></i>
                     <span>Bookings</span>
                 </a>
+
+                <a href="<%= request.getContextPath() %>/booking?action=pendingPayments"
+                   class="<%= "Payments".equals(pageTitle) ? "active" : "" %>">
+                    <i class="fa-solid fa-money-check-dollar"></i>
+                    <span>Manage Payments</span>
+                </a>
+                <% } %>
+
+                <a href="<%= request.getContextPath() %>/IssueServlet?action=adminList"
+                   class="<%= "Issue Requests".equals(pageTitle) ? "active" : "" %>">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Issue Requests</span>
+                </a>
+
+                <% if (UserService.canRequestAdmin(adminPermission)) { %>
+                <a href="<%= request.getContextPath() %>/user?action=addAdminForm"
+                   class="<%= "Request Admin".equals(pageTitle) ? "active" : "" %>">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Request New Admin</span>
+                </a>
                 <% } %>
 
                 <% if (hasFullAccess) { %>
@@ -83,14 +106,6 @@
                    class="<%= "Admin Requests".equals(pageTitle) ? "active" : "" %>">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
-                </a>
-                <% } %>
-
-                <% if (UserService.canRequestAdmin(adminPermission)) { %>
-                <a href="<%= request.getContextPath() %>/user?action=addAdminForm"
-                   class="<%= "Request Admin".equals(pageTitle) ? "active" : "" %>">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Request Admin</span>
                 </a>
                 <% } %>
             </nav>
