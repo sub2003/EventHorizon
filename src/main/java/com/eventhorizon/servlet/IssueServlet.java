@@ -30,11 +30,14 @@ public class IssueServlet extends HttpServlet {
         switch (action) {
 
             case "report": {
-                if (session != null && session.getAttribute("userId") != null) {
-                    int userId = parseSessionUserId(session);
-                    List<Issue> myIssues = issueService.getIssuesByUser(userId);
-                    request.setAttribute("myIssues", myIssues);
+                if (session == null || session.getAttribute("userId") == null) {
+                    response.sendRedirect(request.getContextPath() + "/login.jsp");
+                    return;
                 }
+
+                int userId = parseSessionUserId(session);
+                List<Issue> myIssues = issueService.getIssuesByUser(userId);
+                request.setAttribute("myIssues", myIssues);
 
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
                 break;
@@ -292,7 +295,6 @@ public class IssueServlet extends HttpServlet {
         try {
             return Integer.parseInt(value);
         } catch (NumberFormatException ignored) {
-            // Continue and try extracting numeric part from IDs like USR001 / ADM002
         }
 
         String numericPart = value.replaceAll("\\D+", "");
