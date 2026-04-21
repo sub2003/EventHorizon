@@ -11,7 +11,6 @@ import javax.servlet.http.*;
 import java.io.IOException;
 import java.util.List;
 
-@WebServlet("/IssueServlet")
 public class IssueServlet extends HttpServlet {
 
     private final IssueService issueService = new IssueService();
