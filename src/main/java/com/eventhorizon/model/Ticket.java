@@ -5,6 +5,8 @@ package com.eventhorizon.model;
  */
 public class Ticket {
 
+    
+
     private String ticketId;
     private String bookingId;
     private String eventId;
