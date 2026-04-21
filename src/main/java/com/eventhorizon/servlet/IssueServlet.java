@@ -38,7 +38,6 @@ public class IssueServlet extends HttpServlet {
                 int userId = parseSessionUserId(session);
                 List<Issue> myIssues = issueService.getIssuesByUser(userId);
                 request.setAttribute("myIssues", myIssues);
-
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
                 return;
             }
@@ -52,7 +51,6 @@ public class IssueServlet extends HttpServlet {
                 int userId = parseSessionUserId(session);
                 List<Issue> myIssues = issueService.getIssuesByUser(userId);
                 request.setAttribute("myIssues", myIssues);
-
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
                 return;
             }
@@ -67,16 +65,23 @@ public class IssueServlet extends HttpServlet {
                 String catFilter = normalizeFilter(request.getParameter("category"));
                 String statFilter = normalizeFilter(request.getParameter("status"));
 
-                List<Issue> issues = issueService.getIssuesByAdminView(adminType, catFilter, statFilter);
+                List<Issue> issueList;
+                if ("CORE_ADMIN".equals(adminType)) {
+                    issueList = issueService.getIssuesByFilter(null, catFilter, statFilter);
+                } else if ("EVENTS_AND_BOOKINGS_ADMIN".equals(adminType)) {
+                    issueList = issueService.getIssuesByFilter("EVENTS_ADMIN,BOOKINGS_ADMIN", catFilter, statFilter);
+                } else {
+                    issueList = issueService.getIssuesByFilter(adminType, catFilter, statFilter);
+                }
 
-                request.setAttribute("issues", issues);
+                request.setAttribute("issueList", issueList);
                 request.setAttribute("adminType", adminType);
                 request.setAttribute("catFilter", catFilter);
                 request.setAttribute("statFilter", statFilter);
-
                 request.setAttribute("openCount", issueService.countByStatus("OPEN", adminType));
                 request.setAttribute("progressCount", issueService.countByStatus("IN_PROGRESS", adminType));
                 request.setAttribute("resolvedCount", issueService.countByStatus("RESOLVED", adminType));
+                request.setAttribute("showingCount", issueList != null ? issueList.size() : 0);
 
                 request.getRequestDispatcher("/admin/issues.jsp").forward(request, response);
                 return;
@@ -130,12 +135,12 @@ public class IssueServlet extends HttpServlet {
 
                 int userId = parseSessionUserId(session);
 
-                String category = safeTrim(request.getParameter("category"));
-                String subject = safeTrim(request.getParameter("subject"));
-                String desc = safeTrim(request.getParameter("description"));
-                String priority = safeTrim(request.getParameter("priority"));
-                String email = safeTrim(request.getParameter("customerEmail"));
-                String phone = safeTrim(request.getParameter("customerPhone"));
+                String category = request.getParameter("category");
+                String subject = request.getParameter("subject");
+                String desc = request.getParameter("description");
+                String priority = request.getParameter("priority");
+                String email = request.getParameter("customerEmail");
+                String phone = request.getParameter("customerPhone");
 
                 Integer bookingId = parseOptionalInteger(request.getParameter("bookingId"));
                 Integer ticketId = parseOptionalInteger(request.getParameter("ticketId"));
@@ -176,16 +181,16 @@ public class IssueServlet extends HttpServlet {
                 }
 
                 int issueId = Integer.parseInt(request.getParameter("issueId"));
-                String message = safeTrim(request.getParameter("replyMessage"));
-                String newStatus = safeTrim(request.getParameter("newStatus"));
+                String message = request.getParameter("replyMessage");
+                String newStatus = request.getParameter("newStatus");
                 int adminId = parseSessionUserId(session);
 
-                if (message != null && !message.isEmpty()) {
-                    IssueReply reply = new IssueReply(issueId, adminId, message);
+                if (message != null && !message.trim().isEmpty()) {
+                    IssueReply reply = new IssueReply(issueId, adminId, message.trim());
                     issueService.addReply(reply);
                 }
 
-                if (newStatus != null && !newStatus.isEmpty()) {
+                if (newStatus != null && !newStatus.trim().isEmpty()) {
                     issueService.updateStatus(issueId, newStatus);
                 }
 
@@ -201,9 +206,9 @@ public class IssueServlet extends HttpServlet {
                 }
 
                 int issueId = Integer.parseInt(request.getParameter("issueId"));
-                String status = safeTrim(request.getParameter("status"));
+                String status = request.getParameter("status");
 
-                if (status != null && !status.isEmpty()) {
+                if (status != null && !status.trim().isEmpty()) {
                     issueService.updateStatus(issueId, status);
                 }
 
@@ -218,25 +223,16 @@ public class IssueServlet extends HttpServlet {
     }
 
     private boolean isAdmin(HttpSession session) {
-        if (session == null) {
-            return false;
-        }
-
+        if (session == null) return false;
         Object roleObj = session.getAttribute("role");
-        if (roleObj == null) {
-            return false;
-        }
-
-        return "ADMIN".equalsIgnoreCase(String.valueOf(roleObj));
+        return roleObj != null && "ADMIN".equalsIgnoreCase(String.valueOf(roleObj));
     }
 
     private String getAdminType(HttpSession session) {
-        if (session == null) {
-            return "CORE_ADMIN";
-        }
+        if (session == null) return "CORE_ADMIN";
 
         Object permissionObj = session.getAttribute("adminPermission");
-        String permission = permissionObj != null ? String.valueOf(permissionObj).trim().toUpperCase() : "";
+        String permission = permissionObj != null ? String.valueOf(permissionObj).toUpperCase() : "";
 
         if (permission.contains("FULL") || permission.contains("CORE")) {
             return "CORE_ADMIN";
@@ -250,36 +246,27 @@ public class IssueServlet extends HttpServlet {
         if (permission.contains("BOOKING")) {
             return "BOOKINGS_ADMIN";
         }
-
         return "CORE_ADMIN";
     }
 
     private int parseSessionUserId(HttpSession session) {
         Object userIdObj = session.getAttribute("userId");
-
         if (userIdObj == null) {
             throw new IllegalArgumentException("Session userId is missing.");
         }
-
         return parseFlexibleId(String.valueOf(userIdObj));
     }
 
     private Integer parseOptionalInteger(String value) {
-        if (value == null || value.trim().isEmpty()) {
-            return null;
-        }
+        if (value == null || value.trim().isEmpty()) return null;
         return Integer.parseInt(value.trim());
     }
 
     private int parseFlexibleId(String rawValue) {
-        if (rawValue == null) {
-            throw new IllegalArgumentException("ID value is null.");
-        }
+        if (rawValue == null) throw new IllegalArgumentException("ID value is null.");
 
         String value = rawValue.trim();
-        if (value.isEmpty()) {
-            throw new IllegalArgumentException("ID value is empty.");
-        }
+        if (value.isEmpty()) throw new IllegalArgumentException("ID value is empty.");
 
         try {
             return Integer.parseInt(value);
@@ -290,22 +277,16 @@ public class IssueServlet extends HttpServlet {
         if (numericPart.isEmpty()) {
             throw new IllegalArgumentException("Invalid ID format: " + value);
         }
-
         return Integer.parseInt(numericPart);
     }
 
     private String normalizeFilter(String value) {
-        value = safeTrim(value);
-        if (value == null || value.isEmpty()) {
-            return null;
-        }
-        if ("all categories".equalsIgnoreCase(value) || "all statuses".equalsIgnoreCase(value)) {
+        if (value == null) return null;
+        value = value.trim();
+        if (value.isEmpty()) return null;
+        if ("All Categories".equalsIgnoreCase(value) || "All Statuses".equalsIgnoreCase(value)) {
             return null;
         }
         return value;
-    }
-
-    private String safeTrim(String value) {
-        return value == null ? null : value.trim();
     }
 }

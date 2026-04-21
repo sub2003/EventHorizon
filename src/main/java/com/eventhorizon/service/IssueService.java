@@ -46,17 +46,11 @@ public class IssueService {
 
             ps.setInt(1, issue.getUserId());
 
-            if (issue.getBookingId() != null) {
-                ps.setInt(2, issue.getBookingId());
-            } else {
-                ps.setNull(2, Types.INTEGER);
-            }
+            if (issue.getBookingId() != null) ps.setInt(2, issue.getBookingId());
+            else ps.setNull(2, Types.INTEGER);
 
-            if (issue.getTicketId() != null) {
-                ps.setInt(3, issue.getTicketId());
-            } else {
-                ps.setNull(3, Types.INTEGER);
-            }
+            if (issue.getTicketId() != null) ps.setInt(3, issue.getTicketId());
+            else ps.setNull(3, Types.INTEGER);
 
             ps.setString(4, issue.getCategory());
             ps.setString(5, issue.getSubject());
@@ -69,17 +63,13 @@ public class IssueService {
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) {
-                        issue.setIssueId(keys.getInt(1));
-                    }
+                    if (keys.next()) issue.setIssueId(keys.getInt(1));
                 }
                 return true;
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return false;
     }
 
@@ -88,55 +78,40 @@ public class IssueService {
     }
 
     public List<Issue> getIssuesByAdminType(String adminType) {
-        return getIssuesByAdminView(adminType, null, null);
-    }
-
-    public List<Issue> getIssuesByAdminView(String adminType, String categoryFilter, String statusFilter) {
-        if ("EVENTS_AND_BOOKINGS_ADMIN".equalsIgnoreCase(adminType)) {
-            return getIssuesByFilter("EVENTS_ADMIN,BOOKINGS_ADMIN", categoryFilter, statusFilter);
+        if ("EVENTS_AND_BOOKINGS_ADMIN".equals(adminType)) {
+            return getIssuesByFilter("EVENTS_ADMIN,BOOKINGS_ADMIN", null, null);
         }
-        if ("CORE_ADMIN".equalsIgnoreCase(adminType)) {
-            return getIssuesByFilter(null, categoryFilter, statusFilter);
-        }
-        return getIssuesByFilter(adminType, categoryFilter, statusFilter);
+        return getIssuesByFilter(adminType, null, null);
     }
 
     public List<Issue> getIssuesByFilter(String adminTypeFilter, String categoryFilter, String statusFilter) {
         List<Issue> list = new ArrayList<>();
 
-        categoryFilter = normalizeFilter(categoryFilter);
-        statusFilter = normalizeFilter(statusFilter);
-
-        StringBuilder sb = new StringBuilder(
-                "SELECT i.* FROM issues i WHERE 1=1 "
-        );
-
+        StringBuilder sb = new StringBuilder("SELECT * FROM issues WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
 
         if (adminTypeFilter != null && !adminTypeFilter.trim().isEmpty()) {
             String[] types = adminTypeFilter.split(",");
-            sb.append("AND i.assigned_admin_type IN (");
-            for (int t = 0; t < types.length; t++) {
-                if (t > 0) {
-                    sb.append(",");
-                }
+            sb.append("AND assigned_admin_type IN (");
+            for (int i = 0; i < types.length; i++) {
+                if (i > 0) sb.append(",");
                 sb.append("?");
-                params.add(types[t].trim());
+                params.add(types[i].trim());
             }
             sb.append(") ");
         }
 
-        if (categoryFilter != null) {
-            sb.append("AND i.category = ? ");
-            params.add(categoryFilter);
+        if (categoryFilter != null && !categoryFilter.trim().isEmpty()) {
+            sb.append("AND category = ? ");
+            params.add(categoryFilter.trim());
         }
 
-        if (statusFilter != null) {
-            sb.append("AND i.status = ? ");
-            params.add(statusFilter);
+        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
+            sb.append("AND status = ? ");
+            params.add(statusFilter.trim());
         }
 
-        sb.append("ORDER BY i.issue_id DESC");
+        sb.append("ORDER BY created_at DESC");
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sb.toString())) {
@@ -147,16 +122,7 @@ public class IssueService {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Issue issue = mapIssue(rs);
-
-                    // Fallback so JSP always has something to display
-                    if (issue.getUserName() == null || issue.getUserName().trim().isEmpty()) {
-                        issue.setUserName(issue.getCustomerEmail() != null && !issue.getCustomerEmail().trim().isEmpty()
-                                ? issue.getCustomerEmail()
-                                : "Customer #" + issue.getUserId());
-                    }
-
-                    list.add(issue);
+                    list.add(mapIssue(rs));
                 }
             }
 
@@ -179,13 +145,6 @@ public class IssueService {
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     issue = mapIssue(rs);
-
-                    if (issue.getUserName() == null || issue.getUserName().trim().isEmpty()) {
-                        issue.setUserName(issue.getCustomerEmail() != null && !issue.getCustomerEmail().trim().isEmpty()
-                                ? issue.getCustomerEmail()
-                                : "Customer #" + issue.getUserId());
-                    }
-
                     issue.setReplies(getRepliesByIssueId(issueId));
                 }
             }
@@ -199,7 +158,7 @@ public class IssueService {
 
     public List<Issue> getIssuesByUser(int userId) {
         List<Issue> list = new ArrayList<>();
-        String sql = "SELECT * FROM issues WHERE user_id = ? ORDER BY issue_id DESC";
+        String sql = "SELECT * FROM issues WHERE user_id = ? ORDER BY created_at DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -208,15 +167,7 @@ public class IssueService {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    Issue issue = mapIssue(rs);
-
-                    if (issue.getUserName() == null || issue.getUserName().trim().isEmpty()) {
-                        issue.setUserName(issue.getCustomerEmail() != null && !issue.getCustomerEmail().trim().isEmpty()
-                                ? issue.getCustomerEmail()
-                                : "Customer #" + issue.getUserId());
-                    }
-
-                    list.add(issue);
+                    list.add(mapIssue(rs));
                 }
             }
 
@@ -240,7 +191,6 @@ public class IssueService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return false;
     }
 
@@ -262,7 +212,6 @@ public class IssueService {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
         return false;
     }
 
@@ -314,9 +263,7 @@ public class IssueService {
         List<Object> params = new ArrayList<>();
         params.add(status);
 
-        if (adminType != null && !adminType.trim().isEmpty()
-                && !"CORE_ADMIN".equalsIgnoreCase(adminType)) {
-
+        if (adminType != null && !adminType.trim().isEmpty() && !"CORE_ADMIN".equalsIgnoreCase(adminType)) {
             if ("EVENTS_AND_BOOKINGS_ADMIN".equalsIgnoreCase(adminType)) {
                 sb.append(" AND assigned_admin_type IN (?, ?)");
                 params.add("EVENTS_ADMIN");
@@ -335,9 +282,7 @@ public class IssueService {
             }
 
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1);
-                }
+                if (rs.next()) return rs.getInt(1);
             }
 
         } catch (SQLException e) {
@@ -363,28 +308,7 @@ public class IssueService {
         i.setCustomerPhone(rs.getString("customer_phone"));
         i.setCreatedAt(rs.getTimestamp("created_at"));
         i.setUpdatedAt(rs.getTimestamp("updated_at"));
-
-        // Because issues.user_id is numeric while users.user_id is string in your app,
-        // do not rely on SQL join here.
         i.setUserName(rs.getString("customer_email"));
-
         return i;
-    }
-
-    private String normalizeFilter(String value) {
-        if (value == null) {
-            return null;
-        }
-
-        value = value.trim();
-        if (value.isEmpty()) {
-            return null;
-        }
-
-        if ("all categories".equalsIgnoreCase(value) || "all statuses".equalsIgnoreCase(value)) {
-            return null;
-        }
-
-        return value;
     }
 }
