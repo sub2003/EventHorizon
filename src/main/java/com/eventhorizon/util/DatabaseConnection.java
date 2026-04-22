@@ -14,6 +14,7 @@ public class DatabaseConnection {
     private static final String LOCAL_USERNAME = "root";
     private static final String LOCAL_PASSWORD = "";
 
+    
     public static Connection getConnection() throws SQLException {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
