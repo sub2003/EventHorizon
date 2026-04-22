@@ -282,6 +282,51 @@ public class IssueService {
         return list;
     }
 
+    public int countIssuesWithRepliesByUser(int userId) {
+        String sql = "SELECT COUNT(DISTINCT i.issue_id) " +
+                "FROM issues i WHERE i.user_id = ? " +
+                "AND EXISTS (SELECT 1 FROM issue_replies r WHERE r.issue_id = i.issue_id)";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        } catch (Exception e) {
+            System.err.println("[IssueService] countIssuesWithRepliesByUser error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return 0;
+    }
+
+    public boolean issueBelongsToUser(int issueId, int userId) {
+        String sql = "SELECT 1 FROM issues WHERE issue_id = ? AND user_id = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, issueId);
+            ps.setInt(2, userId);
+
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+
+        } catch (Exception e) {
+            System.err.println("[IssueService] issueBelongsToUser error: " + e.getMessage());
+            e.printStackTrace();
+        }
+
+        return false;
+    }
+
     public int countByStatus(String status, String adminType) {
         StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM issues WHERE status = ?");
         List<Object> params = new ArrayList<>();

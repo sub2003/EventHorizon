@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="com.eventhorizon.service.IssueService" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +9,158 @@
     <title>Report an Issue — EventHorizon Support</title>
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+    .eh-navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+        background: linear-gradient(90deg, #060b1f, #0b1434);
+        border-bottom: 1px solid rgba(130, 90, 255, 0.22);
+        backdrop-filter: blur(12px);
+    }
+
+    .eh-navbar-inner {
+        width: min(94%, 1400px);
+        margin: 0 auto;
+        padding: 16px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .eh-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: #e8ecff;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        font-size: 1.55rem;
+    }
+
+    .eh-brand i {
+        color: #7c5cff;
+        font-size: 1.1rem;
+    }
+
+    .eh-nav-links {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .eh-nav-links li {
+        list-style: none;
+    }
+
+    .eh-nav-link,
+    .eh-nav-bell,
+    .eh-nav-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 700;
+        transition: 0.22s ease;
+        border: 1px solid transparent;
+    }
+
+    .eh-nav-link {
+        color: #d9defa;
+    }
+
+    .eh-nav-link:hover {
+        color: #ffffff;
+        background: rgba(255,255,255,0.05);
+    }
+
+    .eh-nav-link.active {
+        color: #ffffff;
+        background: linear-gradient(135deg, rgba(124,92,255,0.24), rgba(43,192,255,0.18));
+        border-color: rgba(124,92,255,0.28);
+        box-shadow: 0 8px 20px rgba(124,92,255,0.12);
+    }
+
+    .eh-nav-bell {
+        position: relative;
+        color: #d9defa;
+        width: 42px;
+        padding: 0;
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    .eh-nav-bell:hover,
+    .eh-nav-bell.active {
+        color: #ffffff;
+        border-color: rgba(124,92,255,0.35);
+        background: linear-gradient(135deg, rgba(124,92,255,0.24), rgba(43,192,255,0.18));
+        box-shadow: 0 8px 18px rgba(124,92,255,0.14);
+    }
+
+    .eh-nav-bell i {
+        font-size: 1rem;
+    }
+
+    .eh-bell-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #ff5d73, #ff7b54);
+        color: #fff;
+        font-size: 0.68rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 14px rgba(255,93,115,0.3);
+    }
+
+    .eh-nav-btn {
+        color: #ffffff;
+        background: linear-gradient(135deg, #7c5cff, #9b6bff);
+        box-shadow: 0 10px 20px rgba(124,92,255,0.18);
+    }
+
+    .eh-nav-btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.95;
+    }
+
+    @media (max-width: 900px) {
+        .eh-navbar-inner {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .eh-nav-links {
+            justify-content: center;
+        }
+
+        .eh-brand {
+            justify-content: center;
+        }
+    }
+</style>
     <style>
         :root {
             --bg:        #0b0d12;
@@ -224,8 +377,44 @@
 </head>
 <body>
 
+<%
+    int navIssueCount = 0;
+    String navRole = (String) session.getAttribute("role");
+    Object navUserIdObj = session.getAttribute("userId");
+    if ("CUSTOMER".equals(navRole) && navUserIdObj != null) {
+        try {
+            String numericPart = String.valueOf(navUserIdObj).replaceAll("\\D+", "");
+            if (!numericPart.isEmpty()) {
+                navIssueCount = new IssueService().countIssuesWithRepliesByUser(Integer.parseInt(numericPart));
+            }
+        } catch (Exception ignored) { }
+    }
+%>
+
 <!-- NAV -->
-<nav>
+<nav class="eh-navbar">
+    <div class="eh-navbar-inner">
+        <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
+            <i class="fa-regular fa-hexagon"></i>
+            <span>EVENTHORIZON</span>
+        </a>
+
+        <ul class="eh-nav-links">
+            <li><a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link "><i class="fa-solid fa-house"></i><span>Home</span></a></li>
+            <li><a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link "><i class="fa-solid fa-calendar-days"></i><span>Events</span></a></li>
+            <li><a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link "><i class="fa-solid fa-ticket"></i><span>My Bookings</span></a></li>
+            <li>
+                <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell active" title="Issue notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <% if (navIssueCount > 0) { %><span class="eh-bell-badge"><%= navIssueCount %></span><% } %>
+                </a>
+            </li>
+            <li><a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link "><i class="fa-regular fa-user"></i><span>Profile</span></a></li>
+            <li><a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+        </ul>
+    </div>
+</nav>
+
     <div class="nav-logo">Event<span>Horizon</span></div>
     <div class="nav-links">
         <a href="${pageContext.request.contextPath}/index.jsp">Home</a>
@@ -356,15 +545,37 @@
             </form>
         </div>
 
-        <!-- My Issues link -->
-        <c:if test="${not empty sessionScope.user}">
-            <div style="margin-top:16px; text-align:center;">
-                <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues"
-                   style="color:var(--accent2); font-size:.88rem; text-decoration:none;">
-                    <i class="fas fa-history"></i> View my submitted issues
-                </a>
+<div class="card" id="my-issues" style="margin-top:18px;">
+    <div class="card-title"><i class="fas fa-bell"></i> My Issue Notifications</div>
+
+    <c:choose>
+        <c:when test="${not empty myIssues}">
+            <div style="display:grid; gap:14px;">
+                <c:forEach var="issue" items="${myIssues}">
+                    <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssueDetail&id=${issue.issueId}"
+                       style="display:block; text-decoration:none; color:inherit; background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:16px; transition:.2s;">
+                        <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start; flex-wrap:wrap;">
+                            <div>
+                                <div style="font-weight:600; margin-bottom:6px;">#${issue.issueId} — ${issue.subject}</div>
+                                <div style="font-size:.8rem; color:var(--muted);">${issue.category}</div>
+                            </div>
+                            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                                <span class="chip" style="background:rgba(108,92,231,.15); color:#a29bfe;">${issue.status}</span>
+                                <span style="font-size:.75rem; color:var(--accent2); font-weight:600;">View Messages</span>
+                            </div>
+                        </div>
+                    </a>
+                </c:forEach>
             </div>
-        </c:if>
+        </c:when>
+        <c:otherwise>
+            <div style="background:var(--surface); border:1px dashed var(--border); border-radius:12px; padding:20px; color:var(--muted); text-align:center;">
+                No issue notifications yet. When admins reply to your support requests, they will appear here.
+            </div>
+        </c:otherwise>
+    </c:choose>
+</div>
+
     </div>
 
     <!-- RIGHT: SIDEBAR -->

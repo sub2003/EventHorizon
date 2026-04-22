@@ -39,6 +39,7 @@ public class IssueServlet extends HttpServlet {
                 List<Issue> myIssues = issueService.getIssuesByUser(userId);
 
                 request.setAttribute("myIssues", myIssues);
+                request.setAttribute("issueNotificationCount", issueService.countIssuesWithRepliesByUser(userId));
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
                 return;
             }
@@ -53,7 +54,46 @@ public class IssueServlet extends HttpServlet {
                 List<Issue> myIssues = issueService.getIssuesByUser(userId);
 
                 request.setAttribute("myIssues", myIssues);
+                request.setAttribute("issueNotificationCount", issueService.countIssuesWithRepliesByUser(userId));
                 request.getRequestDispatcher("/reportIssue.jsp").forward(request, response);
+                return;
+            }
+
+            case "myIssueDetail": {
+                if (session == null || session.getAttribute("userId") == null) {
+                    response.sendRedirect(request.getContextPath() + "/login.jsp");
+                    return;
+                }
+
+                String idParam = request.getParameter("id");
+                if (idParam == null || idParam.trim().isEmpty()) {
+                    response.sendRedirect(request.getContextPath() + "/IssueServlet?action=myIssues");
+                    return;
+                }
+
+                int issueId;
+                try {
+                    issueId = Integer.parseInt(idParam.trim());
+                } catch (NumberFormatException e) {
+                    response.sendRedirect(request.getContextPath() + "/IssueServlet?action=myIssues");
+                    return;
+                }
+
+                int userId = parseSessionUserId(session);
+                if (!issueService.issueBelongsToUser(issueId, userId)) {
+                    response.sendRedirect(request.getContextPath() + "/IssueServlet?action=myIssues");
+                    return;
+                }
+
+                Issue issue = issueService.getIssueById(issueId);
+                if (issue == null) {
+                    response.sendRedirect(request.getContextPath() + "/IssueServlet?action=myIssues");
+                    return;
+                }
+
+                request.setAttribute("issue", issue);
+                request.setAttribute("issueNotificationCount", issueService.countIssuesWithRepliesByUser(userId));
+                request.getRequestDispatcher("/issueDetailsCustomer.jsp").forward(request, response);
                 return;
             }
 

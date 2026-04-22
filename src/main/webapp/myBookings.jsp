@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.eventhorizon.model.Booking" %>
+<%@ page import="com.eventhorizon.service.IssueService" %>
 <%
     HttpSession currentSession = request.getSession(false);
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
@@ -18,6 +19,18 @@
 
     String msg = request.getParameter("msg");
     String error = request.getParameter("error");
+
+int navIssueCount = 0;
+Object navUserIdObj = currentSession != null ? currentSession.getAttribute("userId") : null;
+if (navUserIdObj != null) {
+    try {
+        String numericPart = String.valueOf(navUserIdObj).replaceAll("\\D+", "");
+        if (!numericPart.isEmpty()) {
+            navIssueCount = new IssueService().countIssuesWithRepliesByUser(Integer.parseInt(numericPart));
+        }
+    } catch (Exception ignored) { }
+}
+
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -25,6 +38,159 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Bookings - EventHorizon</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+    .eh-navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+        background: linear-gradient(90deg, #060b1f, #0b1434);
+        border-bottom: 1px solid rgba(130, 90, 255, 0.22);
+        backdrop-filter: blur(12px);
+    }
+
+    .eh-navbar-inner {
+        width: min(94%, 1400px);
+        margin: 0 auto;
+        padding: 16px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    .eh-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: #e8ecff;
+        font-weight: 800;
+        letter-spacing: 0.6px;
+        font-size: 1.55rem;
+    }
+
+    .eh-brand i {
+        color: #7c5cff;
+        font-size: 1.1rem;
+    }
+
+    .eh-nav-links {
+        list-style: none;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0;
+        padding: 0;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .eh-nav-links li {
+        list-style: none;
+    }
+
+    .eh-nav-link,
+    .eh-nav-bell,
+    .eh-nav-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-size: 0.92rem;
+        font-weight: 700;
+        transition: 0.22s ease;
+        border: 1px solid transparent;
+    }
+
+    .eh-nav-link {
+        color: #d9defa;
+    }
+
+    .eh-nav-link:hover {
+        color: #ffffff;
+        background: rgba(255,255,255,0.05);
+    }
+
+    .eh-nav-link.active {
+        color: #ffffff;
+        background: linear-gradient(135deg, rgba(124,92,255,0.24), rgba(43,192,255,0.18));
+        border-color: rgba(124,92,255,0.28);
+        box-shadow: 0 8px 20px rgba(124,92,255,0.12);
+    }
+
+    .eh-nav-bell {
+        position: relative;
+        color: #d9defa;
+        width: 42px;
+        padding: 0;
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.08);
+    }
+
+    .eh-nav-bell:hover,
+    .eh-nav-bell.active {
+        color: #ffffff;
+        border-color: rgba(124,92,255,0.35);
+        background: linear-gradient(135deg, rgba(124,92,255,0.24), rgba(43,192,255,0.18));
+        box-shadow: 0 8px 18px rgba(124,92,255,0.14);
+    }
+
+    .eh-nav-bell i {
+        font-size: 1rem;
+    }
+
+    .eh-bell-badge {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, #ff5d73, #ff7b54);
+        color: #fff;
+        font-size: 0.68rem;
+        font-weight: 800;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 14px rgba(255,93,115,0.3);
+    }
+
+    .eh-nav-btn {
+        color: #ffffff;
+        background: linear-gradient(135deg, #7c5cff, #9b6bff);
+        box-shadow: 0 10px 20px rgba(124,92,255,0.18);
+    }
+
+    .eh-nav-btn:hover {
+        transform: translateY(-1px);
+        opacity: 0.95;
+    }
+
+    @media (max-width: 900px) {
+        .eh-navbar-inner {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .eh-nav-links {
+            justify-content: center;
+        }
+
+        .eh-brand {
+            justify-content: center;
+        }
+    }
+</style>
+
     <style>
         * {
             box-sizing: border-box;
@@ -315,16 +481,28 @@
 </head>
 <body>
 
-<div class="navbar">
-    <div class="brand">EVENTHORIZON</div>
-    <div class="nav-links">
-        <a href="<%= request.getContextPath() %>/index.jsp">Home</a>
-        <a href="<%= request.getContextPath() %>/event?action=list">Events</a>
-        <a href="<%= request.getContextPath() %>/booking?action=myBookings">My Bookings</a>
-        <a href="<%= request.getContextPath() %>/profile.jsp">Profile</a>
-        <a href="<%= request.getContextPath() %>/user?action=logout">Logout</a>
+<nav class="eh-navbar">
+    <div class="eh-navbar-inner">
+        <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
+            <i class="fa-regular fa-hexagon"></i>
+            <span>EVENTHORIZON</span>
+        </a>
+
+        <ul class="eh-nav-links">
+            <li><a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link "><i class="fa-solid fa-house"></i><span>Home</span></a></li>
+            <li><a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link "><i class="fa-solid fa-calendar-days"></i><span>Events</span></a></li>
+            <li><a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link active"><i class="fa-solid fa-ticket"></i><span>My Bookings</span></a></li>
+            <li>
+                <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell " title="Issue notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <% if (navIssueCount > 0) { %><span class="eh-bell-badge"><%= navIssueCount %></span><% } %>
+                </a>
+            </li>
+            <li><a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link "><i class="fa-regular fa-user"></i><span>Profile</span></a></li>
+            <li><a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+        </ul>
     </div>
-</div>
+</nav>
 
 <div class="container">
     <div class="page-header">
