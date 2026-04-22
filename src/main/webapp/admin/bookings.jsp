@@ -242,9 +242,8 @@
 </head>
 <body>
 
-<div class="admin-shell">
-    <aside class="sidebar">
-        <div class="sidebar-top">
+<div class="admin-shell">    <aside class="sidebar">
+        <div>
             <div class="brand">
                 <div class="brand-icon">⬡</div>
                 <div>
@@ -259,20 +258,21 @@
                     <span>Dashboard</span>
                 </a>
 
-                <% if (UserService.hasFullAccess(adminPermission)) { %>
+                <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=list">
                     <i class="fa-solid fa-users"></i>
                     <span>Manage Users</span>
                 </a>
                 <% } %>
 
-                <% if (UserService.hasEventAccess(adminPermission)) { %>
+                <% if (canManageEvents) { %>
                 <a href="<%= request.getContextPath() %>/event?action=adminList">
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Manage Events</span>
                 </a>
                 <% } %>
 
+                <% if (canManageBookings) { %>
                 <a class="active" href="<%= request.getContextPath() %>/booking?action=allBookings">
                     <i class="fa-solid fa-ticket"></i>
                     <span>Bookings</span>
@@ -282,13 +282,21 @@
                     <i class="fa-solid fa-money-check-dollar"></i>
                     <span>Manage Payments</span>
                 </a>
+                <% } %>
 
-                <% if (UserService.hasFullAccess(adminPermission)) { %>
+                <a href="<%= request.getContextPath() %>/IssueServlet?action=adminList">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Issue Requests</span>
+                </a>
+
+                <% if (UserService.canRequestAdmin(adminPermission)) { %>
                 <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
                 </a>
+                <% } %>
 
+                <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
@@ -298,7 +306,12 @@
         </div>
 
         <div class="sidebar-footer">
-            <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
+            <div style="padding:12px 14px; margin-bottom:12px; border-radius:12px; background:rgba(255,255,255,0.04); color:#cbd5e1; font-size:0.9rem;">
+                <div style="font-size:0.75rem; text-transform:uppercase; opacity:0.75; margin-bottom:4px;">Permission</div>
+                <strong><%= UserService.permissionLabel(adminPermission) %></strong>
+            </div>
+
+            <a class="back-site" href="<%= request.getContextPath() %>/index.jsp">
                 <i class="fa-solid fa-globe"></i>
                 <span>Open Website</span>
             </a>

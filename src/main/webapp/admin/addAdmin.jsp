@@ -125,8 +125,7 @@
 </head>
 <body>
 
-<div class="admin-shell">
-    <aside class="sidebar">
+<div class="admin-shell">    <aside class="sidebar">
         <div>
             <div class="brand">
                 <div class="brand-icon">⬡</div>
@@ -168,18 +167,23 @@
                 </a>
                 <% } %>
 
+                <a href="<%= request.getContextPath() %>/IssueServlet?action=adminList">
+                    <i class="fa-solid fa-envelope-open-text"></i>
+                    <span>Issue Requests</span>
+                </a>
+
                 <% if (UserService.canRequestAdmin(adminPermission)) { %>
                 <a class="active" href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
                 </a>
+                <% } %>
 
                 <% if (hasFullAccess) { %>
                 <a href="<%= request.getContextPath() %>/user?action=listAdminRequests">
                     <i class="fa-solid fa-user-check"></i>
                     <span>Admin Requests</span>
                 </a>
-                <% } %>
                 <% } %>
             </nav>
         </div>
@@ -190,7 +194,7 @@
                 <strong><%= UserService.permissionLabel(adminPermission) %></strong>
             </div>
 
-            <a class="back-site" href="<%= request.getContextPath() %>/event?action=list">
+            <a class="back-site" href="<%= request.getContextPath() %>/index.jsp">
                 <i class="fa-solid fa-globe"></i>
                 <span>Open Website</span>
             </a>
