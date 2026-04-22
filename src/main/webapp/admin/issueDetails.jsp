@@ -458,7 +458,16 @@
 
                     <div class="meta-item">
                         <small>Last Updated</small>
-                        <span><fmt:formatDate value="${issue.updatedAt}" pattern="dd MMM yyyy, hh:mm a" /></span>
+                        <span>
+                            <c:choose>
+                                <c:when test="${not empty issue.updatedAt}">
+                                    <fmt:formatDate value="${issue.updatedAt}" pattern="dd MMM yyyy, hh:mm a" />
+                                </c:when>
+                                <c:otherwise>
+                                    -
+                                </c:otherwise>
+                            </c:choose>
+                        </span>
                     </div>
                 </div>
 
@@ -530,119 +539,84 @@
 
         <div>
             <div class="card">
-                <h3><i class="fas fa-user"></i> Customer</h3>
-
-                <div class="info-row">
-                    <i class="fas fa-user-circle"></i>
-                    <div><small>Name</small>${issue.userName}</div>
-                </div>
+                <h3><i class="fas fa-user-circle"></i> Customer Contact</h3>
 
                 <div class="info-row">
                     <i class="fas fa-envelope"></i>
-                    <div><small>Email</small><a href="mailto:${issue.customerEmail}" style="color:var(--accent2);text-decoration:none;">${issue.customerEmail}</a></div>
+                    <div>
+                        <small>Email</small>
+                        <div>${issue.customerEmail}</div>
+                    </div>
                 </div>
 
                 <c:if test="${not empty issue.customerPhone}">
                     <div class="info-row">
                         <i class="fas fa-phone"></i>
-                        <div><small>Phone</small><a href="tel:${issue.customerPhone}" style="color:var(--accent2);text-decoration:none;">${issue.customerPhone}</a></div>
+                        <div>
+                            <small>Phone</small>
+                            <div>${issue.customerPhone}</div>
+                        </div>
                     </div>
                 </c:if>
-            </div>
-
-            <div class="card">
-                <h3><i class="fas fa-toggle-on"></i> Quick Status Update</h3>
-                <p style="font-size:.8rem; color:var(--muted); margin-bottom:12px;">Change status without sending a reply message.</p>
-
-                <div class="quick-status">
-                    <form action="${pageContext.request.contextPath}/IssueServlet" method="post">
-                        <input type="hidden" name="action" value="updateStatus" />
-                        <input type="hidden" name="issueId" value="${issue.issueId}" />
-                        <input type="hidden" name="status" value="IN_PROGRESS" />
-                        <button type="submit" class="qs-btn qs-progress ${issue.status == 'IN_PROGRESS' ? 'active' : ''}">
-                            <i class="fas fa-spinner"></i> In Progress
-                        </button>
-                    </form>
-
-                    <form action="${pageContext.request.contextPath}/IssueServlet" method="post">
-                        <input type="hidden" name="action" value="updateStatus" />
-                        <input type="hidden" name="issueId" value="${issue.issueId}" />
-                        <input type="hidden" name="status" value="RESOLVED" />
-                        <button type="submit" class="qs-btn qs-resolved ${issue.status == 'RESOLVED' ? 'active' : ''}">
-                            <i class="fas fa-check"></i> Resolved
-                        </button>
-                    </form>
-
-                    <form action="${pageContext.request.contextPath}/IssueServlet" method="post">
-                        <input type="hidden" name="action" value="updateStatus" />
-                        <input type="hidden" name="issueId" value="${issue.issueId}" />
-                        <input type="hidden" name="status" value="OPEN" />
-                        <button type="submit" class="qs-btn ${issue.status == 'OPEN' ? 'active' : ''}">
-                            <i class="fas fa-circle-dot"></i> Reopen
-                        </button>
-                    </form>
-
-                    <form action="${pageContext.request.contextPath}/IssueServlet" method="post">
-                        <input type="hidden" name="action" value="updateStatus" />
-                        <input type="hidden" name="issueId" value="${issue.issueId}" />
-                        <input type="hidden" name="status" value="REJECTED" />
-                        <button type="submit" class="qs-btn qs-rejected ${issue.status == 'REJECTED' ? 'active' : ''}">
-                            <i class="fas fa-ban"></i> Reject
-                        </button>
-                    </form>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3><i class="fas fa-tag"></i> Issue Info</h3>
 
                 <div class="info-row">
                     <i class="fas fa-layer-group"></i>
-                    <div><small>Category</small>${issue.category}</div>
-                </div>
-
-                <div class="info-row">
-                    <i class="fas fa-shield-alt"></i>
-                    <div><small>Assigned Team</small>${issue.assignedAdminType.replace('_',' ')}</div>
-                </div>
-
-                <div class="info-row">
-                    <i class="fas fa-exclamation"></i>
-                    <div><small>Priority</small>
-                        <span class="priority-badge priority-${issue.priority.toLowerCase()}">${issue.priority}</span>
+                    <div>
+                        <small>Category</small>
+                        <div>${issue.category}</div>
                     </div>
                 </div>
 
-                <c:if test="${issue.bookingId != null}">
-                    <div class="info-row">
-                        <i class="fas fa-ticket-alt"></i>
-                        <div><small>Booking ID</small>#${issue.bookingId}</div>
-                    </div>
-                </c:if>
-
-                <c:if test="${issue.ticketId != null}">
-                    <div class="info-row">
-                        <i class="fas fa-qrcode"></i>
-                        <div><small>Ticket ID</small>#${issue.ticketId}</div>
-                    </div>
-                </c:if>
-
                 <div class="info-row">
-                    <i class="fas fa-calendar"></i>
-                    <div><small>Submitted</small><fmt:formatDate value="${issue.createdAt}" pattern="dd MMM yyyy" /></div>
-                </div>
-
-                <div class="info-row">
-                    <i class="fas fa-comments"></i>
-                    <div><small>Replies</small>${not empty issue.replies ? issue.replies.size() : 0}</div>
+                    <i class="fas fa-shield-halved"></i>
+                    <div>
+                        <small>Assigned Admin Type</small>
+                        <div>${issue.assignedAdminType.replace('_', ' ')}</div>
+                    </div>
                 </div>
             </div>
+
+            <c:if test="${issue.status != 'RESOLVED' && issue.status != 'REJECTED'}">
+                <div class="card">
+                    <h3><i class="fas fa-bolt"></i> Quick Status</h3>
+
+                    <div class="quick-status">
+                        <form action="${pageContext.request.contextPath}/IssueServlet" method="post">
+                            <input type="hidden" name="action" value="updateStatus" />
+                            <input type="hidden" name="issueId" value="${issue.issueId}" />
+                            <input type="hidden" name="status" value="IN_PROGRESS" />
+                            <button type="submit" class="qs-btn qs-progress ${issue.status == 'IN_PROGRESS' ? 'active' : ''}">
+                                <i class="fas fa-spinner"></i> Mark In Progress
+                            </button>
+                        </form>
+
+                        <form action="${pageContext.request.contextPath}/IssueServlet" method="post">
+                            <input type="hidden" name="action" value="updateStatus" />
+                            <input type="hidden" name="issueId" value="${issue.issueId}" />
+                            <input type="hidden" name="status" value="RESOLVED" />
+                            <button type="submit" class="qs-btn qs-resolved ${issue.status == 'RESOLVED' ? 'active' : ''}">
+                                <i class="fas fa-check-circle"></i> Mark Resolved
+                            </button>
+                        </form>
+
+                        <form action="${pageContext.request.contextPath}/IssueServlet" method="post">
+                            <input type="hidden" name="action" value="updateStatus" />
+                            <input type="hidden" name="issueId" value="${issue.issueId}" />
+                            <input type="hidden" name="status" value="REJECTED" />
+                            <button type="submit" class="qs-btn qs-rejected ${issue.status == 'REJECTED' ? 'active' : ''}">
+                                <i class="fas fa-ban"></i> Reject Issue
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </c:if>
         </div>
 
     </div>
+
 </div>
 
-    </main>
+</main>
 </div>
 
 </body>
