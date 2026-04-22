@@ -11,7 +11,11 @@ import java.util.List;
 public class IssueService {
 
     public static String resolveAdminType(String category) {
-        switch (category) {
+        if (category == null) {
+            return "CORE_ADMIN";
+        }
+
+        switch (category.trim()) {
             case "Booking Problem":
             case "Payment Verification Issue":
             case "Ticket Not Received":
@@ -29,8 +33,6 @@ public class IssueService {
             case "Website Technical Issue":
             case "General Inquiry":
             case "Other":
-                return "CORE_ADMIN";
-
             default:
                 return "CORE_ADMIN";
         }
@@ -46,31 +48,41 @@ public class IssueService {
 
             ps.setInt(1, issue.getUserId());
 
-            if (issue.getBookingId() != null) ps.setInt(2, issue.getBookingId());
-            else ps.setNull(2, Types.INTEGER);
+            if (issue.getBookingId() != null) {
+                ps.setInt(2, issue.getBookingId());
+            } else {
+                ps.setNull(2, Types.INTEGER);
+            }
 
-            if (issue.getTicketId() != null) ps.setInt(3, issue.getTicketId());
-            else ps.setNull(3, Types.INTEGER);
+            if (issue.getTicketId() != null) {
+                ps.setInt(3, issue.getTicketId());
+            } else {
+                ps.setNull(3, Types.INTEGER);
+            }
 
-            ps.setString(4, issue.getCategory());
-            ps.setString(5, issue.getSubject());
-            ps.setString(6, issue.getDescription());
-            ps.setString(7, issue.getPriority());
-            ps.setString(8, issue.getAssignedAdminType());
-            ps.setString(9, issue.getCustomerEmail());
-            ps.setString(10, issue.getCustomerPhone());
+            ps.setString(4, safeTrim(issue.getCategory()));
+            ps.setString(5, safeTrim(issue.getSubject()));
+            ps.setString(6, safeTrim(issue.getDescription()));
+            ps.setString(7, normalizePriority(issue.getPriority()));
+            ps.setString(8, safeTrim(issue.getAssignedAdminType()));
+            ps.setString(9, safeTrim(issue.getCustomerEmail()));
+            ps.setString(10, safeTrim(issue.getCustomerPhone()));
 
             int rows = ps.executeUpdate();
             if (rows > 0) {
                 try (ResultSet keys = ps.getGeneratedKeys()) {
-                    if (keys.next()) issue.setIssueId(keys.getInt(1));
+                    if (keys.next()) {
+                        issue.setIssueId(keys.getInt(1));
+                    }
                 }
                 return true;
             }
+
         } catch (Exception e) {
             System.err.println("[IssueService] submitIssue error: " + e.getMessage());
             e.printStackTrace();
         }
+
         return false;
     }
 
@@ -79,7 +91,7 @@ public class IssueService {
     }
 
     public List<Issue> getIssuesByAdminType(String adminType) {
-        if ("EVENTS_AND_BOOKINGS_ADMIN".equals(adminType)) {
+        if ("EVENTS_AND_BOOKINGS_ADMIN".equalsIgnoreCase(adminType)) {
             return getIssuesByFilter("EVENTS_ADMIN,BOOKINGS_ADMIN", null, null);
         }
         return getIssuesByFilter(adminType, null, null);
@@ -88,37 +100,36 @@ public class IssueService {
     public List<Issue> getIssuesByFilter(String adminTypeFilter, String categoryFilter, String statusFilter) {
         List<Issue> list = new ArrayList<>();
 
-        // Plain SELECT * — no JOIN to avoid schema mismatch errors
-        StringBuilder sb = new StringBuilder("SELECT * FROM issues WHERE 1=1 ");
+        StringBuilder sql = new StringBuilder("SELECT * FROM issues WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
 
-        if (adminTypeFilter != null && !adminTypeFilter.trim().isEmpty()) {
+        if (!isBlank(adminTypeFilter) && !"CORE_ADMIN".equalsIgnoreCase(adminTypeFilter.trim())) {
             String[] types = adminTypeFilter.split(",");
-            sb.append("AND assigned_admin_type IN (");
+            sql.append("AND assigned_admin_type IN (");
             for (int i = 0; i < types.length; i++) {
-                if (i > 0) sb.append(",");
-                sb.append("?");
+                if (i > 0) {
+                    sql.append(", ");
+                }
+                sql.append("?");
                 params.add(types[i].trim());
             }
-            sb.append(") ");
+            sql.append(") ");
         }
 
-        if (categoryFilter != null && !categoryFilter.trim().isEmpty()) {
-            sb.append("AND category = ? ");
+        if (!isBlank(categoryFilter) && !"ALL".equalsIgnoreCase(categoryFilter.trim())) {
+            sql.append("AND category = ? ");
             params.add(categoryFilter.trim());
         }
 
-        if (statusFilter != null && !statusFilter.trim().isEmpty()) {
-            sb.append("AND status = ? ");
-            params.add(statusFilter.trim());
+        if (!isBlank(statusFilter) && !"ALL".equalsIgnoreCase(statusFilter.trim())) {
+            sql.append("AND status = ? ");
+            params.add(statusFilter.trim().toUpperCase());
         }
 
-        sb.append("ORDER BY created_at DESC");
-
-        System.out.println("[IssueService] Query: " + sb);
+        sql.append("ORDER BY created_at DESC, issue_id DESC");
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
@@ -126,18 +137,9 @@ public class IssueService {
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
-                    try {
-                        list.add(mapIssue(rs));
-                    } catch (Exception rowEx) {
-                        // Per-row catch: one bad row won't kill the whole list
-                        System.err.println("[IssueService] Failed mapping issue_id="
-                                + safeGetInt(rs, "issue_id") + " — " + rowEx.getMessage());
-                        rowEx.printStackTrace();
-                    }
+                    list.add(mapIssue(rs));
                 }
             }
-
-            System.out.println("[IssueService] Loaded " + list.size() + " issues.");
 
         } catch (Exception e) {
             System.err.println("[IssueService] getIssuesByFilter error: " + e.getMessage());
@@ -173,7 +175,7 @@ public class IssueService {
 
     public List<Issue> getIssuesByUser(int userId) {
         List<Issue> list = new ArrayList<>();
-        String sql = "SELECT * FROM issues WHERE user_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM issues WHERE user_id = ? ORDER BY created_at DESC, issue_id DESC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -200,7 +202,7 @@ public class IssueService {
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setString(1, status);
+            ps.setString(1, safeStatus(status));
             ps.setInt(2, issueId);
             return ps.executeUpdate() > 0;
 
@@ -208,6 +210,7 @@ public class IssueService {
             System.err.println("[IssueService] updateStatus error: " + e.getMessage());
             e.printStackTrace();
         }
+
         return false;
     }
 
@@ -219,7 +222,7 @@ public class IssueService {
 
             ps.setInt(1, reply.getIssueId());
             ps.setInt(2, reply.getAdminId());
-            ps.setString(3, reply.getReplyMessage());
+            ps.setString(3, safeTrim(reply.getReplyMessage()));
 
             if (ps.executeUpdate() > 0) {
                 updateStatusIfOpen(reply.getIssueId());
@@ -230,6 +233,7 @@ public class IssueService {
             System.err.println("[IssueService] addReply error: " + e.getMessage());
             e.printStackTrace();
         }
+
         return false;
     }
 
@@ -250,7 +254,7 @@ public class IssueService {
 
     public List<IssueReply> getRepliesByIssueId(int issueId) {
         List<IssueReply> list = new ArrayList<>();
-        String sql = "SELECT * FROM issue_replies WHERE issue_id = ? ORDER BY replied_at ASC";
+        String sql = "SELECT * FROM issue_replies WHERE issue_id = ? ORDER BY replied_at ASC, reply_id ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -279,30 +283,32 @@ public class IssueService {
     }
 
     public int countByStatus(String status, String adminType) {
-        StringBuilder sb = new StringBuilder("SELECT COUNT(*) FROM issues WHERE status = ?");
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM issues WHERE status = ?");
         List<Object> params = new ArrayList<>();
-        params.add(status);
+        params.add(safeStatus(status));
 
-        if (adminType != null && !adminType.trim().isEmpty() && !"CORE_ADMIN".equalsIgnoreCase(adminType)) {
-            if ("EVENTS_AND_BOOKINGS_ADMIN".equalsIgnoreCase(adminType)) {
-                sb.append(" AND assigned_admin_type IN (?, ?)");
+        if (!isBlank(adminType) && !"CORE_ADMIN".equalsIgnoreCase(adminType.trim())) {
+            if ("EVENTS_AND_BOOKINGS_ADMIN".equalsIgnoreCase(adminType.trim())) {
+                sql.append(" AND assigned_admin_type IN (?, ?)");
                 params.add("EVENTS_ADMIN");
                 params.add("BOOKINGS_ADMIN");
             } else {
-                sb.append(" AND assigned_admin_type = ?");
-                params.add(adminType);
+                sql.append(" AND assigned_admin_type = ?");
+                params.add(adminType.trim());
             }
         }
 
         try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sb.toString())) {
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
 
             for (int i = 0; i < params.size(); i++) {
                 ps.setObject(i + 1, params.get(i));
             }
 
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
             }
 
         } catch (Exception e) {
@@ -313,40 +319,89 @@ public class IssueService {
         return 0;
     }
 
-    // -------------------------------------------------------------------------
-    // Helpers
-    // -------------------------------------------------------------------------
-
     private Issue mapIssue(ResultSet rs) throws SQLException {
-        Issue i = new Issue();
-        i.setIssueId(rs.getInt("issue_id"));
-        i.setUserId(rs.getInt("user_id"));
+        Issue issue = new Issue();
 
-        // Safe extraction — avoids ClassCastException when DB column is BIGINT
+        issue.setIssueId(rs.getInt("issue_id"));
+        issue.setUserId(rs.getInt("user_id"));
+
         Object bookingIdObj = rs.getObject("booking_id");
-        i.setBookingId(bookingIdObj != null ? ((Number) bookingIdObj).intValue() : null);
+        issue.setBookingId(bookingIdObj != null ? ((Number) bookingIdObj).intValue() : null);
 
         Object ticketIdObj = rs.getObject("ticket_id");
-        i.setTicketId(ticketIdObj != null ? ((Number) ticketIdObj).intValue() : null);
+        issue.setTicketId(ticketIdObj != null ? ((Number) ticketIdObj).intValue() : null);
 
-        i.setCategory(rs.getString("category"));
-        i.setSubject(rs.getString("subject"));
-        i.setDescription(rs.getString("description"));
-        i.setPriority(rs.getString("priority"));
-        i.setAssignedAdminType(rs.getString("assigned_admin_type"));
-        i.setStatus(rs.getString("status"));
-        i.setCustomerEmail(rs.getString("customer_email"));
-        i.setCustomerPhone(rs.getString("customer_phone"));
-        i.setCreatedAt(rs.getTimestamp("created_at"));
-        i.setUpdatedAt(rs.getTimestamp("updated_at"));
+        issue.setCategory(rs.getString("category"));
+        issue.setSubject(rs.getString("subject"));
+        issue.setDescription(rs.getString("description"));
+        issue.setPriority(rs.getString("priority"));
+        issue.setAssignedAdminType(rs.getString("assigned_admin_type"));
+        issue.setStatus(rs.getString("status"));
+        issue.setCustomerEmail(rs.getString("customer_email"));
+        issue.setCustomerPhone(rs.getString("customer_phone"));
+        issue.setCreatedAt(rs.getTimestamp("created_at"));
 
-        // Use email as the display name — no JOIN required
-        i.setUserName(rs.getString("customer_email"));
+        // IMPORTANT:
+        // Some databases do not have updated_at in issues table.
+        // So read it safely instead of crashing the whole row mapping.
+        issue.setUpdatedAt(getOptionalTimestamp(rs, "updated_at"));
 
-        return i;
+        String customerEmail = rs.getString("customer_email");
+        if (customerEmail != null && !customerEmail.trim().isEmpty()) {
+            issue.setUserName(customerEmail);
+        } else {
+            issue.setUserName("User #" + rs.getInt("user_id"));
+        }
+
+        return issue;
     }
 
-    private int safeGetInt(ResultSet rs, String col) {
-        try { return rs.getInt(col); } catch (Exception e) { return -1; }
+    private Timestamp getOptionalTimestamp(ResultSet rs, String columnName) {
+        try {
+            return rs.getTimestamp(columnName);
+        } catch (SQLException e) {
+            return null;
+        }
+    }
+
+    private String normalizePriority(String priority) {
+        if (priority == null || priority.trim().isEmpty()) {
+            return "MEDIUM";
+        }
+
+        String value = priority.trim().toUpperCase();
+        switch (value) {
+            case "LOW":
+            case "HIGH":
+            case "MEDIUM":
+                return value;
+            default:
+                return "MEDIUM";
+        }
+    }
+
+    private String safeStatus(String status) {
+        if (status == null || status.trim().isEmpty()) {
+            return "OPEN";
+        }
+
+        String value = status.trim().toUpperCase();
+        switch (value) {
+            case "OPEN":
+            case "IN_PROGRESS":
+            case "RESOLVED":
+            case "REJECTED":
+                return value;
+            default:
+                return "OPEN";
+        }
+    }
+
+    private String safeTrim(String value) {
+        return value == null ? null : value.trim();
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
     }
 }
