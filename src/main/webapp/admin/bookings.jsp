@@ -18,7 +18,12 @@
         adminPermission = Admin.CORE_ADMIN;
     }
 
-    if (!UserService.hasBookingAccess(adminPermission)) {
+    boolean hasFullAccess = UserService.hasFullAccess(adminPermission);
+    boolean canManageEvents = UserService.hasEventAccess(adminPermission);
+    boolean canManageBookings = UserService.hasBookingAccess(adminPermission);
+    boolean canRequestAdmins = UserService.canRequestAdmin(adminPermission);
+
+    if (!canManageBookings) {
         response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp?error=noBookingPermission");
         return;
     }
@@ -169,7 +174,6 @@
             border: 1px solid rgba(225,29,72,0.28);
         }
 
-        /* Ticket type badge */
         .type-pill {
             display: inline-block;
             padding: 6px 12px;
@@ -242,7 +246,8 @@
 </head>
 <body>
 
-<div class="admin-shell">    <aside class="sidebar">
+<div class="admin-shell">
+    <aside class="sidebar">
         <div>
             <div class="brand">
                 <div class="brand-icon">⬡</div>
@@ -289,7 +294,7 @@
                     <span>Issue Requests</span>
                 </a>
 
-                <% if (UserService.canRequestAdmin(adminPermission)) { %>
+                <% if (canRequestAdmins) { %>
                 <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
