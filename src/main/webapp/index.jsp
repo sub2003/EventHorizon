@@ -77,7 +77,8 @@
 
         .eh-nav-link,
         .eh-nav-bell,
-        .eh-nav-btn {
+        .eh-nav-btn,
+        .eh-nav-btn-outline {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -158,6 +159,18 @@
             opacity: 0.95;
         }
 
+        .eh-nav-btn-outline {
+            color: #8fdcff;
+            border-color: rgba(67, 206, 255, 0.35);
+            background: rgba(67, 206, 255, 0.08);
+        }
+
+        .eh-nav-btn-outline:hover {
+            color: #ffffff;
+            border-color: rgba(67, 206, 255, 0.55);
+            background: rgba(67, 206, 255, 0.16);
+        }
+
         @media (max-width: 900px) {
             .eh-navbar-inner {
                 flex-direction: column;
@@ -184,17 +197,76 @@
         </a>
 
         <ul class="eh-nav-links">
-            <li><a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link active"><i class="fa-solid fa-house"></i><span>Home</span></a></li>
-            <li><a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link "><i class="fa-solid fa-calendar-days"></i><span>Events</span></a></li>
-            <li><a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link "><i class="fa-solid fa-ticket"></i><span>My Bookings</span></a></li>
             <li>
-                <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell " title="Issue notifications">
-                    <i class="fa-regular fa-bell"></i>
-                    <% if (navIssueCount > 0) { %><span class="eh-bell-badge"><%= navIssueCount %></span><% } %>
+                <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link active">
+                    <i class="fa-solid fa-house"></i><span>Home</span>
                 </a>
             </li>
-            <li><a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link "><i class="fa-regular fa-user"></i><span>Profile</span></a></li>
-            <li><a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a></li>
+
+            <li>
+                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
+                    <i class="fa-solid fa-calendar-days"></i><span>Events</span>
+                </a>
+            </li>
+
+            <c:choose>
+                <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
+                    <li>
+                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
+                            <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell" title="Issue notifications">
+                            <i class="fa-regular fa-bell"></i>
+                            <% if (navIssueCount > 0) { %>
+                                <span class="eh-bell-badge"><%= navIssueCount %></span>
+                            <% } %>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                            <i class="fa-regular fa-user"></i><span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+                        </a>
+                    </li>
+                </c:when>
+
+                <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
+                    <li>
+                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="eh-nav-link">
+                            <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                            <i class="fa-regular fa-user"></i><span>Profile</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+                        </a>
+                    </li>
+                </c:when>
+
+                <c:otherwise>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/login.jsp" class="eh-nav-link">
+                            <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
+                            <i class="fa-solid fa-user-plus"></i><span>Register</span>
+                        </a>
+                    </li>
+                </c:otherwise>
+            </c:choose>
         </ul>
     </div>
 </nav>
