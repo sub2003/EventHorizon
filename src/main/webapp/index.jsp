@@ -21,158 +21,158 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventHorizon – Book Your Experience</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-<style>
-    .eh-navbar {
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        width: 100%;
-        background: linear-gradient(90deg, #060b1f, #0b1434);
-        border-bottom: 1px solid rgba(130, 90, 255, 0.22);
-        backdrop-filter: blur(12px);
-    }
-
-    .eh-navbar-inner {
-        width: min(94%, 1400px);
-        margin: 0 auto;
-        padding: 16px 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-    }
-
-    .eh-brand {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        color: #e8ecff;
-        font-weight: 800;
-        letter-spacing: 0.6px;
-        font-size: 1.55rem;
-    }
-
-    .eh-brand i {
-        color: #7c5cff;
-        font-size: 1.1rem;
-    }
-
-    .eh-nav-links {
-        list-style: none;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin: 0;
-        padding: 0;
-        flex-wrap: wrap;
-        justify-content: flex-end;
-    }
-
-    .eh-nav-links li {
-        list-style: none;
-    }
-
-    .eh-nav-link,
-    .eh-nav-bell,
-    .eh-nav-btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        min-height: 40px;
-        padding: 10px 14px;
-        border-radius: 12px;
-        text-decoration: none;
-        font-size: 0.92rem;
-        font-weight: 700;
-        transition: 0.22s ease;
-        border: 1px solid transparent;
-    }
-
-    .eh-nav-link {
-        color: #d9defa;
-    }
-
-    .eh-nav-link:hover {
-        color: #ffffff;
-        background: rgba(255,255,255,0.05);
-    }
-
-    .eh-nav-link.active {
-        color: #ffffff;
-        background: linear-gradient(135deg, rgba(124,92,255,0.24), rgba(43,192,255,0.18));
-        border-color: rgba(124,92,255,0.28);
-        box-shadow: 0 8px 20px rgba(124,92,255,0.12);
-    }
-
-    .eh-nav-bell {
-        position: relative;
-        color: #d9defa;
-        width: 42px;
-        padding: 0;
-        background: rgba(255,255,255,0.05);
-        border-color: rgba(255,255,255,0.08);
-    }
-
-    .eh-nav-bell:hover,
-    .eh-nav-bell.active {
-        color: #ffffff;
-        border-color: rgba(124,92,255,0.35);
-        background: linear-gradient(135deg, rgba(124,92,255,0.24), rgba(43,192,255,0.18));
-        box-shadow: 0 8px 18px rgba(124,92,255,0.14);
-    }
-
-    .eh-nav-bell i {
-        font-size: 1rem;
-    }
-
-    .eh-bell-badge {
-        position: absolute;
-        top: -6px;
-        right: -6px;
-        min-width: 18px;
-        height: 18px;
-        padding: 0 5px;
-        border-radius: 999px;
-        background: linear-gradient(135deg, #ff5d73, #ff7b54);
-        color: #fff;
-        font-size: 0.68rem;
-        font-weight: 800;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 6px 14px rgba(255,93,115,0.3);
-    }
-
-    .eh-nav-btn {
-        color: #ffffff;
-        background: linear-gradient(135deg, #7c5cff, #9b6bff);
-        box-shadow: 0 10px 20px rgba(124,92,255,0.18);
-    }
-
-    .eh-nav-btn:hover {
-        transform: translateY(-1px);
-        opacity: 0.95;
-    }
-
-    @media (max-width: 900px) {
-        .eh-navbar-inner {
-            flex-direction: column;
-            align-items: stretch;
+    <style>
+        .eh-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            width: 100%;
+            background: linear-gradient(90deg, #060b1f, #0b1434);
+            border-bottom: 1px solid rgba(130, 90, 255, 0.22);
+            backdrop-filter: blur(12px);
         }
 
-        .eh-nav-links {
-            justify-content: center;
+        .eh-navbar-inner {
+            width: min(94%, 1400px);
+            margin: 0 auto;
+            padding: 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
         }
 
         .eh-brand {
-            justify-content: center;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #e8ecff;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            font-size: 1.55rem;
         }
-    }
-</style>
+
+        .eh-brand i {
+            color: #7c5cff;
+            font-size: 1.1rem;
+        }
+
+        .eh-nav-links {
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .eh-nav-links li {
+            list-style: none;
+        }
+
+        .eh-nav-link,
+        .eh-nav-bell,
+        .eh-nav-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 0.92rem;
+            font-weight: 700;
+            transition: 0.22s ease;
+            border: 1px solid transparent;
+        }
+
+        .eh-nav-link {
+            color: #d9defa;
+        }
+
+        .eh-nav-link:hover {
+            color: #ffffff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .eh-nav-link.active {
+            color: #ffffff;
+            background: linear-gradient(135deg, rgba(124,92,255,0.24), rgba(43,192,255,0.18));
+            border-color: rgba(124,92,255,0.28);
+            box-shadow: 0 8px 20px rgba(124,92,255,0.12);
+        }
+
+        .eh-nav-bell {
+            position: relative;
+            color: #d9defa;
+            width: 42px;
+            padding: 0;
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.08);
+        }
+
+        .eh-nav-bell:hover,
+        .eh-nav-bell.active {
+            color: #ffffff;
+            border-color: rgba(124,92,255,0.35);
+            background: linear-gradient(135deg, rgba(124,92,255,0.24), rgba(43,192,255,0.18));
+            box-shadow: 0 8px 18px rgba(124,92,255,0.14);
+        }
+
+        .eh-nav-bell i {
+            font-size: 1rem;
+        }
+
+        .eh-bell-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ff5d73, #ff7b54);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 14px rgba(255,93,115,0.3);
+        }
+
+        .eh-nav-btn {
+            color: #ffffff;
+            background: linear-gradient(135deg, #7c5cff, #9b6bff);
+            box-shadow: 0 10px 20px rgba(124,92,255,0.18);
+        }
+
+        .eh-nav-btn:hover {
+            transform: translateY(-1px);
+            opacity: 0.95;
+        }
+
+        @media (max-width: 900px) {
+            .eh-navbar-inner {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .eh-nav-links {
+                justify-content: center;
+            }
+
+            .eh-brand {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -299,7 +299,7 @@
             <ul>
                 <li><a href="#">About Us</a></li>
                 <li><a href="#">Contact</a></li>
-                <li><a href="#">Privacy Policy</a></li>
+                <li><a href="${pageContext.request.contextPath}/privacyPolicy.jsp">Privacy Policy</a></li>
                 <li><a href="#">Terms &amp; Conditions</a></li>
             </ul>
         </div>
