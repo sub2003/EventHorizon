@@ -297,8 +297,8 @@
         <div class="footer-col">
             <h4>Company</h4>
             <ul>
-                <li><a href="#">About Us</a></li>
-                <li><a href="#">Contact</a></li>
+                <li><a href="${pageContext.request.contextPath}/aboutUs.jsp">About Us</a></li>
+                <li><a href="${pageContext.request.contextPath}/contacts.jsp">Contact</a></li>
                 <li><a href="${pageContext.request.contextPath}/privacyPolicy.jsp">Privacy Policy</a></li>
                 <li><a href="${pageContext.request.contextPath}/termsConditions.jsp">Terms &amp; Conditions</a></li>
             </ul>
@@ -307,9 +307,9 @@
         <div class="footer-col">
             <h4>Support</h4>
             <ul>
-                <li><a href="#">Help Center</a></li>
-                <li><a href="#">FAQs</a></li>
-                <li><a href="#">Ticket Policy</a></li>
+                <li><a href="${pageContext.request.contextPath}/faqs.jsp">Help Center</a></li>
+                <li><a href="${pageContext.request.contextPath}/faqs.jsp">FAQs</a></li>
+                <li><a href="${pageContext.request.contextPath}/ticketPolicy.jsp">Ticket Policy</a></li>
                 <li><a href="${pageContext.request.contextPath}/IssueServlet?action=report">Report an Issue</a></li>
             </ul>
         </div>
