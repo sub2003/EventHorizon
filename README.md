@@ -8,34 +8,50 @@
 </p>
 
 <p align="center">
-  <strong>Full-Stack Event Booking and Administration Platform</strong><br>
-  A professionally structured Java web application for event discovery, booking management, payment verification, digital ticketing, and permission-based administration.
+  <strong>Professional Event Booking, Ticketing, and Administration Platform</strong><br />
+  A full-stack Java web application designed for event discovery, booking management, manual payment verification, digital ticket generation, QR-based validation, and permission-based administration.
 </p>
 
 <p align="center">
-  <a href="https://glistening-light-production-f277.up.railway.app/">
-    <img src="https://img.shields.io/badge/Live%20Demo-Open%20on%20Railway-6C63FF?style=for-the-badge" alt="Live Demo"/>
+  <a href="https://www.eventhorizonapp.online/">
+    <img src="https://img.shields.io/badge/Live%20Demo-eventhorizonapp.online-6C63FF?style=for-the-badge" alt="Live Demo" />
   </a>
 </p>
 
 ---
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Live Deployment](#live-deployment)
+- [Technology Stack](#technology-stack)
+- [Core Capabilities](#core-capabilities)
+- [System Architecture](#system-architecture)
+- [Functional Modules](#functional-modules)
+- [Admin Permission Model](#admin-permission-model)
+- [Digital Ticketing and QR Verification](#digital-ticketing-and-qr-verification)
+- [Business Logic](#business-logic)
+- [Project Structure](#project-structure)
+- [Deployment Summary](#deployment-summary)
+- [Local Development Setup](#local-development-setup)
+- [Project Highlights](#project-highlights)
+
+---
+
 ## Overview
 
-**EventHorizon** is a full-stack event booking platform built with **Java, JSP, Servlets, JDBC, and MySQL**. It simulates a realistic event management ecosystem by combining a customer-facing booking experience with a structured administrative workflow in one cohesive system.
+**EventHorizon** is a full-stack event booking platform built with **Java, JSP, Servlets, JDBC, and MySQL**. The system provides a complete customer-facing booking experience and a structured administration workflow for managing events, bookings, users, payments, tickets, and admin access levels.
 
-The project goes beyond a basic CRUD application by implementing:
+The application is designed as a realistic academic full-stack project with a strong focus on:
 
-- session-based authentication
+- clean layered architecture
 - role-based and permission-based access control
-- event lifecycle management
-- ticket booking and cancellation workflows
-- payment submission and approval flow
-- digital ticket generation
-- QR-based verification
-- production-style deployment on Railway
+- database-backed workflows
+- production-style deployment
+- professional user interface design
+- realistic event booking and ticket validation logic
 
-The system was designed as a practical full-stack learning project with strong focus on clean structure, realistic business logic, and scalable workflow design.
+Unlike a simple CRUD system, EventHorizon connects multiple workflows together: customers browse and book events, submit payment references, admins verify payments, tickets are generated after approval, and QR codes are validated through backend token verification.
 
 ---
 
@@ -43,251 +59,387 @@ The system was designed as a practical full-stack learning project with strong f
 
 | Environment | URL | Status |
 |---|---|---|
-| Production | `https://glistening-light-production-f277.up.railway.app/` | Active |
+| Production | `https://www.eventhorizonapp.online/` | Active |
+| Railway Default | `https://glistening-light-production-f277.up.railway.app/` | Active |
 
 ---
 
 ## Technology Stack
 
-### Backend
-- Java
-- Java Servlets
-- JDBC
-
-### Frontend
-- JSP
-- HTML
-- CSS
-- JavaScript
-
-### Database
-- MySQL
-
-### Build & Runtime
-- Maven
-- Apache Tomcat
-
-### Development Tools
-- IntelliJ IDEA
-- Git
-- GitHub
-- XAMPP
-
-### Deployment
-- Railway
-- ngrok
+| Category | Technologies |
+|---|---|
+| Backend | Java, Java Servlets, JDBC |
+| Frontend | JSP, HTML, CSS, JavaScript |
+| Database | MySQL |
+| Build Tool | Maven |
+| Runtime Server | Apache Tomcat |
+| Development Tools | IntelliJ IDEA, Git, GitHub, XAMPP, MySQL Workbench |
+| Deployment | Railway, Railway MySQL |
+| Temporary Public Testing | ngrok |
 
 ---
 
-## Core Features
+## Core Capabilities
 
-## Customer Features
-- Secure user registration and login
-- Session-based account authentication
+### Customer Features
+
+- User registration and login
+- Session-based authentication
 - Browse active events
-- Search events by title and venue
-- Filter events by category
-- View full event details
-- Select ticket quantities and ticket types
-- Submit booking payment reference
+- Search events by title, venue, or category
+- View detailed event information
+- Select ticket types and quantities
+- Submit booking requests
+- Enter manual payment reference details
 - View personal booking history
-- Cancel bookings when allowed
+- Track booking and payment status
 - Access approved digital tickets
-- Use QR-based ticket validation links
-- Manage profile information
+- Use QR-based ticket verification links
+- Update customer profile details
+- Cancel bookings when allowed
 
-## Admin Features
-- Dedicated admin workspace
-- Permission-aware dashboard modules
-- Create new events
-- Edit event details
-- Cancel or delete events
-- Manage uploaded event images
-- View all customer bookings
+### Admin Features
+
+- Dedicated admin dashboard
+- Permission-aware navigation and dashboard modules
+- Add, update, cancel, and delete events
+- Configure multiple ticket types per event
+- Manage event images and event details
+- View and manage customer bookings
 - Approve or reject payment submissions
-- Manage users
+- Generate tickets after approved payments
+- Verify QR-based ticket tokens
+- Manage users based on permission level
 - Handle admin access requests
-- Scan and verify QR tickets
-- Work under categorized permission levels
-
----
-
-## Multi-Ticket-Type Support
-
-EventHorizon supports **multiple ticket categories per event**, enabling a more realistic event booking workflow.
-
-### Supported Capabilities
-- One event can contain multiple ticket types
-- Examples: **VIP**, **Standard**, **Early Bird**
-- Each ticket type has its own:
-  - price
-  - total seats
-  - available seats
-- Bookings are linked to the selected ticket type
-- Ticket type information is stored in:
-  - bookings
-  - tickets
-  - ticket generation flow
-- Admins can configure ticket types while creating events
-
-This enhancement makes the system closer to real commercial ticketing platforms.
-
----
-
-## Digital Ticketing and QR Verification
-
-A key highlight of **EventHorizon** is its secure ticket validation workflow.
-
-### Ticket Flow
-- Tickets are generated only after booking approval
-- Each ticket receives a unique secure token
-- Approved tickets are stored in the database
-- Customers can view tickets through the ticket interface
-
-### QR Verification Flow
-- Each ticket includes a QR code linked to a verification endpoint
-- Scanning a valid system-generated QR checks the database
-- Approved tickets return a valid verification result
-- Invalid or unknown QR codes return **Not Approved**
-- Ticket verification is based on stored backend data, not static image trust
-
-This creates a more secure and realistic event-entry process.
+- Work under categorized admin roles
 
 ---
 
 ## System Architecture
 
-The application follows a layered architecture to separate presentation, control, business logic, and persistence.
+EventHorizon follows a layered architecture that separates presentation, request handling, business logic, and database access.
 
 | Layer | Responsibility |
 |---|---|
-| Model Layer | Core entities such as `User`, `Admin`, `Customer`, `Event`, `Booking`, `Ticket`, and `EventTicketType` |
-| View Layer | JSP pages for customer and admin interfaces |
-| Controller Layer | Servlets for routing, request handling, validation, and workflow control |
-| Service Layer | Business logic for users, events, bookings, ticket types, tickets, and admin processes |
-| Database Layer | MySQL persistence through JDBC |
+| Model Layer | Represents domain entities such as `User`, `Admin`, `Customer`, `Event`, `Booking`, `Ticket`, and `EventTicketType` |
+| View Layer | JSP pages for customer interfaces, admin dashboards, forms, lists, and status pages |
+| Controller Layer | Servlets that handle routing, validation, request processing, and response forwarding |
+| Service Layer | Business logic for authentication, events, bookings, tickets, payments, users, and admin workflows |
+| Data Access Layer | JDBC-based database operations using MySQL |
+| Deployment Layer | Railway-hosted application and MySQL database environment |
 
 ### Architecture Benefits
-- better maintainability
-- better readability
-- clear separation of concerns
-- easier debugging
-- easier feature expansion
+
+- Clear separation of concerns
+- Easier debugging and maintenance
+- More readable code organization
+- Reusable service-level logic
+- Scalable structure for future features
+- Better alignment with real-world Java web development practices
 
 ---
 
 ## Functional Modules
 
-| Module | Responsibility | Access |
+| Module | Responsibility | Primary Access |
 |---|---|---|
-| Authentication Module | Registration, login, logout, session validation, role checks | All Users |
-| Event Browsing Module | Browse, search, filter, and view active events | Customers |
-| Booking Module | Create bookings, submit payments, cancel bookings, track booking history | Customers |
-| Ticket Module | Generate tickets, display QR tickets, verify ticket validity | Customers / Admin |
-| Ticket Type Module | Define multiple ticket categories for each event | Admin |
-| Event Management Module | Create, update, cancel, and delete events | Admin |
-| Booking Management Module | Review bookings, approve payments, reject requests, delete old records | Admin |
-| User Management Module | Manage user accounts and access levels | Full Access Admin |
-| Admin Request Module | Submit, review, approve, and reject admin access requests | Full Access Admin |
+| Authentication Module | Registration, login, logout, session handling, and role validation | Customers / Admins |
+| Event Browsing Module | Display active events, event details, search, and filtering | Customers |
+| Booking Module | Create bookings, submit payment references, cancel bookings, and track history | Customers |
+| Payment Review Module | Review submitted payment references and approve or reject bookings | Admins |
+| Ticket Module | Generate tickets, display ticket details, and validate QR tokens | Customers / Admins |
+| Ticket Type Module | Manage VIP, Standard, Early Bird, and other ticket categories | Admins |
+| Event Management Module | Create, edit, cancel, delete, and manage event data | Event Admins |
+| User Management Module | View and manage customer and admin accounts | Full Access Admins |
+| Admin Request Module | Submit, review, approve, or reject new admin access requests | Full Access Admins |
+| Issue / Support Module | Allow users to report issues and receive admin responses | Customers / Admins |
 
 ---
 
-## Permission-Based Admin Access Control
+## Admin Permission Model
 
-EventHorizon includes categorized admin permissions that dynamically control visible dashboard modules and operational scope.
+EventHorizon includes a permission-based admin system that controls which dashboard modules and actions each admin can access.
 
 | Permission Type | Access Scope |
 |---|---|
-| Events Only | Event management only |
-| Bookings Only | Booking and payment management only |
-| Events + Bookings | Combined event and booking access |
-| Full Access | Full administrative control including users and admin requests |
+| Events Only | Create, update, cancel, and manage events |
+| Bookings Only | View bookings, approve payments, reject payments, and manage booking records |
+| Events + Bookings | Combined access to event and booking workflows |
+| Full Access | Complete administrative control, including users and admin requests |
+| Core Admin | Highest-level control over the system and admin management workflows |
 
-### Why This Matters
-- improves administrative security
-- supports role separation
-- reflects real organizational workflow
-- makes dashboard behavior more flexible
+### Purpose of Permission Control
+
+- Prevents unnecessary access to sensitive modules
+- Supports clear separation of responsibilities
+- Makes the admin dashboard more secure and organized
+- Reflects realistic organizational access control
+- Reduces accidental changes by limited-access admins
 
 ---
 
-## Business Logic Highlights
+## Multi-Ticket-Type Support
+
+EventHorizon supports multiple ticket categories for a single event. This makes the booking flow closer to real event ticketing platforms.
+
+### Supported Ticket Type Details
+
+Each event can include ticket types such as:
+
+- VIP
+- Standard
+- Early Bird
+- General Admission
+
+Each ticket type can maintain its own:
+
+- price
+- total seat count
+- available seat count
+- booking relationship
+- ticket generation data
+
+### Ticket Type Workflow
+
+1. Admin creates an event.
+2. Admin defines one or more ticket types.
+3. Customer selects a ticket type during booking.
+4. The system calculates the total amount based on selected ticket type and quantity.
+5. Available seats are updated according to the selected ticket category.
+6. Ticket details are preserved in booking and ticket records.
+
+---
+
+## Digital Ticketing and QR Verification
+
+A major feature of EventHorizon is its database-backed digital ticketing and QR verification workflow.
+
+### Ticket Generation Flow
+
+1. Customer creates a booking.
+2. Customer submits a payment reference.
+3. Admin reviews the payment reference.
+4. Admin approves the booking if the payment is valid.
+5. The system generates an approved ticket.
+6. The ticket receives a unique verification token.
+7. A QR code is generated using the verification link.
+
+### QR Verification Flow
+
+1. The QR code is scanned.
+2. The verification endpoint receives the ticket token.
+3. The backend checks the token against the database.
+4. If the ticket exists and is approved, the system displays a valid result.
+5. If the token is unknown, forged, expired, rejected, or not approved, the system displays a not-approved result.
+
+### Security Advantage
+
+QR validation is based on backend database verification, not just the QR image itself. This prevents external or fake QR codes from being accepted as valid system tickets.
+
+---
+
+## Business Logic
 
 ### Event Logic
-- Events maintain total seats and available seats
-- Only active events are shown to customers
-- Events include category, venue, date, time, description, and images
-- Events can include multiple ticket types with separate seat pools
+
+- Events include title, category, date, time, venue, description, image, and status.
+- Only active events are shown to customers.
+- Admins can create, update, cancel, or delete events depending on permission.
+- Event availability is connected to ticket type seat availability.
 
 ### Booking Logic
-- Bookings are linked to customers and events
-- Bookings store selected ticket type
-- Total amount is calculated from selected ticket type price
-- Seat availability is reduced at booking time
-- Seats are restored when bookings are rejected or cancelled
-- Payment status is tracked independently from booking status
+
+- Each booking belongs to a customer.
+- Each booking is linked to an event and selected ticket type.
+- Booking total is calculated based on ticket type price and quantity.
+- Seat availability is reduced when a booking is created.
+- Seats can be restored when bookings are cancelled or rejected.
+- Booking status and payment status are tracked separately for clearer workflow control.
+
+### Payment Logic
+
+- Customers submit manual payment references.
+- Admins review payment references from the dashboard.
+- Valid payments can be approved.
+- Invalid payments can be rejected.
+- Ticket generation depends on payment approval.
 
 ### Ticket Logic
-- Tickets are created only after admin payment approval
-- Tickets store ticket type details
-- Tickets include QR-based verification support
-- Used and unused ticket states are tracked
 
-### Admin Workflow
-- Admin creation can be request-based
-- Requests stay pending until reviewed
-- Approval grants permission-specific dashboard access
-- Full-access admins can manage broader system operations
+- Tickets are created only after admin approval.
+- Each ticket receives a secure token.
+- Tickets can be verified through QR code scanning.
+- Ticket validity is checked using database records.
+- Ticket status supports approved and not-approved verification outcomes.
 
----
+### Admin Workflow Logic
 
-## Project Highlights
-
-- Full-stack Java web application with realistic workflows
-- Clean layered architecture
-- Role-based and permission-based access control
-- Multi-ticket-type event support
-- Secure booking and payment approval flow
-- Digital ticket generation with QR verification
-- Database-backed validation logic
-- Admin dashboard adaptation based on permission type
-- Professional dark-themed UI
-- Railway cloud deployment with MySQL integration
-
----
-
-## Deployment Details
-
-| Component | Description |
-|---|---|
-| Hosting Platform | Railway |
-| Database | Railway MySQL |
-| Web Server | Apache Tomcat |
-| Runtime | Java Servlets + JSP |
-| Configuration | Environment variables |
-| Image Storage | Managed through application and database fields |
-| Ticket Storage | MySQL-backed records |
-| Email Support | Limited / currently restricted by SMTP environment |
+- Admin access can be request-based.
+- Requests remain pending until reviewed.
+- Approved requests grant permission-specific access.
+- Admin dashboard modules are shown based on permission level.
+- Full access and core admin roles provide broader management capabilities.
 
 ---
 
 ## Project Structure
 
 ```text
-src/
- ├── main/
- │   ├── java/
- │   │   └── com.eventhorizon/
- │   │       ├── model/
- │   │       ├── service/
- │   │       ├── servlet/
- │   │       └── util/
- │   ├── resources/
- │   └── webapp/
- │       ├── admin/
- │       ├── css/
- │       ├── js/
- │       ├── WEB-INF/
- │       └── *.jsp
- ├── pom.xml
- └── README.md
+EventHorizon/
+├── src/
+│   └── main/
+│       ├── java/
+│       │   └── com/eventhorizon/
+│       │       ├── model/
+│       │       │   ├── User.java
+│       │       │   ├── Admin.java
+│       │       │   ├── Customer.java
+│       │       │   ├── Event.java
+│       │       │   ├── Booking.java
+│       │       │   ├── Ticket.java
+│       │       │   └── EventTicketType.java
+│       │       ├── service/
+│       │       │   ├── UserService.java
+│       │       │   ├── EventService.java
+│       │       │   ├── BookingService.java
+│       │       │   ├── TicketService.java
+│       │       │   └── AdminService.java
+│       │       ├── servlet/
+│       │       │   ├── UserServlet.java
+│       │       │   ├── EventServlet.java
+│       │       │   ├── BookingServlet.java
+│       │       │   └── TicketServlet.java
+│       │       └── util/
+│       │           └── DatabaseConnection.java
+│       ├── resources/
+│       └── webapp/
+│           ├── admin/
+│           │   ├── dashboard.jsp
+│           │   ├── events.jsp
+│           │   ├── bookings.jsp
+│           │   ├── managePayments.jsp
+│           │   ├── users.jsp
+│           │   ├── addAdmin.jsp
+│           │   └── adminRequests.jsp
+│           ├── css/
+│           ├── js/
+│           ├── WEB-INF/
+│           │   └── web.xml
+│           ├── index.jsp
+│           ├── events.jsp
+│           ├── eventDetails.jsp
+│           ├── checkout.jsp
+│           ├── myBookings.jsp
+│           ├── profile.jsp
+│           └── login.jsp
+├── pom.xml
+└── README.md
+```
+
+---
+
+## Deployment Summary
+
+| Component | Description |
+|---|---|
+| Hosting Platform | Railway |
+| Application Runtime | Apache Tomcat |
+| Backend | Java Servlets and JSP |
+| Database | Railway MySQL |
+| Configuration | Environment variables |
+| Public Domain | `https://www.eventhorizonapp.online/` |
+| Default Railway URL | `https://glistening-light-production-f277.up.railway.app/` |
+| Database Access | JDBC |
+| Build Method | Maven WAR deployment |
+
+### Environment Variables
+
+The deployed application can be configured with database environment variables such as:
+
+```text
+MYSQLHOST=
+MYSQLPORT=
+MYSQLDATABASE=
+MYSQLUSER=
+MYSQLPASSWORD=
+```
+
+The application can use these variables to connect to the Railway MySQL database in production.
+
+---
+
+## Local Development Setup
+
+### Prerequisites
+
+- Java JDK
+- Apache Maven
+- Apache Tomcat
+- MySQL Server or XAMPP
+- IntelliJ IDEA
+- Git
+
+### Basic Setup Steps
+
+1. Clone the repository.
+
+```bash
+git clone <repository-url>
+```
+
+2. Open the project in IntelliJ IDEA.
+
+3. Configure the MySQL database.
+
+4. Update database connection settings for the local environment.
+
+5. Build the project using Maven.
+
+```bash
+mvn clean package
+```
+
+6. Deploy the generated WAR file to Apache Tomcat.
+
+7. Open the application in the browser.
+
+```text
+http://localhost:8080/EventHorizon
+```
+
+---
+
+## Project Highlights
+
+- Full-stack Java web application
+- Professional event booking workflow
+- Clean JSP, Servlet, JDBC, and MySQL integration
+- Customer and admin role separation
+- Permission-based admin dashboard
+- Multi-ticket-type support
+- Manual payment approval workflow
+- Digital ticket generation
+- QR-based ticket verification
+- Database-backed validation logic
+- Railway cloud deployment
+- Custom domain integration
+- Structured and scalable project architecture
+
+---
+
+## Future Improvements
+
+- Online payment gateway integration
+- Email notification improvements
+- Advanced analytics dashboard
+- PDF ticket download support
+- Better image storage strategy
+- Audit logging for admin actions
+- Automated booking expiry handling
+- Enhanced customer notification system
+
+---
+
+## Status
+
+The project is actively maintained as a full-stack academic web application and continues to evolve with improved UI, better workflow handling, stronger admin access control, and more production-style features.
