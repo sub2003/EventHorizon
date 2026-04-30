@@ -174,7 +174,7 @@
         .hero {
             background:
                 linear-gradient(90deg, rgba(4, 8, 25, 0.92), rgba(8, 14, 42, 0.78), rgba(10, 18, 52, 0.60)),
-                url("https://imgcp.aacdn.jp/img-a/1440/auto/global-aaj-front/article/2016/06/5774a3bf451f9_5774a285b029f_654927606.jpeg");
+                url("https://c.pxhere.com/photos/d0/80/crowd_concert_festival_music_purple-145331.jpg!d");
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
