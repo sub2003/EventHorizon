@@ -253,7 +253,7 @@
             background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=95");
             background-size: cover;
             background-position: center 36%;
-            filter: brightness(0.88) contrast(1.06) saturate(1.04);
+            filter: brightness(0.98) contrast(1.08) saturate(1.08);
             transform: scale(1.01);
         }
 
@@ -264,16 +264,16 @@
             background:
                 linear-gradient(
                     90deg,
-                    rgba(255, 250, 242, 0.99) 0%,
-                    rgba(255, 250, 242, 0.96) 34%,
-                    rgba(255, 250, 242, 0.74) 56%,
-                    rgba(255, 250, 242, 0.28) 78%,
-                    rgba(31, 22, 12, 0.12) 100%
+                    rgba(255, 250, 242, 0.94) 0%,
+                    rgba(255, 250, 242, 0.86) 30%,
+                    rgba(255, 250, 242, 0.46) 55%,
+                    rgba(255, 250, 242, 0.12) 76%,
+                    rgba(31, 22, 12, 0.08) 100%
                 ),
                 linear-gradient(
                     180deg,
-                    rgba(255, 255, 255, 0.02) 0%,
-                    rgba(251, 246, 236, 0.72) 100%
+                    rgba(255, 255, 255, 0.00) 0%,
+                    rgba(251, 246, 236, 0.42) 100%
                 );
         }
 
@@ -283,7 +283,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            height: 160px;
+            height: 150px;
             z-index: -2;
             background: linear-gradient(180deg, transparent, var(--eh-bg));
         }
@@ -303,13 +303,13 @@
             padding: 46px 48px 50px;
             border-radius: 32px;
             background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(255, 250, 242, 0.94));
+                linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 242, 0.86));
             border: 1px solid rgba(31, 22, 12, 0.10);
             box-shadow:
-                0 34px 92px rgba(31, 22, 12, 0.16),
-                inset 0 1px 0 rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
+                0 30px 76px rgba(31, 22, 12, 0.14),
+                inset 0 1px 0 rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .eh-eyebrow {
@@ -413,16 +413,16 @@
             width: min(100%, 420px);
             border-radius: 30px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.96);
+            background: rgba(255, 255, 255, 0.94);
             border: 1px solid rgba(255, 255, 255, 0.78);
-            box-shadow: 0 34px 90px rgba(31, 22, 12, 0.20);
-            backdrop-filter: blur(14px);
+            box-shadow: 0 30px 80px rgba(31, 22, 12, 0.18);
+            backdrop-filter: blur(12px);
         }
 
         .eh-hero-card-image {
             height: 260px;
             background-image:
-                linear-gradient(180deg, rgba(31,22,12,0.02), rgba(31,22,12,0.38)),
+                linear-gradient(180deg, rgba(31,22,12,0.00), rgba(31,22,12,0.26)),
                 url("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=900&q=90");
             background-size: cover;
             background-position: center;
@@ -637,7 +637,7 @@
             border-radius: 32px;
             text-align: center;
             background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 242, 0.94)),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 242, 0.86)),
                 url("https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1300&q=90");
             background-size: cover;
             background-position: center;
@@ -650,8 +650,8 @@
             position: absolute;
             inset: 0;
             background:
-                linear-gradient(135deg, rgba(255,255,255,0.94), rgba(255,250,242,0.90)),
-                radial-gradient(circle at top, rgba(184, 132, 43, 0.14), transparent 34%);
+                linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,250,242,0.76)),
+                radial-gradient(circle at top, rgba(184, 132, 43, 0.10), transparent 34%);
         }
 
         .eh-cta-content {
@@ -687,9 +687,9 @@
         .eh-cta-box p {
             max-width: 560px;
             margin: 0 auto 34px;
-            color: var(--eh-muted);
+            color: var(--eh-brown);
             font-size: 1rem;
-            font-weight: 650;
+            font-weight: 700;
             line-height: 1.75;
         }
 
