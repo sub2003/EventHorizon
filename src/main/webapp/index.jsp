@@ -252,7 +252,7 @@
             position: absolute;
             inset: 0;
             z-index: -4;
-            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=95");
+            background-image: url("https://static.standard.co.uk/2023/09/16/20/f045d1418c2861ccadddc79f143d0086Y29udGVudHNlYXJjaGFwaSwxNjk0OTc3MzM2-2.73750182.jpg?crop=8:5,smart&quality=75&auto=webp&width=1000");
             background-size: cover;
             background-position: center 35%;
             background-repeat: no-repeat;
