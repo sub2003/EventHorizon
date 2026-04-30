@@ -24,12 +24,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventHorizon – Premium Event Booking</title>
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <!-- IMPORTANT:
+         css/style.css is intentionally NOT linked here.
+         This home page uses only the internal CSS below. -->
 
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&display=swap" rel="stylesheet">
 
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
@@ -40,30 +44,25 @@
         }
 
         :root {
-            --eh-bg: #fbf6ec;
-            --eh-bg-soft: #fffaf2;
-            --eh-white: #ffffff;
-            --eh-cream: #f4ead8;
-            --eh-cream-2: #fff2d6;
+            --evh-bg: #fbf6ec;
+            --evh-bg-soft: #fffaf2;
+            --evh-white: #ffffff;
 
-            --eh-espresso: #1f160c;
-            --eh-charcoal: #2b2a27;
-            --eh-brown: #4f3a1f;
-            --eh-muted: #75664f;
+            --evh-espresso: #1f160c;
+            --evh-charcoal: #2c2924;
+            --evh-brown: #4e3920;
+            --evh-muted: #776850;
 
-            --eh-gold: #b8842b;
-            --eh-gold-dark: #9b6a1d;
-            --eh-gold-light: #d5ad5a;
-            --eh-gold-soft: #fff0cc;
+            --evh-gold: #b8842b;
+            --evh-gold-dark: #9b6a1d;
+            --evh-gold-light: #d7af5d;
+            --evh-gold-soft: #fff0cc;
 
-            --eh-navy: #24324a;
-            --eh-navy-soft: #eef2f7;
+            --evh-border: rgba(31, 22, 12, 0.10);
+            --evh-gold-border: rgba(184, 132, 43, 0.26);
 
-            --eh-border: rgba(31, 22, 12, 0.10);
-            --eh-gold-border: rgba(184, 132, 43, 0.26);
-
-            --eh-shadow: 0 28px 80px rgba(31, 22, 12, 0.13);
-            --eh-shadow-soft: 0 16px 42px rgba(31, 22, 12, 0.08);
+            --evh-shadow: 0 28px 80px rgba(31, 22, 12, 0.13);
+            --evh-shadow-soft: 0 16px 42px rgba(31, 22, 12, 0.08);
         }
 
         html {
@@ -74,9 +73,9 @@
             font-family: 'Inter', sans-serif;
             background:
                 radial-gradient(circle at top left, rgba(184, 132, 43, 0.10), transparent 30%),
-                radial-gradient(circle at top right, rgba(36, 50, 74, 0.07), transparent 30%),
-                linear-gradient(180deg, #ffffff 0%, var(--eh-bg) 46%, var(--eh-bg-soft) 100%);
-            color: var(--eh-charcoal);
+                radial-gradient(circle at top right, rgba(31, 22, 12, 0.06), transparent 30%),
+                linear-gradient(180deg, #ffffff 0%, var(--evh-bg) 46%, var(--evh-bg-soft) 100%);
+            color: var(--evh-charcoal);
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
@@ -85,26 +84,26 @@
             text-decoration: none;
         }
 
-        .eh-container {
+        .evh-container {
             width: min(92%, 1240px);
             margin: 0 auto;
         }
 
         /* ================= NAVBAR ================= */
 
-        .eh-navbar {
+        .evh-navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
             width: 100%;
             background: rgba(255, 250, 242, 0.94);
-            border-bottom: 1px solid var(--eh-border);
+            border-bottom: 1px solid var(--evh-border);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
             box-shadow: 0 10px 30px rgba(31, 22, 12, 0.06);
         }
 
-        .eh-navbar-inner {
+        .evh-navbar-inner {
             width: min(92%, 1240px);
             min-height: 74px;
             margin: 0 auto;
@@ -114,17 +113,17 @@
             gap: 18px;
         }
 
-        .eh-brand {
+        .evh-brand {
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            color: var(--eh-espresso);
+            color: var(--evh-espresso);
             font-weight: 900;
             letter-spacing: 1.6px;
             text-transform: uppercase;
         }
 
-        .eh-brand-mark {
+        .evh-brand-mark {
             width: 42px;
             height: 42px;
             border-radius: 14px;
@@ -132,15 +131,15 @@
             align-items: center;
             justify-content: center;
             color: #ffffff;
-            background: linear-gradient(135deg, var(--eh-gold-dark), var(--eh-gold-light));
+            background: linear-gradient(135deg, var(--evh-gold-dark), var(--evh-gold-light));
             box-shadow: 0 14px 32px rgba(184, 132, 43, 0.24);
         }
 
-        .eh-brand-text {
+        .evh-brand-text {
             font-size: 1.08rem;
         }
 
-        .eh-nav-links {
+        .evh-nav-links {
             list-style: none;
             display: flex;
             align-items: center;
@@ -149,14 +148,14 @@
             flex-wrap: wrap;
         }
 
-        .eh-nav-links li {
+        .evh-nav-links li {
             list-style: none;
         }
 
-        .eh-nav-link,
-        .eh-nav-bell,
-        .eh-nav-btn,
-        .eh-nav-btn-outline {
+        .evh-nav-link,
+        .evh-nav-bell,
+        .evh-nav-btn,
+        .evh-nav-btn-outline {
             min-height: 42px;
             display: inline-flex;
             align-items: center;
@@ -167,34 +166,34 @@
             border: 1px solid transparent;
             font-size: 0.86rem;
             font-weight: 800;
-            color: var(--eh-brown);
+            color: var(--evh-brown);
             transition: 0.22s ease;
             white-space: nowrap;
         }
 
-        .eh-nav-link:hover,
-        .eh-nav-link.active {
-            color: var(--eh-gold-dark);
-            background: var(--eh-gold-soft);
-            border-color: var(--eh-gold-border);
+        .evh-nav-link:hover,
+        .evh-nav-link.active {
+            color: var(--evh-gold-dark);
+            background: var(--evh-gold-soft);
+            border-color: var(--evh-gold-border);
         }
 
-        .eh-nav-bell {
+        .evh-nav-bell {
             position: relative;
             width: 44px;
             padding: 0;
             background: rgba(255, 255, 255, 0.84);
-            border-color: var(--eh-border);
+            border-color: var(--evh-border);
             box-shadow: 0 8px 20px rgba(31, 22, 12, 0.05);
         }
 
-        .eh-nav-bell:hover {
-            color: var(--eh-gold-dark);
-            background: var(--eh-gold-soft);
-            border-color: var(--eh-gold-border);
+        .evh-nav-bell:hover {
+            color: var(--evh-gold-dark);
+            background: var(--evh-gold-soft);
+            border-color: var(--evh-gold-border);
         }
 
-        .eh-bell-badge {
+        .evh-bell-badge {
             position: absolute;
             top: -7px;
             right: -7px;
@@ -212,52 +211,52 @@
             box-shadow: 0 8px 18px rgba(217, 75, 50, 0.28);
         }
 
-        .eh-nav-btn {
+        .evh-nav-btn {
             color: #ffffff;
-            background: linear-gradient(135deg, var(--eh-gold-dark), var(--eh-gold-light));
+            background: linear-gradient(135deg, var(--evh-gold-dark), var(--evh-gold-light));
             box-shadow: 0 14px 30px rgba(184, 132, 43, 0.24);
         }
 
-        .eh-nav-btn:hover {
+        .evh-nav-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 18px 42px rgba(184, 132, 43, 0.30);
         }
 
-        .eh-nav-btn-outline {
-            color: var(--eh-gold-dark);
+        .evh-nav-btn-outline {
+            color: var(--evh-gold-dark);
             background: rgba(255, 255, 255, 0.84);
-            border-color: var(--eh-gold-border);
+            border-color: var(--evh-gold-border);
         }
 
-        .eh-nav-btn-outline:hover {
-            background: var(--eh-gold-soft);
+        .evh-nav-btn-outline:hover {
+            background: var(--evh-gold-soft);
             border-color: rgba(184, 132, 43, 0.42);
         }
 
         /* ================= HERO ================= */
 
-        .eh-hero {
+        .evh-hero {
             position: relative;
             min-height: calc(100vh - 74px);
             display: flex;
             align-items: center;
             overflow: hidden;
             isolation: isolate;
-            background: var(--eh-bg);
+            background: var(--evh-bg);
         }
 
-        .eh-hero-bg {
+        .evh-hero-bg {
             position: absolute;
             inset: 0;
             z-index: -4;
             background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=95");
             background-size: cover;
             background-position: center 36%;
-            filter: brightness(0.98) contrast(1.08) saturate(1.08);
+            filter: brightness(1.00) contrast(1.08) saturate(1.08);
             transform: scale(1.01);
         }
 
-        .eh-hero-overlay {
+        .evh-hero-overlay {
             position: absolute;
             inset: 0;
             z-index: -3;
@@ -265,19 +264,19 @@
                 linear-gradient(
                     90deg,
                     rgba(255, 250, 242, 0.94) 0%,
-                    rgba(255, 250, 242, 0.86) 30%,
-                    rgba(255, 250, 242, 0.46) 55%,
-                    rgba(255, 250, 242, 0.12) 76%,
-                    rgba(31, 22, 12, 0.08) 100%
+                    rgba(255, 250, 242, 0.84) 30%,
+                    rgba(255, 250, 242, 0.44) 55%,
+                    rgba(255, 250, 242, 0.10) 76%,
+                    rgba(31, 22, 12, 0.06) 100%
                 ),
                 linear-gradient(
                     180deg,
                     rgba(255, 255, 255, 0.00) 0%,
-                    rgba(251, 246, 236, 0.42) 100%
+                    rgba(251, 246, 236, 0.40) 100%
                 );
         }
 
-        .eh-hero::after {
+        .evh-hero::after {
             content: "";
             position: absolute;
             left: 0;
@@ -285,10 +284,10 @@
             bottom: 0;
             height: 150px;
             z-index: -2;
-            background: linear-gradient(180deg, transparent, var(--eh-bg));
+            background: linear-gradient(180deg, transparent, var(--evh-bg));
         }
 
-        .eh-hero-inner {
+        .evh-hero-inner {
             width: min(92%, 1240px);
             margin: 0 auto;
             padding: 74px 0 132px;
@@ -298,12 +297,12 @@
             gap: 48px;
         }
 
-        .eh-hero-panel {
+        .evh-hero-panel {
             max-width: 720px;
             padding: 46px 48px 50px;
             border-radius: 32px;
             background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 242, 0.86));
+                linear-gradient(135deg, rgba(255, 255, 255, 0.91), rgba(255, 250, 242, 0.85));
             border: 1px solid rgba(31, 22, 12, 0.10);
             box-shadow:
                 0 30px 76px rgba(31, 22, 12, 0.14),
@@ -312,7 +311,7 @@
             -webkit-backdrop-filter: blur(8px);
         }
 
-        .eh-eyebrow {
+        .evh-eyebrow {
             width: fit-content;
             display: inline-flex;
             align-items: center;
@@ -320,58 +319,58 @@
             margin-bottom: 28px;
             padding: 9px 17px 9px 10px;
             border-radius: 999px;
-            background: var(--eh-gold-soft);
-            border: 1px solid var(--eh-gold-border);
-            color: var(--eh-gold-dark);
+            background: var(--evh-gold-soft);
+            border: 1px solid var(--evh-gold-border);
+            color: var(--evh-gold-dark);
             font-size: 0.74rem;
             font-weight: 900;
             letter-spacing: 1.5px;
             text-transform: uppercase;
         }
 
-        .eh-eyebrow-dot {
+        .evh-eyebrow-dot {
             width: 9px;
             height: 9px;
             border-radius: 999px;
-            background: var(--eh-gold-dark);
+            background: var(--evh-gold-dark);
             box-shadow: 0 0 0 4px rgba(184, 132, 43, 0.16);
         }
 
-        .eh-hero-title {
+        .evh-hero-title {
             font-family: 'Playfair Display', serif !important;
             font-size: clamp(3.4rem, 6.4vw, 6.5rem) !important;
             line-height: 0.98 !important;
             letter-spacing: -2.5px !important;
             font-weight: 800 !important;
-            color: var(--eh-espresso) !important;
+            color: var(--evh-espresso) !important;
             margin: 0 0 24px !important;
             text-shadow: none !important;
         }
 
-        .eh-hero-title em {
+        .evh-hero-title em {
             display: inline-block;
             font-style: italic !important;
-            color: var(--eh-gold-dark) !important;
+            color: var(--evh-gold-dark) !important;
             text-shadow: none !important;
         }
 
-        .eh-hero-subtitle {
+        .evh-hero-subtitle {
             max-width: 590px;
             margin: 0 0 38px !important;
-            color: var(--eh-brown) !important;
+            color: var(--evh-brown) !important;
             font-size: 1.08rem !important;
             font-weight: 700 !important;
             line-height: 1.78 !important;
         }
 
-        .eh-hero-actions {
+        .evh-hero-actions {
             display: flex;
             align-items: center;
             gap: 14px;
             flex-wrap: wrap;
         }
 
-        .eh-btn {
+        .evh-btn {
             min-height: 54px;
             display: inline-flex;
             align-items: center;
@@ -385,30 +384,30 @@
             border: 1px solid transparent;
         }
 
-        .eh-btn-primary {
+        .evh-btn-primary {
             color: #ffffff;
-            background: linear-gradient(135deg, var(--eh-gold-dark), var(--eh-gold-light));
+            background: linear-gradient(135deg, var(--evh-gold-dark), var(--evh-gold-light));
             box-shadow: 0 18px 42px rgba(184, 132, 43, 0.28);
         }
 
-        .eh-btn-primary:hover {
+        .evh-btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 24px 54px rgba(184, 132, 43, 0.36);
         }
 
-        .eh-btn-secondary {
-            color: var(--eh-gold-dark);
+        .evh-btn-secondary {
+            color: var(--evh-gold-dark);
             background: #ffffff;
-            border-color: var(--eh-gold-border);
+            border-color: var(--evh-gold-border);
             box-shadow: 0 12px 30px rgba(31, 22, 12, 0.08);
         }
 
-        .eh-btn-secondary:hover {
-            background: var(--eh-gold-soft);
+        .evh-btn-secondary:hover {
+            background: var(--evh-gold-soft);
             transform: translateY(-2px);
         }
 
-        .eh-hero-card {
+        .evh-hero-card {
             justify-self: end;
             width: min(100%, 420px);
             border-radius: 30px;
@@ -419,7 +418,7 @@
             backdrop-filter: blur(12px);
         }
 
-        .eh-hero-card-image {
+        .evh-hero-card-image {
             height: 260px;
             background-image:
                 linear-gradient(180deg, rgba(31,22,12,0.00), rgba(31,22,12,0.26)),
@@ -428,11 +427,11 @@
             background-position: center;
         }
 
-        .eh-hero-card-body {
+        .evh-hero-card-body {
             padding: 24px;
         }
 
-        .eh-hero-card-badge {
+        .evh-hero-card-badge {
             width: fit-content;
             display: inline-flex;
             align-items: center;
@@ -440,24 +439,24 @@
             margin-bottom: 15px;
             padding: 8px 12px;
             border-radius: 999px;
-            color: var(--eh-gold-dark);
-            background: var(--eh-gold-soft);
+            color: var(--evh-gold-dark);
+            background: var(--evh-gold-soft);
             font-size: 0.72rem;
             font-weight: 900;
             letter-spacing: 1px;
             text-transform: uppercase;
         }
 
-        .eh-hero-card-body h3 {
+        .evh-hero-card-body h3 {
             margin: 0 0 10px;
-            color: var(--eh-espresso);
+            color: var(--evh-espresso);
             font-size: 1.16rem;
             font-weight: 900;
             letter-spacing: -0.4px;
         }
 
-        .eh-hero-card-body p {
-            color: var(--eh-muted);
+        .evh-hero-card-body p {
+            color: var(--evh-muted);
             font-size: 0.92rem;
             font-weight: 650;
             line-height: 1.65;
@@ -465,7 +464,7 @@
 
         /* ================= STATS ================= */
 
-        .eh-stats {
+        .evh-stats {
             position: relative;
             z-index: 5;
             width: min(92%, 1240px);
@@ -475,32 +474,32 @@
             overflow: hidden;
             border-radius: 24px;
             background: rgba(184, 132, 43, 0.14);
-            border: 1px solid var(--eh-gold-border);
-            box-shadow: var(--eh-shadow);
+            border: 1px solid var(--evh-gold-border);
+            box-shadow: var(--evh-shadow);
         }
 
-        .eh-stat {
+        .evh-stat {
             padding: 32px 28px;
             text-align: center;
             background: rgba(255, 255, 255, 0.98);
             border-right: 1px solid rgba(184, 132, 43, 0.16);
         }
 
-        .eh-stat:last-child {
+        .evh-stat:last-child {
             border-right: none;
         }
 
-        .eh-stat-number {
+        .evh-stat-number {
             font-family: 'Playfair Display', serif;
-            color: var(--eh-gold-dark);
+            color: var(--evh-gold-dark);
             font-size: 2.6rem;
             line-height: 1;
             font-weight: 800;
             margin-bottom: 9px;
         }
 
-        .eh-stat-label {
-            color: var(--eh-muted);
+        .evh-stat-label {
+            color: var(--evh-muted);
             font-size: 0.76rem;
             font-weight: 900;
             letter-spacing: 1.4px;
@@ -509,33 +508,33 @@
 
         /* ================= FEATURES ================= */
 
-        .eh-features {
+        .evh-features {
             padding: 126px 0 90px;
             background:
                 radial-gradient(circle at top left, rgba(184, 132, 43, 0.07), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(36, 50, 74, 0.06), transparent 32%),
-                linear-gradient(180deg, var(--eh-bg), var(--eh-bg-soft));
+                radial-gradient(circle at bottom right, rgba(31, 22, 12, 0.05), transparent 32%),
+                linear-gradient(180deg, var(--evh-bg), var(--evh-bg-soft));
         }
 
-        .eh-section-header {
+        .evh-section-header {
             max-width: 740px;
             margin: 0 auto 60px;
             text-align: center;
         }
 
-        .eh-section-label {
+        .evh-section-label {
             display: inline-block;
             margin-bottom: 14px;
-            color: var(--eh-gold-dark);
+            color: var(--evh-gold-dark);
             font-size: 0.74rem;
             font-weight: 900;
             letter-spacing: 2.2px;
             text-transform: uppercase;
         }
 
-        .eh-section-title {
+        .evh-section-title {
             font-family: 'Playfair Display', serif;
-            color: var(--eh-espresso);
+            color: var(--evh-espresso);
             font-size: clamp(2.3rem, 4vw, 3.6rem);
             font-weight: 800;
             line-height: 1.08;
@@ -543,58 +542,58 @@
             margin-bottom: 16px;
         }
 
-        .eh-section-title em {
-            color: var(--eh-gold-dark);
+        .evh-section-title em {
+            color: var(--evh-gold-dark);
             font-style: italic;
         }
 
-        .eh-section-subtitle {
-            color: var(--eh-muted);
+        .evh-section-subtitle {
+            color: var(--evh-muted);
             font-size: 1rem;
             font-weight: 650;
             line-height: 1.75;
         }
 
-        .eh-feature-grid {
+        .evh-feature-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 22px;
         }
 
-        .eh-feature-card {
+        .evh-feature-card {
             position: relative;
             min-height: 235px;
             padding: 34px 28px;
             border-radius: 24px;
             background: rgba(255, 255, 255, 0.98);
-            border: 1px solid var(--eh-border);
-            box-shadow: var(--eh-shadow-soft);
+            border: 1px solid var(--evh-border);
+            box-shadow: var(--evh-shadow-soft);
             transition: 0.28s ease;
             overflow: hidden;
         }
 
-        .eh-feature-card::before {
+        .evh-feature-card::before {
             content: "";
             position: absolute;
             inset: 0 0 auto 0;
             height: 4px;
-            background: linear-gradient(90deg, var(--eh-gold-dark), var(--eh-gold-light));
+            background: linear-gradient(90deg, var(--evh-gold-dark), var(--evh-gold-light));
             transform: scaleX(0);
             transform-origin: left;
             transition: 0.28s ease;
         }
 
-        .eh-feature-card:hover {
+        .evh-feature-card:hover {
             transform: translateY(-7px);
             border-color: rgba(184, 132, 43, 0.26);
             box-shadow: 0 24px 70px rgba(31, 22, 12, 0.13);
         }
 
-        .eh-feature-card:hover::before {
+        .evh-feature-card:hover::before {
             transform: scaleX(1);
         }
 
-        .eh-feature-icon {
+        .evh-feature-icon {
             width: 58px;
             height: 58px;
             margin-bottom: 22px;
@@ -602,22 +601,22 @@
             align-items: center;
             justify-content: center;
             border-radius: 18px;
-            background: linear-gradient(135deg, var(--eh-gold-soft), #ffffff);
-            border: 1px solid var(--eh-gold-border);
-            color: var(--eh-gold-dark);
+            background: linear-gradient(135deg, var(--evh-gold-soft), #ffffff);
+            border: 1px solid var(--evh-gold-border);
+            color: var(--evh-gold-dark);
             font-size: 1.35rem;
         }
 
-        .eh-feature-card h3 {
+        .evh-feature-card h3 {
             margin-bottom: 10px;
-            color: var(--eh-espresso);
+            color: var(--evh-espresso);
             font-size: 1.16rem;
             font-weight: 900;
             letter-spacing: -0.4px;
         }
 
-        .eh-feature-card p {
-            color: var(--eh-muted);
+        .evh-feature-card p {
+            color: var(--evh-muted);
             font-size: 0.92rem;
             font-weight: 650;
             line-height: 1.72;
@@ -625,53 +624,53 @@
 
         /* ================= CTA ================= */
 
-        .eh-cta-section {
+        .evh-cta-section {
             padding: 0 0 112px;
-            background: var(--eh-bg-soft);
+            background: var(--evh-bg-soft);
         }
 
-        .eh-cta-box {
+        .evh-cta-box {
             position: relative;
             overflow: hidden;
             padding: 78px 46px;
             border-radius: 32px;
             text-align: center;
             background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(255, 250, 242, 0.86)),
+                linear-gradient(135deg, rgba(255, 255, 255, 0.90), rgba(255, 250, 242, 0.82)),
                 url("https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1300&q=90");
             background-size: cover;
             background-position: center;
-            border: 1px solid var(--eh-gold-border);
-            box-shadow: var(--eh-shadow);
+            border: 1px solid var(--evh-gold-border);
+            box-shadow: var(--evh-shadow);
         }
 
-        .eh-cta-box::before {
+        .evh-cta-box::before {
             content: "";
             position: absolute;
             inset: 0;
             background:
-                linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,250,242,0.76)),
+                linear-gradient(135deg, rgba(255,255,255,0.86), rgba(255,250,242,0.72)),
                 radial-gradient(circle at top, rgba(184, 132, 43, 0.10), transparent 34%);
         }
 
-        .eh-cta-content {
+        .evh-cta-content {
             position: relative;
             z-index: 2;
         }
 
-        .eh-cta-label {
+        .evh-cta-label {
             display: inline-block;
             margin-bottom: 16px;
-            color: var(--eh-gold-dark);
+            color: var(--evh-gold-dark);
             font-size: 0.74rem;
             font-weight: 900;
             letter-spacing: 2.2px;
             text-transform: uppercase;
         }
 
-        .eh-cta-box h2 {
+        .evh-cta-box h2 {
             font-family: 'Playfair Display', serif;
-            color: var(--eh-espresso);
+            color: var(--evh-espresso);
             font-size: clamp(2.2rem, 4vw, 3.4rem);
             font-weight: 800;
             line-height: 1.12;
@@ -679,15 +678,15 @@
             margin-bottom: 16px;
         }
 
-        .eh-cta-box h2 em {
-            color: var(--eh-gold-dark);
+        .evh-cta-box h2 em {
+            color: var(--evh-gold-dark);
             font-style: italic;
         }
 
-        .eh-cta-box p {
+        .evh-cta-box p {
             max-width: 560px;
             margin: 0 auto 34px;
-            color: var(--eh-brown);
+            color: var(--evh-brown);
             font-size: 1rem;
             font-weight: 700;
             line-height: 1.75;
@@ -695,78 +694,78 @@
 
         /* ================= FOOTER ================= */
 
-        .eh-footer {
+        .evh-footer {
             background: #fffaf2;
-            color: var(--eh-muted);
-            border-top: 1px solid var(--eh-border);
+            color: var(--evh-muted);
+            border-top: 1px solid var(--evh-border);
         }
 
-        .eh-footer-grid {
+        .evh-footer-grid {
             display: grid;
             grid-template-columns: 1.5fr 1fr 1fr 1fr;
             gap: 48px;
             padding: 70px 0 56px;
         }
 
-        .eh-footer-logo {
+        .evh-footer-logo {
             margin-bottom: 18px;
-            color: var(--eh-espresso);
+            color: var(--evh-espresso);
             font-size: 1.3rem;
             font-weight: 900;
             letter-spacing: 2px;
         }
 
-        .eh-footer-logo span {
-            color: var(--eh-gold-dark);
+        .evh-footer-logo span {
+            color: var(--evh-gold-dark);
         }
 
-        .eh-footer-text {
+        .evh-footer-text {
             max-width: 320px;
-            color: var(--eh-muted);
+            color: var(--evh-muted);
             font-size: 0.9rem;
             font-weight: 550;
             line-height: 1.8;
         }
 
-        .eh-footer-col h4 {
+        .evh-footer-col h4 {
             margin-bottom: 20px;
-            color: var(--eh-espresso);
+            color: var(--evh-espresso);
             font-size: 0.74rem;
             font-weight: 900;
             letter-spacing: 2px;
             text-transform: uppercase;
         }
 
-        .eh-footer-col ul {
+        .evh-footer-col ul {
             list-style: none;
             display: flex;
             flex-direction: column;
             gap: 11px;
         }
 
-        .eh-footer-col ul li a {
-            color: var(--eh-muted);
+        .evh-footer-col ul li a {
+            color: var(--evh-muted);
             font-size: 0.9rem;
             font-weight: 650;
             transition: 0.2s ease;
         }
 
-        .eh-footer-col ul li a:hover {
-            color: var(--eh-gold-dark);
+        .evh-footer-col ul li a:hover {
+            color: var(--evh-gold-dark);
         }
 
-        .eh-footer-bottom {
-            border-top: 1px solid var(--eh-border);
+        .evh-footer-bottom {
+            border-top: 1px solid var(--evh-border);
             background: #ffffff;
         }
 
-        .eh-footer-bottom-inner {
+        .evh-footer-bottom-inner {
             min-height: 62px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 18px;
-            color: var(--eh-muted);
+            color: var(--evh-muted);
             font-size: 0.82rem;
             font-weight: 650;
         }
@@ -774,94 +773,94 @@
         /* ================= RESPONSIVE ================= */
 
         @media (max-width: 1100px) {
-            .eh-hero-inner {
+            .evh-hero-inner {
                 grid-template-columns: 1fr;
                 padding-top: 62px;
             }
 
-            .eh-hero-panel {
+            .evh-hero-panel {
                 max-width: 760px;
             }
 
-            .eh-hero-card {
+            .evh-hero-card {
                 display: none;
             }
 
-            .eh-feature-grid {
+            .evh-feature-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .eh-footer-grid {
+            .evh-footer-grid {
                 grid-template-columns: 1fr 1fr;
             }
         }
 
         @media (max-width: 768px) {
-            .eh-navbar-inner {
+            .evh-navbar-inner {
                 min-height: auto;
                 padding: 14px 0;
                 flex-direction: column;
                 justify-content: center;
             }
 
-            .eh-brand {
+            .evh-brand {
                 justify-content: center;
             }
 
-            .eh-nav-links {
+            .evh-nav-links {
                 justify-content: center;
             }
 
-            .eh-hero {
+            .evh-hero {
                 min-height: auto;
             }
 
-            .eh-hero-inner {
+            .evh-hero-inner {
                 padding: 46px 0 116px;
             }
 
-            .eh-hero-panel {
+            .evh-hero-panel {
                 padding: 32px 24px;
                 border-radius: 24px;
             }
 
-            .eh-hero-title {
+            .evh-hero-title {
                 font-size: clamp(3rem, 13vw, 4.5rem) !important;
                 letter-spacing: -1.6px !important;
             }
 
-            .eh-hero-subtitle {
+            .evh-hero-subtitle {
                 font-size: 1rem !important;
             }
 
-            .eh-stats {
+            .evh-stats {
                 grid-template-columns: 1fr;
                 margin-top: -54px;
             }
 
-            .eh-stat {
+            .evh-stat {
                 border-right: none;
                 border-bottom: 1px solid rgba(184, 132, 43, 0.16);
             }
 
-            .eh-stat:last-child {
+            .evh-stat:last-child {
                 border-bottom: none;
             }
 
-            .eh-features {
+            .evh-features {
                 padding-top: 100px;
             }
 
-            .eh-feature-grid {
+            .evh-feature-grid {
                 grid-template-columns: 1fr;
             }
 
-            .eh-footer-grid {
+            .evh-footer-grid {
                 grid-template-columns: 1fr;
                 gap: 32px;
             }
 
-            .eh-footer-bottom-inner {
+            .evh-footer-bottom-inner {
                 flex-direction: column;
                 justify-content: center;
                 text-align: center;
@@ -870,25 +869,25 @@
         }
 
         @media (max-width: 520px) {
-            .eh-nav-link span,
-            .eh-nav-btn span,
-            .eh-nav-btn-outline span {
+            .evh-nav-link span,
+            .evh-nav-btn span,
+            .evh-nav-btn-outline span {
                 display: none;
             }
 
-            .eh-nav-link,
-            .eh-nav-btn,
-            .eh-nav-btn-outline {
+            .evh-nav-link,
+            .evh-nav-btn,
+            .evh-nav-btn-outline {
                 width: 42px;
                 padding: 0;
             }
 
-            .eh-hero-actions {
+            .evh-hero-actions {
                 flex-direction: column;
                 align-items: stretch;
             }
 
-            .eh-btn {
+            .evh-btn {
                 width: 100%;
             }
         }
@@ -897,24 +896,24 @@
 
 <body>
 
-<nav class="eh-navbar">
-    <div class="eh-navbar-inner">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
-            <span class="eh-brand-mark">
+<nav class="evh-navbar">
+    <div class="evh-navbar-inner">
+        <a href="${pageContext.request.contextPath}/index.jsp" class="evh-brand">
+            <span class="evh-brand-mark">
                 <i class="fa-solid fa-diamond"></i>
             </span>
-            <span class="eh-brand-text">EVENTHORIZON</span>
+            <span class="evh-brand-text">EVENTHORIZON</span>
         </a>
 
-        <ul class="eh-nav-links">
+        <ul class="evh-nav-links">
             <li>
-                <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link active">
+                <a href="${pageContext.request.contextPath}/index.jsp" class="evh-nav-link active">
                     <i class="fa-solid fa-house"></i><span>Home</span>
                 </a>
             </li>
 
             <li>
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
+                <a href="${pageContext.request.contextPath}/event?action=list" class="evh-nav-link">
                     <i class="fa-solid fa-calendar-days"></i><span>Events</span>
                 </a>
             </li>
@@ -922,28 +921,28 @@
             <c:choose>
                 <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
                     <li>
-                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
+                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="evh-nav-link">
                             <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
                         </a>
                     </li>
 
                     <li>
-                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell" title="Issue notifications">
+                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="evh-nav-bell" title="Issue notifications">
                             <i class="fa-regular fa-bell"></i>
                             <% if (navIssueCount > 0) { %>
-                                <span class="eh-bell-badge"><%= navIssueCount %></span>
+                                <span class="evh-bell-badge"><%= navIssueCount %></span>
                             <% } %>
                         </a>
                     </li>
 
                     <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                        <a href="${pageContext.request.contextPath}/profile.jsp" class="evh-nav-link">
                             <i class="fa-regular fa-user"></i><span>Profile</span>
                         </a>
                     </li>
 
                     <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                        <a href="${pageContext.request.contextPath}/user?action=logout" class="evh-nav-btn">
                             <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
                         </a>
                     </li>
@@ -951,19 +950,19 @@
 
                 <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
                     <li>
-                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="eh-nav-link">
+                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="evh-nav-link">
                             <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
                         </a>
                     </li>
 
                     <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                        <a href="${pageContext.request.contextPath}/profile.jsp" class="evh-nav-link">
                             <i class="fa-regular fa-user"></i><span>Profile</span>
                         </a>
                     </li>
 
                     <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                        <a href="${pageContext.request.contextPath}/user?action=logout" class="evh-nav-btn">
                             <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
                         </a>
                     </li>
@@ -971,13 +970,13 @@
 
                 <c:otherwise>
                     <li>
-                        <a href="${pageContext.request.contextPath}/login.jsp" class="eh-nav-link">
+                        <a href="${pageContext.request.contextPath}/login.jsp" class="evh-nav-link">
                             <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
                         </a>
                     </li>
 
                     <li>
-                        <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
+                        <a href="${pageContext.request.contextPath}/register.jsp" class="evh-nav-btn-outline">
                             <i class="fa-solid fa-user-plus"></i><span>Register</span>
                         </a>
                     </li>
@@ -987,49 +986,49 @@
     </div>
 </nav>
 
-<section class="eh-hero">
-    <div class="eh-hero-bg"></div>
-    <div class="eh-hero-overlay"></div>
+<section class="evh-hero">
+    <div class="evh-hero-bg"></div>
+    <div class="evh-hero-overlay"></div>
 
-    <div class="eh-hero-inner">
-        <div class="eh-hero-panel">
-            <div class="eh-eyebrow">
-                <span class="eh-eyebrow-dot"></span>
+    <div class="evh-hero-inner">
+        <div class="evh-hero-panel">
+            <div class="evh-eyebrow">
+                <span class="evh-eyebrow-dot"></span>
                 <span>Premium Event Booking Platform</span>
             </div>
 
-            <h1 class="eh-hero-title">
+            <h1 class="evh-hero-title">
                 Experience<br>the <em>Extraordinary</em>
             </h1>
 
-            <p class="eh-hero-subtitle">
+            <p class="evh-hero-subtitle">
                 Discover concerts, sports events, tech summits and cultural shows.
                 Book your tickets in seconds with a seamless and secure experience.
             </p>
 
-            <div class="eh-hero-actions">
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-btn eh-btn-primary">
+            <div class="evh-hero-actions">
+                <a href="${pageContext.request.contextPath}/event?action=list" class="evh-btn evh-btn-primary">
                     <i class="fa-solid fa-ticket"></i> Browse Events
                 </a>
 
                 <c:if test="${empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/register.jsp" class="eh-btn eh-btn-secondary">
+                    <a href="${pageContext.request.contextPath}/register.jsp" class="evh-btn evh-btn-secondary">
                         <i class="fa-solid fa-user-plus"></i> Create Account
                     </a>
                 </c:if>
 
                 <c:if test="${not empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="eh-btn eh-btn-secondary">
+                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="evh-btn evh-btn-secondary">
                         <i class="fa-regular fa-flag"></i> Report an Issue
                     </a>
                 </c:if>
             </div>
         </div>
 
-        <div class="eh-hero-card">
-            <div class="eh-hero-card-image"></div>
-            <div class="eh-hero-card-body">
-                <div class="eh-hero-card-badge">
+        <div class="evh-hero-card">
+            <div class="evh-hero-card-image"></div>
+            <div class="evh-hero-card-body">
+                <div class="evh-hero-card-badge">
                     <i class="fa-solid fa-shield-halved"></i>
                     Secure Booking
                 </div>
@@ -1044,60 +1043,60 @@
     </div>
 </section>
 
-<section class="eh-stats">
-    <div class="eh-stat">
-        <div class="eh-stat-number">500+</div>
-        <div class="eh-stat-label">Live Events</div>
+<section class="evh-stats">
+    <div class="evh-stat">
+        <div class="evh-stat-number">500+</div>
+        <div class="evh-stat-label">Live Events</div>
     </div>
 
-    <div class="eh-stat">
-        <div class="eh-stat-number">80K+</div>
-        <div class="eh-stat-label">Tickets Sold</div>
+    <div class="evh-stat">
+        <div class="evh-stat-number">80K+</div>
+        <div class="evh-stat-label">Tickets Sold</div>
     </div>
 
-    <div class="eh-stat">
-        <div class="eh-stat-number">4.9★</div>
-        <div class="eh-stat-label">User Rating</div>
+    <div class="evh-stat">
+        <div class="evh-stat-number">4.9★</div>
+        <div class="evh-stat-label">User Rating</div>
     </div>
 </section>
 
-<section class="eh-features">
-    <div class="eh-container">
-        <div class="eh-section-header">
-            <span class="eh-section-label">Why choose us</span>
-            <h2 class="eh-section-title">Why <em>EventHorizon?</em></h2>
-            <p class="eh-section-subtitle">
+<section class="evh-features">
+    <div class="evh-container">
+        <div class="evh-section-header">
+            <span class="evh-section-label">Why choose us</span>
+            <h2 class="evh-section-title">Why <em>EventHorizon?</em></h2>
+            <p class="evh-section-subtitle">
                 Built for speed, security, and unforgettable experiences.
             </p>
         </div>
 
-        <div class="eh-feature-grid">
-            <div class="eh-feature-card">
-                <div class="eh-feature-icon">
+        <div class="evh-feature-grid">
+            <div class="evh-feature-card">
+                <div class="evh-feature-icon">
                     <i class="fa-solid fa-bolt"></i>
                 </div>
                 <h3>Instant Booking</h3>
                 <p>Reserve your seat in real-time with no waiting and no confusion.</p>
             </div>
 
-            <div class="eh-feature-card">
-                <div class="eh-feature-icon">
+            <div class="evh-feature-card">
+                <div class="evh-feature-icon">
                     <i class="fa-solid fa-lock"></i>
                 </div>
                 <h3>Secure &amp; Safe</h3>
                 <p>Your account, payments, and bookings stay protected and reliable.</p>
             </div>
 
-            <div class="eh-feature-card">
-                <div class="eh-feature-icon">
+            <div class="evh-feature-card">
+                <div class="evh-feature-icon">
                     <i class="fa-solid fa-masks-theater"></i>
                 </div>
                 <h3>All Categories</h3>
                 <p>Concerts, sports, tech, and cultural events — all in one place.</p>
             </div>
 
-            <div class="eh-feature-card">
-                <div class="eh-feature-icon">
+            <div class="evh-feature-card">
+                <div class="evh-feature-icon">
                     <i class="fa-solid fa-mobile-screen-button"></i>
                 </div>
                 <h3>Easy to Use</h3>
@@ -1107,11 +1106,11 @@
     </div>
 </section>
 
-<section class="eh-cta-section">
-    <div class="eh-container">
-        <div class="eh-cta-box">
-            <div class="eh-cta-content">
-                <span class="eh-cta-label">Don't miss out</span>
+<section class="evh-cta-section">
+    <div class="evh-container">
+        <div class="evh-cta-box">
+            <div class="evh-cta-content">
+                <span class="evh-cta-label">Don't miss out</span>
 
                 <h2>Ready to book your<br><em>next experience?</em></h2>
 
@@ -1119,7 +1118,7 @@
                     Explore trending events and reserve your seat before they sell out.
                 </p>
 
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-btn eh-btn-primary">
+                <a href="${pageContext.request.contextPath}/event?action=list" class="evh-btn evh-btn-primary">
                     <i class="fa-solid fa-arrow-right"></i> Explore Events
                 </a>
             </div>
@@ -1127,17 +1126,17 @@
     </div>
 </section>
 
-<footer class="eh-footer">
-    <div class="eh-container eh-footer-grid">
-        <div class="eh-footer-col">
-            <h2 class="eh-footer-logo">⬡ EVENT<span>HORIZON</span></h2>
-            <p class="eh-footer-text">
+<footer class="evh-footer">
+    <div class="evh-container evh-footer-grid">
+        <div class="evh-footer-col">
+            <h2 class="evh-footer-logo">⬡ EVENT<span>HORIZON</span></h2>
+            <p class="evh-footer-text">
                 EventHorizon helps you discover, explore, and book unforgettable
                 experiences with a fast, secure, and modern platform.
             </p>
         </div>
 
-        <div class="eh-footer-col">
+        <div class="evh-footer-col">
             <h4>Quick Links</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
@@ -1153,7 +1152,7 @@
             </ul>
         </div>
 
-        <div class="eh-footer-col">
+        <div class="evh-footer-col">
             <h4>Company</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/aboutUs.jsp">About Us</a></li>
@@ -1163,7 +1162,7 @@
             </ul>
         </div>
 
-        <div class="eh-footer-col">
+        <div class="evh-footer-col">
             <h4>Support</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/faqs.jsp">Help Center</a></li>
@@ -1174,8 +1173,8 @@
         </div>
     </div>
 
-    <div class="eh-footer-bottom">
-        <div class="eh-container eh-footer-bottom-inner">
+    <div class="evh-footer-bottom">
+        <div class="evh-container evh-footer-bottom-inner">
             <p>© 2026 EventHorizon. All rights reserved.</p>
             <p>Designed for modern event experiences.</p>
         </div>
