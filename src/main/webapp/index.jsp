@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="com.eventhorizon.service.IssueService" %>
+
 <%
     int navIssueCount = 0;
     String navRole = (String) session.getAttribute("role");
@@ -15,6 +16,7 @@
         } catch (Exception ignored) { }
     }
 %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,49 +25,42 @@
     <title>EventHorizon – Book Your Experience</title>
 
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,700&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         :root {
-            --ivory: #fbf7ef;
-            --cream: #f3ead7;
-            --cream-2: #fffaf1;
-            --gold: #bf8c24;
-            --gold-light: #d9ad52;
-            --gold-soft: #f3dfad;
-            --gold-pale: #fbf0d1;
-            --espresso: #171008;
-            --brown: #362512;
-            --brown-soft: #6f5838;
-            --muted: #7c6b55;
-            --white: #ffffff;
-            --border: rgba(191, 140, 36, 0.24);
-            --dark-border: rgba(23, 16, 8, 0.10);
-            --shadow-soft: 0 20px 60px rgba(34, 20, 5, 0.10);
-            --shadow-strong: 0 30px 90px rgba(34, 20, 5, 0.18);
+            --eh-bg: #f7f9ff;
+            --eh-surface: rgba(255, 255, 255, 0.88);
+            --eh-surface-solid: #ffffff;
+            --eh-text: #111827;
+            --eh-muted: #64748b;
+            --eh-soft: #eef2ff;
+            --eh-primary: #4f46e5;
+            --eh-primary-dark: #3730a3;
+            --eh-secondary: #06b6d4;
+            --eh-gold: #f59e0b;
+            --eh-border: rgba(15, 23, 42, 0.10);
+            --eh-shadow: 0 24px 70px rgba(15, 23, 42, 0.10);
+            --eh-shadow-soft: 0 16px 45px rgba(15, 23, 42, 0.08);
+            --eh-radius-xl: 30px;
+            --eh-radius-lg: 22px;
+            --eh-radius-md: 16px;
         }
 
-        html {
-            scroll-behavior: smooth;
+        * {
+            box-sizing: border-box;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--ivory);
-            color: var(--espresso);
+            margin: 0;
+            min-height: 100vh;
+            color: var(--eh-text);
+            font-family: Inter, Poppins, Arial, sans-serif;
+            background:
+                radial-gradient(circle at top left, rgba(79, 70, 229, 0.10), transparent 34%),
+                radial-gradient(circle at top right, rgba(6, 182, 212, 0.12), transparent 34%),
+                linear-gradient(180deg, #ffffff 0%, #f7f9ff 45%, #eef4ff 100%);
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
         }
 
         a {
@@ -73,28 +68,57 @@
         }
 
         .container {
-            width: min(92%, 1240px);
+            width: min(92%, 1220px);
             margin: 0 auto;
         }
 
-        /* NAVBAR */
+        .eh-page-shell {
+            position: relative;
+            min-height: 100vh;
+        }
+
+        .eh-page-shell::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.78), rgba(255,255,255,0.92)),
+                url("https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1920&q=90");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+        }
+
+        .eh-page-shell::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background:
+                linear-gradient(120deg, rgba(255,255,255,0.98), rgba(255,255,255,0.78), rgba(239,246,255,0.88)),
+                radial-gradient(circle at 80% 10%, rgba(79,70,229,0.12), transparent 28%);
+            pointer-events: none;
+        }
+
+        /* ================= NAVBAR ================= */
 
         .eh-navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
             width: 100%;
-            background: rgba(255, 250, 241, 0.94);
-            border-bottom: 1px solid rgba(191, 140, 36, 0.18);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            box-shadow: 0 10px 32px rgba(23, 16, 8, 0.05);
+            background: rgba(255, 255, 255, 0.84);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 10px 32px rgba(15, 23, 42, 0.05);
         }
 
         .eh-navbar-inner {
-            width: min(92%, 1240px);
+            width: min(94%, 1400px);
             margin: 0 auto;
-            min-height: 72px;
+            padding: 14px 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -105,689 +129,706 @@
             display: inline-flex;
             align-items: center;
             gap: 12px;
-            color: var(--espresso);
+            color: #0f172a;
             font-weight: 900;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-size: 1.45rem;
         }
 
-        .eh-brand-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
+        .eh-brand-mark {
+            width: 42px;
+            height: 42px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            color: #fff;
-            box-shadow: 0 12px 28px rgba(191, 140, 36, 0.24);
+            border-radius: 15px;
+            color: #ffffff;
+            background:
+                linear-gradient(135deg, var(--eh-primary), var(--eh-secondary));
+            box-shadow: 0 14px 34px rgba(79, 70, 229, 0.26);
         }
 
-        .eh-brand span:last-child {
-            font-size: 1.08rem;
+        .eh-brand small {
+            display: block;
+            margin-top: 2px;
+            color: var(--eh-muted);
+            font-size: 0.68rem;
+            font-weight: 700;
+            letter-spacing: 1.8px;
+            text-transform: uppercase;
         }
 
         .eh-nav-links {
             list-style: none;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            gap: 7px;
+            gap: 9px;
+            margin: 0;
+            padding: 0;
             flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .eh-nav-links li {
+            list-style: none;
         }
 
         .eh-nav-link,
         .eh-nav-bell,
         .eh-nav-btn,
         .eh-nav-btn-outline {
-            min-height: 40px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 9px 15px;
-            border-radius: 10px;
-            border: 1px solid transparent;
-            font-size: 0.86rem;
-            font-weight: 700;
+            min-height: 42px;
+            padding: 10px 15px;
+            border-radius: 999px;
+            font-size: 0.92rem;
+            font-weight: 800;
             transition: 0.22s ease;
+            border: 1px solid transparent;
             white-space: nowrap;
         }
 
         .eh-nav-link {
-            color: var(--brown);
+            color: #334155;
         }
 
-        .eh-nav-link:hover,
+        .eh-nav-link:hover {
+            color: var(--eh-primary);
+            background: rgba(79, 70, 229, 0.08);
+        }
+
         .eh-nav-link.active {
-            color: var(--gold);
-            background: var(--gold-pale);
-            border-color: rgba(191, 140, 36, 0.26);
+            color: var(--eh-primary-dark);
+            background: linear-gradient(135deg, rgba(79,70,229,0.12), rgba(6,182,212,0.10));
+            border-color: rgba(79, 70, 229, 0.16);
+            box-shadow: 0 10px 26px rgba(79, 70, 229, 0.10);
         }
 
         .eh-nav-bell {
             position: relative;
-            width: 42px;
+            color: #334155;
+            width: 44px;
             padding: 0;
-            color: var(--brown);
-            background: rgba(255, 255, 255, 0.62);
-            border-color: rgba(191, 140, 36, 0.22);
+            background: #ffffff;
+            border-color: rgba(15, 23, 42, 0.10);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
         }
 
-        .eh-nav-bell:hover {
-            color: var(--gold);
-            background: var(--gold-pale);
-            border-color: rgba(191, 140, 36, 0.42);
+        .eh-nav-bell:hover,
+        .eh-nav-bell.active {
+            color: var(--eh-primary);
+            border-color: rgba(79, 70, 229, 0.22);
+            background: rgba(79, 70, 229, 0.08);
+            transform: translateY(-1px);
         }
 
         .eh-bell-badge {
             position: absolute;
-            top: -6px;
-            right: -6px;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 5px;
+            top: -7px;
+            right: -5px;
+            min-width: 19px;
+            height: 19px;
+            padding: 0 6px;
             border-radius: 999px;
-            background: linear-gradient(135deg, #e05235, #f1844d);
-            color: #fff;
-            font-size: 0.64rem;
+            background: linear-gradient(135deg, #ef4444, #f97316);
+            color: #ffffff;
+            font-size: 0.68rem;
             font-weight: 900;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 16px rgba(224, 82, 53, 0.26);
+            box-shadow: 0 8px 18px rgba(239, 68, 68, 0.28);
         }
 
         .eh-nav-btn {
-            color: #fff;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            box-shadow: 0 12px 28px rgba(191, 140, 36, 0.22);
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--eh-primary), #7c3aed);
+            box-shadow: 0 14px 30px rgba(79, 70, 229, 0.24);
         }
 
         .eh-nav-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 16px 36px rgba(191, 140, 36, 0.28);
+            box-shadow: 0 18px 38px rgba(79, 70, 229, 0.30);
         }
 
         .eh-nav-btn-outline {
-            color: var(--gold);
-            background: rgba(255, 255, 255, 0.48);
-            border-color: rgba(191, 140, 36, 0.42);
+            color: var(--eh-primary-dark);
+            border-color: rgba(79, 70, 229, 0.22);
+            background: rgba(79, 70, 229, 0.08);
         }
 
         .eh-nav-btn-outline:hover {
-            background: var(--gold-pale);
-            border-color: var(--gold);
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--eh-primary), var(--eh-secondary));
+            box-shadow: 0 14px 30px rgba(79, 70, 229, 0.18);
+            transform: translateY(-1px);
         }
 
-        /* HERO */
+        /* ================= HERO ================= */
 
         .hero {
             position: relative;
-            min-height: calc(100vh - 72px);
-            overflow: hidden;
+            min-height: calc(100vh - 76px);
             display: flex;
             align-items: center;
-            isolation: isolate;
-            background: var(--ivory);
+            padding: 84px 0 74px;
+            background: transparent;
         }
 
-        .hero-bg {
-            position: absolute;
-            inset: 0;
-            z-index: -4;
-            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=95");
-            background-size: cover;
-            background-position: center 38%;
-            transform: scale(1.015);
-            filter: contrast(1.10) saturate(1.08) brightness(0.92);
-        }
-
-        .hero-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: -3;
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(251, 247, 239, 0.98) 0%,
-                    rgba(251, 247, 239, 0.94) 24%,
-                    rgba(251, 247, 239, 0.66) 47%,
-                    rgba(251, 247, 239, 0.14) 72%,
-                    rgba(23, 16, 8, 0.18) 100%
-                ),
-                linear-gradient(
-                    180deg,
-                    rgba(23, 16, 8, 0.02) 0%,
-                    rgba(23, 16, 8, 0.16) 100%
-                );
-        }
-
-        .hero::after {
-            content: "";
-            position: absolute;
-            inset: auto 0 0 0;
-            height: 170px;
-            z-index: -2;
-            background: linear-gradient(180deg, transparent, var(--ivory));
-        }
-
-        .hero-inner {
-            width: min(92%, 1240px);
+        .hero-layout {
+            width: min(92%, 1220px);
             margin: 0 auto;
-            padding: 78px 0 132px;
             display: grid;
-            grid-template-columns: minmax(0, 0.96fr) minmax(360px, 0.72fr);
+            grid-template-columns: minmax(0, 1.02fr) minmax(360px, 0.78fr);
+            gap: 46px;
             align-items: center;
-            gap: 44px;
         }
 
-        .hero-panel {
-            max-width: 680px;
-            padding: 42px 44px;
-            border-radius: 28px;
-            background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 250, 241, 0.78));
-            border: 1px solid rgba(191, 140, 36, 0.24);
-            box-shadow: var(--shadow-strong);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+        .hero-content {
+            max-width: 700px;
+            padding: 0;
+            color: var(--eh-text);
         }
 
-        .hero-eyebrow {
+        .hero-badge {
             width: fit-content;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            padding: 8px 16px 8px 10px;
-            margin-bottom: 24px;
+            gap: 9px;
+            padding: 10px 16px;
             border-radius: 999px;
-            background: rgba(251, 240, 209, 0.92);
-            border: 1px solid rgba(191, 140, 36, 0.32);
-            color: var(--gold);
-            font-size: 0.74rem;
+            color: var(--eh-primary-dark);
+            background: rgba(255, 255, 255, 0.82);
+            border: 1px solid rgba(79, 70, 229, 0.14);
+            box-shadow: 0 14px 36px rgba(15, 23, 42, 0.08);
+            font-size: 0.86rem;
             font-weight: 900;
-            letter-spacing: 1.5px;
+            letter-spacing: 0.4px;
             text-transform: uppercase;
-            box-shadow: 0 12px 28px rgba(191, 140, 36, 0.10);
         }
 
-        .hero-eyebrow-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 999px;
-            background: var(--gold);
-            box-shadow: 0 0 0 4px rgba(191, 140, 36, 0.18);
+        .hero-badge i {
+            color: var(--eh-gold);
         }
 
         .hero-title {
-            font-family: 'Playfair Display', serif !important;
-            font-size: clamp(3.3rem, 6.2vw, 6.3rem) !important;
-            line-height: 0.98 !important;
-            letter-spacing: -2.8px !important;
-            font-weight: 800 !important;
-            color: #120c05 !important;
-            margin: 0 0 24px !important;
-            text-shadow: none !important;
+            margin: 24px 0 18px;
+            font-size: clamp(3.1rem, 7vw, 6.4rem);
+            line-height: 0.94;
+            letter-spacing: -4px;
+            font-weight: 950;
+            color: #0f172a;
         }
 
-        .hero-title em {
+        .hero-title span {
             display: inline-block;
-            font-style: italic !important;
-            color: var(--gold) !important;
-            text-shadow: 0 8px 28px rgba(191, 140, 36, 0.18);
+            background: linear-gradient(135deg, var(--eh-primary), var(--eh-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
         .hero-subtitle {
-            max-width: 570px;
-            margin: 0 0 34px !important;
-            color: #4c3920 !important;
-            font-size: 1.06rem !important;
-            font-weight: 600 !important;
-            line-height: 1.78 !important;
+            max-width: 650px;
+            margin: 0 0 30px;
+            color: #475569;
+            font-size: 1.12rem;
+            line-height: 1.8;
+            font-weight: 600;
         }
 
         .hero-actions {
             display: flex;
             align-items: center;
-            flex-wrap: wrap;
             gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
         }
 
-        .btn-gold {
-            min-height: 52px;
+        .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            padding: 14px 26px;
-            border-radius: 12px;
-            font-size: 0.92rem;
-            font-weight: 800;
+            min-height: 52px;
+            padding: 14px 22px;
+            border-radius: 999px;
+            font-weight: 900;
+            font-size: 0.98rem;
+            border: 1px solid transparent;
             transition: 0.24s ease;
+            cursor: pointer;
         }
 
-        .btn-gold-solid {
-            color: #fff;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            box-shadow: 0 16px 36px rgba(191, 140, 36, 0.28);
+        .btn-primary {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--eh-primary), #7c3aed);
+            box-shadow: 0 20px 42px rgba(79, 70, 229, 0.26);
         }
 
-        .btn-gold-solid:hover {
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 22px 46px rgba(191, 140, 36, 0.36);
+            box-shadow: 0 24px 52px rgba(79, 70, 229, 0.34);
         }
 
-        .btn-gold-outline {
-            color: var(--brown);
-            background: rgba(255, 255, 255, 0.72);
-            border: 1.5px solid rgba(191, 140, 36, 0.42);
-            box-shadow: 0 10px 26px rgba(34, 20, 5, 0.06);
+        .btn-outline {
+            color: #0f172a;
+            background: rgba(255, 255, 255, 0.78);
+            border-color: rgba(15, 23, 42, 0.12);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
         }
 
-        .btn-gold-outline:hover {
-            color: var(--gold);
-            background: var(--gold-pale);
+        .btn-outline:hover {
+            color: var(--eh-primary-dark);
+            border-color: rgba(79, 70, 229, 0.22);
             transform: translateY(-2px);
         }
 
-        .hero-side-card {
-            align-self: end;
-            justify-self: end;
-            width: min(100%, 420px);
-            border-radius: 26px;
+        .hero-trust-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .hero-trust-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 13px;
+            border-radius: 999px;
+            color: #334155;
+            background: rgba(255, 255, 255, 0.70);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+            font-size: 0.85rem;
+            font-weight: 800;
+        }
+
+        .hero-trust-item i {
+            color: var(--eh-primary);
+        }
+
+        .hero-visual {
+            position: relative;
+            min-height: 520px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .hero-card-main {
+            position: relative;
+            width: min(100%, 440px);
+            border-radius: 34px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.84);
-            border: 1px solid rgba(255, 255, 255, 0.62);
-            box-shadow: 0 34px 90px rgba(23, 16, 8, 0.24);
-            backdrop-filter: blur(12px);
+            background: #ffffff;
+            box-shadow: 0 34px 90px rgba(15, 23, 42, 0.20);
+            border: 1px solid rgba(255, 255, 255, 0.8);
         }
 
-        .hero-side-image {
-            height: 250px;
-            background-image:
-                linear-gradient(180deg, rgba(23,16,8,0.02), rgba(23,16,8,0.44)),
-                url("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=900&q=90");
+        .hero-card-image {
+            height: 292px;
+            background:
+                linear-gradient(180deg, rgba(15,23,42,0.05), rgba(15,23,42,0.60)),
+                url("https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=1000&q=90");
             background-size: cover;
             background-position: center;
         }
 
-        .hero-side-body {
+        .hero-card-body {
             padding: 24px;
         }
 
-        .hero-side-tag {
+        .hero-card-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 12px;
+        }
+
+        .hero-pill {
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            margin-bottom: 14px;
-            padding: 7px 11px;
+            padding: 8px 11px;
             border-radius: 999px;
-            background: var(--gold-pale);
-            color: var(--gold);
-            font-size: 0.72rem;
+            color: var(--eh-primary-dark);
+            background: rgba(79, 70, 229, 0.10);
+            font-size: 0.78rem;
             font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
-        .hero-side-body h3 {
+        .hero-rating {
+            color: #92400e;
+            font-size: 0.82rem;
+            font-weight: 900;
+        }
+
+        .hero-card-body h3 {
             margin: 0 0 9px;
-            color: var(--espresso);
-            font-size: 1.15rem;
-            font-weight: 900;
-            letter-spacing: -0.4px;
+            color: #0f172a;
+            font-size: 1.35rem;
+            letter-spacing: -0.6px;
         }
 
-        .hero-side-body p {
-            color: var(--muted);
-            font-size: 0.9rem;
+        .hero-card-body p {
+            margin: 0;
+            color: var(--eh-muted);
+            line-height: 1.6;
             font-weight: 600;
-            line-height: 1.65;
         }
 
-        /* STATS */
-
-        .hero-stats {
-            position: relative;
+        .floating-stat {
+            position: absolute;
             z-index: 4;
-            width: min(92%, 1240px);
-            margin: -82px auto 0;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            overflow: hidden;
-            border-radius: 20px;
-            background: rgba(191, 140, 36, 0.20);
-            border: 1px solid rgba(191, 140, 36, 0.20);
-            box-shadow: var(--shadow-soft);
+            width: 190px;
+            padding: 18px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: 0 22px 60px rgba(15, 23, 42, 0.14);
+            backdrop-filter: blur(16px);
         }
 
-        .hero-stat {
-            background: rgba(255, 255, 255, 0.96);
-            padding: 30px 28px;
-            text-align: center;
-            border-right: 1px solid rgba(191, 140, 36, 0.18);
+        .floating-stat.one {
+            left: -8px;
+            top: 52px;
         }
 
-        .hero-stat:last-child {
-            border-right: none;
+        .floating-stat.two {
+            right: -2px;
+            bottom: 52px;
         }
 
-        .hero-stat-num {
-            font-family: 'Playfair Display', serif;
-            color: var(--gold);
-            font-size: 2.45rem;
-            line-height: 1;
+        .floating-stat-icon {
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--eh-primary), var(--eh-secondary));
+            margin-bottom: 12px;
+        }
+
+        .floating-stat strong {
+            display: block;
+            color: #0f172a;
+            font-size: 1.45rem;
+            font-weight: 950;
+            letter-spacing: -0.8px;
+        }
+
+        .floating-stat span {
+            display: block;
+            color: var(--eh-muted);
+            margin-top: 3px;
+            font-size: 0.82rem;
             font-weight: 800;
-            margin-bottom: 8px;
         }
 
-        .hero-stat-label {
-            color: var(--muted);
-            font-size: 0.76rem;
-            font-weight: 900;
+        /* ================= FEATURES ================= */
+
+        .features-section {
+            position: relative;
+            padding: 86px 0;
+            background: rgba(255, 255, 255, 0.62);
+            backdrop-filter: blur(10px);
+        }
+
+        .section-header {
+            max-width: 760px;
+            margin: 0 auto 42px;
+            text-align: center;
+        }
+
+        .section-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 13px;
+            color: var(--eh-primary-dark);
+            font-weight: 950;
+            font-size: 0.82rem;
             letter-spacing: 1.4px;
             text-transform: uppercase;
         }
 
-        /* FEATURES */
-
-        .features-section {
-            padding: 126px 0 86px;
-            background:
-                radial-gradient(circle at top left, rgba(191, 140, 36, 0.08), transparent 30%),
-                linear-gradient(180deg, var(--ivory), var(--cream-2));
-        }
-
-        .section-header {
-            max-width: 720px;
-            margin: 0 auto 58px;
-            text-align: center;
-        }
-
-        .section-label {
-            display: inline-block;
-            margin-bottom: 14px;
-            color: var(--gold);
-            font-size: 0.74rem;
-            font-weight: 900;
-            letter-spacing: 2.2px;
-            text-transform: uppercase;
-        }
-
         .section-title {
-            font-family: 'Playfair Display', serif;
-            color: var(--espresso);
-            font-size: clamp(2.3rem, 4vw, 3.6rem);
-            font-weight: 800;
-            line-height: 1.08;
-            letter-spacing: -1.4px;
-            margin-bottom: 16px;
+            margin: 0;
+            color: #0f172a;
+            font-size: clamp(2.1rem, 4vw, 3.5rem);
+            line-height: 1.05;
+            letter-spacing: -2px;
+            font-weight: 950;
         }
 
-        .section-title em {
-            color: var(--gold);
-            font-style: italic;
+        .section-title span {
+            background: linear-gradient(135deg, var(--eh-primary), var(--eh-secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
         }
 
         .section-subtitle {
-            color: var(--muted);
-            font-size: 1rem;
+            max-width: 650px;
+            margin: 16px auto 0;
+            color: var(--eh-muted);
+            font-size: 1.02rem;
+            line-height: 1.7;
             font-weight: 600;
-            line-height: 1.75;
+        }
+
+        .section-divider {
+            width: 86px;
+            height: 5px;
+            margin: 24px auto 0;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--eh-primary), var(--eh-secondary));
+            box-shadow: 0 8px 18px rgba(79, 70, 229, 0.20);
         }
 
         .features-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 22px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 20px;
         }
 
+        .card,
         .feature-card {
             position: relative;
-            min-height: 230px;
-            padding: 34px 28px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.94);
-            border: 1px solid rgba(191, 140, 36, 0.18);
-            box-shadow: 0 14px 38px rgba(34, 20, 5, 0.06);
-            transition: 0.28s ease;
             overflow: hidden;
+            padding: 28px;
+            border-radius: var(--eh-radius-lg);
+            background: rgba(255, 255, 255, 0.90);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            box-shadow: var(--eh-shadow-soft);
+            transition: 0.26s ease;
         }
 
         .feature-card::before {
             content: "";
             position: absolute;
-            inset: 0 0 auto 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--gold), var(--gold-light));
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: 0.28s ease;
+            inset: 0;
+            background:
+                radial-gradient(circle at top right, rgba(79,70,229,0.10), transparent 35%),
+                radial-gradient(circle at bottom left, rgba(6,182,212,0.10), transparent 32%);
+            opacity: 0;
+            transition: 0.26s ease;
         }
 
         .feature-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(191, 140, 36, 0.34);
-            box-shadow: 0 24px 60px rgba(34, 20, 5, 0.11);
+            transform: translateY(-7px);
+            box-shadow: 0 28px 70px rgba(15, 23, 42, 0.14);
+            border-color: rgba(79, 70, 229, 0.18);
         }
 
         .feature-card:hover::before {
-            transform: scaleX(1);
+            opacity: 1;
         }
 
-        .feature-icon-wrap {
-            width: 54px;
-            height: 54px;
-            margin-bottom: 22px;
-            display: flex;
+        .feature-icon {
+            position: relative;
+            width: 58px;
+            height: 58px;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 16px;
-            background: linear-gradient(135deg, var(--gold-pale), #fff8e8);
-            border: 1px solid rgba(191, 140, 36, 0.22);
-            font-size: 1.45rem;
+            margin-bottom: 20px;
+            border-radius: 20px;
+            font-size: 1.55rem;
+            background: linear-gradient(135deg, rgba(79,70,229,0.12), rgba(6,182,212,0.12));
+            border: 1px solid rgba(79, 70, 229, 0.12);
         }
 
         .feature-card h3 {
-            margin-bottom: 10px;
-            color: var(--espresso);
-            font-size: 1.15rem;
-            font-weight: 900;
+            position: relative;
+            margin: 0 0 10px;
+            color: #0f172a;
+            font-size: 1.18rem;
             letter-spacing: -0.4px;
+            font-weight: 950;
         }
 
         .feature-card p {
-            color: var(--muted);
-            font-size: 0.9rem;
+            position: relative;
+            margin: 0;
+            color: var(--eh-muted);
+            line-height: 1.65;
             font-weight: 600;
-            line-height: 1.7;
         }
 
-        /* CTA */
+        /* ================= CTA ================= */
 
         .home-cta {
-            padding: 0 0 110px;
-            background: var(--cream-2);
+            padding: 24px 0 92px;
+            background: rgba(255, 255, 255, 0.60);
         }
 
         .cta-box {
             position: relative;
             overflow: hidden;
-            padding: 76px 46px;
-            border-radius: 28px;
-            text-align: center;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 28px;
+            padding: 44px;
+            border-radius: 34px;
             background:
-                linear-gradient(135deg, rgba(23,16,8,0.94), rgba(54,37,18,0.92)),
-                url("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1300&q=90");
-            background-size: cover;
-            background-position: center;
-            box-shadow: 0 34px 90px rgba(23, 16, 8, 0.22);
+                linear-gradient(135deg, rgba(255,255,255,0.94), rgba(239,246,255,0.94)),
+                linear-gradient(135deg, rgba(79,70,229,0.10), rgba(6,182,212,0.08));
+            border: 1px solid rgba(79, 70, 229, 0.12);
+            box-shadow: var(--eh-shadow);
         }
 
         .cta-box::before {
             content: "";
             position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(circle at top, rgba(217, 173, 82, 0.26), transparent 34%),
-                linear-gradient(135deg, rgba(23,16,8,0.78), rgba(54,37,18,0.88));
-        }
-
-        .cta-box-inner {
-            position: relative;
-            z-index: 2;
-        }
-
-        .cta-label {
-            display: inline-block;
-            margin-bottom: 16px;
-            color: var(--gold-light);
-            font-size: 0.74rem;
-            font-weight: 900;
-            letter-spacing: 2.2px;
-            text-transform: uppercase;
+            width: 280px;
+            height: 280px;
+            right: -100px;
+            top: -110px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(79,70,229,0.20), transparent 62%);
         }
 
         .cta-box h2 {
-            font-family: 'Playfair Display', serif;
-            color: #fff;
-            font-size: clamp(2.2rem, 4vw, 3.3rem);
-            font-weight: 800;
-            line-height: 1.12;
-            letter-spacing: -1.2px;
-            margin-bottom: 16px;
-        }
-
-        .cta-box h2 em {
-            color: var(--gold-light);
-            font-style: italic;
+            position: relative;
+            margin: 0 0 10px;
+            color: #0f172a;
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
+            letter-spacing: -1.3px;
+            font-weight: 950;
         }
 
         .cta-box p {
-            max-width: 540px;
-            margin: 0 auto 34px;
-            color: rgba(255, 255, 255, 0.72);
+            position: relative;
+            margin: 0;
+            color: var(--eh-muted);
             font-size: 1rem;
-            font-weight: 600;
-            line-height: 1.75;
+            line-height: 1.7;
+            font-weight: 650;
         }
 
-        .btn-gold-cta {
-            min-height: 52px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            padding: 14px 30px;
-            border-radius: 12px;
-            color: #fff;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            font-size: 0.92rem;
-            font-weight: 900;
-            box-shadow: 0 16px 38px rgba(191, 140, 36, 0.34);
-            transition: 0.24s ease;
+        .cta-box .btn {
+            position: relative;
         }
 
-        .btn-gold-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 22px 48px rgba(191, 140, 36, 0.42);
-        }
-
-        /* FOOTER */
+        /* ================= FOOTER ================= */
 
         .footer {
-            background: var(--espresso);
-            color: rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.92);
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            color: #334155;
+            backdrop-filter: blur(16px);
         }
 
         .footer-container {
             display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr 1fr;
-            gap: 48px;
-            padding: 70px 0 56px;
+            grid-template-columns: 1.4fr 0.8fr 0.8fr 0.8fr;
+            gap: 32px;
+            padding: 58px 0 40px;
         }
 
         .footer-logo {
-            margin-bottom: 18px;
-            color: #fff;
-            font-size: 1.28rem;
-            font-weight: 900;
-            letter-spacing: 2px;
-        }
-
-        .footer-logo span {
-            color: var(--gold-light);
+            margin: 0 0 14px;
+            color: #0f172a;
+            font-size: 1.5rem;
+            font-weight: 950;
+            letter-spacing: -0.5px;
         }
 
         .footer-text {
-            max-width: 310px;
-            color: rgba(255, 255, 255, 0.52);
-            font-size: 0.88rem;
-            font-weight: 500;
+            max-width: 420px;
+            margin: 0;
+            color: var(--eh-muted);
             line-height: 1.8;
+            font-weight: 600;
         }
 
         .footer-col h4 {
-            margin-bottom: 20px;
-            color: var(--gold-light);
-            font-size: 0.74rem;
-            font-weight: 900;
-            letter-spacing: 2px;
-            text-transform: uppercase;
+            margin: 0 0 16px;
+            color: #0f172a;
+            font-size: 1rem;
+            font-weight: 950;
         }
 
         .footer-col ul {
+            margin: 0;
+            padding: 0;
             list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 11px;
         }
 
-        .footer-col ul li a {
-            color: rgba(255, 255, 255, 0.54);
-            font-size: 0.88rem;
-            font-weight: 600;
+        .footer-col li {
+            margin-bottom: 10px;
+        }
+
+        .footer-col a {
+            color: #475569;
+            font-weight: 700;
             transition: 0.2s ease;
         }
 
-        .footer-col ul li a:hover {
-            color: var(--gold-light);
+        .footer-col a:hover {
+            color: var(--eh-primary);
+            padding-left: 4px;
         }
 
         .footer-bottom {
-            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(15, 23, 42, 0.08);
+            background: rgba(248, 250, 252, 0.90);
         }
 
         .footer-bottom-inner {
-            min-height: 62px;
+            min-height: 58px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 18px;
-            color: rgba(255, 255, 255, 0.34);
-            font-size: 0.82rem;
-            font-weight: 600;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
-        /* RESPONSIVE */
+        .footer-bottom p {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        /* ================= RESPONSIVE ================= */
 
         @media (max-width: 1100px) {
-            .hero-inner {
+            .hero-layout {
                 grid-template-columns: 1fr;
-                padding-top: 62px;
+                gap: 34px;
             }
 
-            .hero-panel {
-                max-width: 760px;
+            .hero-content {
+                max-width: 860px;
+                text-align: center;
+                margin: 0 auto;
             }
 
-            .hero-side-card {
-                display: none;
+            .hero-badge,
+            .hero-actions,
+            .hero-trust-row {
+                justify-content: center;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-visual {
+                min-height: auto;
             }
 
             .features-grid {
-                grid-template-columns: repeat(2, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
             .footer-container {
@@ -795,11 +836,14 @@
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 900px) {
             .eh-navbar-inner {
                 flex-direction: column;
+                align-items: stretch;
+            }
+
+            .eh-brand {
                 justify-content: center;
-                padding: 14px 0;
             }
 
             .eh-nav-links {
@@ -808,62 +852,26 @@
 
             .hero {
                 min-height: auto;
-            }
-
-            .hero-inner {
-                padding: 46px 0 116px;
-            }
-
-            .hero-panel {
-                padding: 32px 24px;
-                border-radius: 22px;
+                padding-top: 60px;
             }
 
             .hero-title {
-                font-size: clamp(3rem, 13vw, 4.5rem) !important;
-                letter-spacing: -1.6px !important;
+                letter-spacing: -2.5px;
             }
 
-            .hero-subtitle {
-                font-size: 1rem !important;
+            .floating-stat {
+                display: none;
             }
 
-            .hero-stats {
+            .cta-box {
                 grid-template-columns: 1fr;
-                margin-top: -54px;
-            }
-
-            .hero-stat {
-                border-right: none;
-                border-bottom: 1px solid rgba(191, 140, 36, 0.18);
-            }
-
-            .hero-stat:last-child {
-                border-bottom: none;
-            }
-
-            .features-section {
-                padding-top: 100px;
-            }
-
-            .features-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .footer-container {
-                grid-template-columns: 1fr;
-                gap: 32px;
-            }
-
-            .footer-bottom-inner {
-                flex-direction: column;
-                justify-content: center;
                 text-align: center;
-                padding: 18px 0;
+                justify-items: center;
+                padding: 34px 24px;
             }
         }
 
-        @media (max-width: 520px) {
+        @media (max-width: 640px) {
             .eh-nav-link span,
             .eh-nav-btn span,
             .eh-nav-btn-outline span {
@@ -873,292 +881,358 @@
             .eh-nav-link,
             .eh-nav-btn,
             .eh-nav-btn-outline {
-                width: 40px;
+                width: 44px;
                 padding: 0;
             }
 
-            .hero-actions {
-                flex-direction: column;
-                align-items: stretch;
+            .hero-title {
+                font-size: 3rem;
             }
 
-            .btn-gold {
-                width: 100%;
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-bottom-inner {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .hero-card-main {
+                border-radius: 26px;
+            }
+
+            .hero-card-image {
+                height: 230px;
             }
         }
     </style>
 </head>
+
 <body>
+<div class="eh-page-shell">
 
-<nav class="eh-navbar">
-    <div class="eh-navbar-inner">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
-            <span class="eh-brand-icon"><i class="fa-solid fa-diamond"></i></span>
-            <span>EVENTHORIZON</span>
-        </a>
+    <nav class="eh-navbar">
+        <div class="eh-navbar-inner">
+            <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
+                <span class="eh-brand-mark">
+                    <i class="fa-solid fa-cube"></i>
+                </span>
+                <span>
+                    EVENTHORIZON
+                    <small>Premium Booking</small>
+                </span>
+            </a>
 
-        <ul class="eh-nav-links">
-            <li>
-                <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link active">
-                    <i class="fa-solid fa-house"></i><span>Home</span>
-                </a>
-            </li>
+            <ul class="eh-nav-links">
+                <li>
+                    <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link active">
+                        <i class="fa-solid fa-house"></i><span>Home</span>
+                    </a>
+                </li>
 
-            <li>
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
-                    <i class="fa-solid fa-calendar-days"></i><span>Events</span>
-                </a>
-            </li>
+                <li>
+                    <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
+                        <i class="fa-solid fa-calendar-days"></i><span>Events</span>
+                    </a>
+                </li>
 
-            <c:choose>
-                <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
-                    <li>
-                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
-                            <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
+                <c:choose>
+                    <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
+                        <li>
+                            <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
+                                <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell" title="Issue notifications">
+                                <i class="fa-regular fa-bell"></i>
+                                <% if (navIssueCount > 0) { %>
+                                    <span class="eh-bell-badge"><%= navIssueCount %></span>
+                                <% } %>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                                <i class="fa-regular fa-user"></i><span>Profile</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                                <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+                            </a>
+                        </li>
+                    </c:when>
+
+                    <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
+                        <li>
+                            <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="eh-nav-link">
+                                <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                                <i class="fa-regular fa-user"></i><span>Profile</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                                <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+                            </a>
+                        </li>
+                    </c:when>
+
+                    <c:otherwise>
+                        <li>
+                            <a href="${pageContext.request.contextPath}/login.jsp" class="eh-nav-link">
+                                <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
+                                <i class="fa-solid fa-user-plus"></i><span>Register</span>
+                            </a>
+                        </li>
+                    </c:otherwise>
+                </c:choose>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-layout">
+            <div class="hero-content">
+                <span class="hero-badge">
+                    <i class="fa-solid fa-star"></i>
+                    Premium Event Booking Platform
+                </span>
+
+                <h1 class="hero-title">
+                    Experience the<br>
+                    <span>Extraordinary</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Discover concerts, sports events, tech summits and cultural shows.
+                    Book your tickets in seconds with a seamless, secure and beautifully modern experience.
+                </p>
+
+                <div class="hero-actions">
+                    <a href="${pageContext.request.contextPath}/event?action=list" class="btn btn-primary">
+                        <i class="fa-solid fa-ticket"></i>
+                        Browse Events
+                    </a>
+
+                    <c:if test="${empty sessionScope.userId}">
+                        <a href="${pageContext.request.contextPath}/register.jsp" class="btn btn-outline">
+                            <i class="fa-solid fa-user-plus"></i>
+                            Create Account
                         </a>
-                    </li>
+                    </c:if>
 
-                    <li>
-                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell" title="Issue notifications">
-                            <i class="fa-regular fa-bell"></i>
-                            <% if (navIssueCount > 0) { %>
-                                <span class="eh-bell-badge"><%= navIssueCount %></span>
-                            <% } %>
+                    <c:if test="${not empty sessionScope.userId}">
+                        <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="btn btn-outline">
+                            <i class="fa-regular fa-message"></i>
+                            Report an Issue
                         </a>
-                    </li>
+                    </c:if>
+                </div>
 
-                    <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
-                            <i class="fa-regular fa-user"></i><span>Profile</span>
-                        </a>
-                    </li>
+                <div class="hero-trust-row">
+                    <span class="hero-trust-item">
+                        <i class="fa-solid fa-bolt"></i>
+                        Instant Booking
+                    </span>
 
-                    <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
-                        </a>
-                    </li>
-                </c:when>
+                    <span class="hero-trust-item">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        Secure Access
+                    </span>
 
-                <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
-                    <li>
-                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="eh-nav-link">
-                            <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
-                            <i class="fa-regular fa-user"></i><span>Profile</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
-                        </a>
-                    </li>
-                </c:when>
-
-                <c:otherwise>
-                    <li>
-                        <a href="${pageContext.request.contextPath}/login.jsp" class="eh-nav-link">
-                            <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
-                            <i class="fa-solid fa-user-plus"></i><span>Register</span>
-                        </a>
-                    </li>
-                </c:otherwise>
-            </c:choose>
-        </ul>
-    </div>
-</nav>
-
-<section class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-overlay"></div>
-
-    <div class="hero-inner">
-        <div class="hero-panel">
-            <div class="hero-eyebrow">
-                <span class="hero-eyebrow-dot"></span>
-                <span>Premium Event Booking Platform</span>
+                    <span class="hero-trust-item">
+                        <i class="fa-solid fa-qrcode"></i>
+                        QR Ticket Ready
+                    </span>
+                </div>
             </div>
 
-            <h1 class="hero-title">
-                Experience<br>the <em>Extraordinary</em>
-            </h1>
+            <div class="hero-visual">
+                <div class="floating-stat one">
+                    <div class="floating-stat-icon">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <strong>Live</strong>
+                    <span>Event discovery and booking</span>
+                </div>
 
-            <p class="hero-subtitle">
-                Discover concerts, sports events, tech summits and cultural shows.
-                Book your tickets in seconds with a seamless and secure experience.
-            </p>
+                <div class="hero-card-main">
+                    <div class="hero-card-image"></div>
 
-            <div class="hero-actions">
-                <a href="${pageContext.request.contextPath}/event?action=list" class="btn-gold btn-gold-solid">
-                    <i class="fa-solid fa-ticket"></i> Browse Events
-                </a>
+                    <div class="hero-card-body">
+                        <div class="hero-card-meta">
+                            <span class="hero-pill">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                                Featured Experience
+                            </span>
 
-                <c:if test="${empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/register.jsp" class="btn-gold btn-gold-outline">
-                        <i class="fa-solid fa-user-plus"></i> Create Account
-                    </a>
-                </c:if>
+                            <span class="hero-rating">
+                                <i class="fa-solid fa-star"></i>
+                                Premium
+                            </span>
+                        </div>
 
-                <c:if test="${not empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="btn-gold btn-gold-outline">
-                        <i class="fa-regular fa-flag"></i> Report an Issue
-                    </a>
-                </c:if>
+                        <h3>Book unforgettable moments</h3>
+                        <p>
+                            Explore top events, reserve your seats, manage bookings,
+                            and receive verified ticket access through one clean platform.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="floating-stat two">
+                    <div class="floating-stat-icon">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+                    <strong>Safe</strong>
+                    <span>Protected booking workflow</span>
+                </div>
             </div>
         </div>
+    </section>
 
-        <div class="hero-side-card">
-            <div class="hero-side-image"></div>
-            <div class="hero-side-body">
-                <div class="hero-side-tag">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    Secure Booking
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-kicker">
+                    <i class="fa-solid fa-gem"></i>
+                    Why Choose Us
                 </div>
-                <h3>Book events with confidence</h3>
-                <p>
-                    Manage bookings, view tickets, and access event details through a clean,
-                    secure and reliable platform.
+
+                <h2 class="section-title">
+                    Why <span>EventHorizon?</span>
+                </h2>
+
+                <p class="section-subtitle">
+                    Built for speed, security and unforgettable experiences with a clean enterprise-level interface.
+                </p>
+
+                <div class="section-divider"></div>
+            </div>
+
+            <div class="features-grid">
+                <div class="card feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Instant Booking</h3>
+                    <p>Reserve your seat in real-time with no waiting and no confusion.</p>
+                </div>
+
+                <div class="card feature-card">
+                    <div class="feature-icon">🔒</div>
+                    <h3>Secure &amp; Safe</h3>
+                    <p>Your account, payments, and bookings stay protected and reliable.</p>
+                </div>
+
+                <div class="card feature-card">
+                    <div class="feature-icon">🎭</div>
+                    <h3>All Categories</h3>
+                    <p>Concerts, sports, tech, and cultural events — all in one place.</p>
+                </div>
+
+                <div class="card feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Easy to Use</h3>
+                    <p>A clean modern interface that works beautifully on desktop and mobile.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="home-cta">
+        <div class="container">
+            <div class="cta-box">
+                <div>
+                    <h2>Ready to book your next experience?</h2>
+                    <p>Explore trending events and reserve your seat before they sell out.</p>
+                </div>
+
+                <a href="${pageContext.request.contextPath}/event?action=list" class="btn btn-primary">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    Explore Events
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container footer-container">
+            <div class="footer-col footer-brand-col">
+                <h2 class="footer-logo">⬡ EVENTHORIZON</h2>
+                <p class="footer-text">
+                    EventHorizon helps you discover, explore, and book unforgettable
+                    experiences with a fast, secure, and modern platform.
                 </p>
             </div>
+
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
+                    <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
+
+                    <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
+                        <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
+                    </c:if>
+
+                    <c:if test="${not empty sessionScope.userId}">
+                        <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
+                    </c:if>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="${pageContext.request.contextPath}/aboutUs.jsp">About Us</a></li>
+                    <li><a href="${pageContext.request.contextPath}/contacts.jsp">Contact</a></li>
+                    <li><a href="${pageContext.request.contextPath}/privacyPolicy.jsp">Privacy Policy</a></li>
+                    <li><a href="${pageContext.request.contextPath}/termsConditions.jsp">Terms &amp; Conditions</a></li>
+                </ul>
+            </div>
+
+            <div class="footer-col">
+                <h4>Support</h4>
+                <ul>
+                    <li><a href="${pageContext.request.contextPath}/faqs.jsp">Help Center</a></li>
+                    <li><a href="${pageContext.request.contextPath}/faqs.jsp">FAQs</a></li>
+                    <li><a href="${pageContext.request.contextPath}/ticketPolicy.jsp">Ticket Policy</a></li>
+                    <li><a href="${pageContext.request.contextPath}/IssueServlet?action=report">Report an Issue</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
-</section>
 
-<div class="hero-stats container">
-    <div class="hero-stat">
-        <div class="hero-stat-num">500+</div>
-        <div class="hero-stat-label">Live Events</div>
-    </div>
+        <div class="footer-bottom">
+            <div class="container footer-bottom-inner">
+                <p>© 2026 EventHorizon. All rights reserved.</p>
+                <p>Designed for modern event experiences.</p>
+            </div>
+        </div>
+    </footer>
 
-    <div class="hero-stat">
-        <div class="hero-stat-num">80K+</div>
-        <div class="hero-stat-label">Tickets Sold</div>
-    </div>
-
-    <div class="hero-stat">
-        <div class="hero-stat-num">4.9★</div>
-        <div class="hero-stat-label">User Rating</div>
-    </div>
 </div>
-
-<section class="features-section">
-    <div class="container">
-        <div class="section-header">
-            <span class="section-label">Why choose us</span>
-            <h2 class="section-title">Why <em>EventHorizon?</em></h2>
-            <p class="section-subtitle">
-                Built for speed, security, and unforgettable experiences.
-            </p>
-        </div>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon-wrap">⚡</div>
-                <h3>Instant Booking</h3>
-                <p>Reserve your seat in real-time with no waiting and no confusion.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-wrap">🔒</div>
-                <h3>Secure &amp; Safe</h3>
-                <p>Your account, payments, and bookings stay protected and reliable.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-wrap">🎭</div>
-                <h3>All Categories</h3>
-                <p>Concerts, sports, tech, and cultural events — all in one place.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-wrap">📱</div>
-                <h3>Easy to Use</h3>
-                <p>A clean modern interface that works beautifully on desktop and mobile.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="home-cta">
-    <div class="container">
-        <div class="cta-box">
-            <div class="cta-box-inner">
-                <span class="cta-label">Don't miss out</span>
-                <h2>Ready to book your<br><em>next experience?</em></h2>
-                <p>Explore trending events and reserve your seat before they sell out.</p>
-
-                <a href="${pageContext.request.contextPath}/event?action=list" class="btn-gold-cta">
-                    <i class="fa-solid fa-arrow-right"></i> Explore Events
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<footer class="footer">
-    <div class="container footer-container">
-        <div class="footer-col">
-            <h2 class="footer-logo">⬡ EVENT<span>HORIZON</span></h2>
-            <p class="footer-text">
-                EventHorizon helps you discover, explore, and book unforgettable
-                experiences with a fast, secure, and modern platform.
-            </p>
-        </div>
-
-        <div class="footer-col">
-            <h4>Quick Links</h4>
-            <ul>
-                <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
-                <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
-
-                <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
-                    <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
-                </c:if>
-
-                <c:if test="${not empty sessionScope.userId}">
-                    <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
-                </c:if>
-            </ul>
-        </div>
-
-        <div class="footer-col">
-            <h4>Company</h4>
-            <ul>
-                <li><a href="${pageContext.request.contextPath}/aboutUs.jsp">About Us</a></li>
-                <li><a href="${pageContext.request.contextPath}/contacts.jsp">Contact</a></li>
-                <li><a href="${pageContext.request.contextPath}/privacyPolicy.jsp">Privacy Policy</a></li>
-                <li><a href="${pageContext.request.contextPath}/termsConditions.jsp">Terms &amp; Conditions</a></li>
-            </ul>
-        </div>
-
-        <div class="footer-col">
-            <h4>Support</h4>
-            <ul>
-                <li><a href="${pageContext.request.contextPath}/faqs.jsp">Help Center</a></li>
-                <li><a href="${pageContext.request.contextPath}/faqs.jsp">FAQs</a></li>
-                <li><a href="${pageContext.request.contextPath}/ticketPolicy.jsp">Ticket Policy</a></li>
-                <li><a href="${pageContext.request.contextPath}/IssueServlet?action=report">Report an Issue</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="footer-bottom">
-        <div class="container footer-bottom-inner">
-            <p>© 2026 EventHorizon. All rights reserved.</p>
-            <p>Designed for modern event experiences.</p>
-        </div>
-    </div>
-</footer>
 
 <script src="${pageContext.request.contextPath}/js/main.js"></script>
 </body>
