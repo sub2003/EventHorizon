@@ -171,6 +171,15 @@
             background: rgba(67, 206, 255, 0.16);
         }
 
+        .hero {
+            background:
+                linear-gradient(90deg, rgba(4, 8, 25, 0.92), rgba(8, 14, 42, 0.78), rgba(10, 18, 52, 0.60)),
+                url("https://images.unsplash.com/photo-1492684223066-81342ee5ff30a?auto=format&fit=crop&w=1920&q=90");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
         @media (max-width: 900px) {
             .eh-navbar-inner {
                 flex-direction: column;
