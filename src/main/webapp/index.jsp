@@ -20,14 +20,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventHorizon – Book Your Experience</title>
+
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         :root {
             --ivory:        #FEFAF3;
@@ -46,25 +53,34 @@
             --shadow-soft:  rgba(30,15,5,0.10);
         }
 
-        html { scroll-behavior: smooth; }
+        html {
+            scroll-behavior: smooth;
+        }
 
         body {
             font-family: 'DM Sans', sans-serif;
             background: var(--ivory);
             color: var(--text);
             -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        a {
+            text-decoration: none;
         }
 
         /* ── NAVBAR ─────────────────────────────────── */
+
         .eh-navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
             width: 100%;
-            background: rgba(254, 250, 243, 0.88);
+            background: rgba(254, 250, 243, 0.92);
             border-bottom: 1px solid rgba(196,146,42,0.20);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 28px rgba(30,15,5,0.05);
         }
 
         .eh-navbar-inner {
@@ -81,7 +97,6 @@
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            text-decoration: none;
             color: var(--espresso);
             font-family: 'Cormorant Garamond', serif;
             font-weight: 700;
@@ -112,7 +127,9 @@
             justify-content: flex-end;
         }
 
-        .eh-nav-links li { list-style: none; }
+        .eh-nav-links li {
+            list-style: none;
+        }
 
         .eh-nav-link,
         .eh-nav-bell,
@@ -134,7 +151,9 @@
             letter-spacing: 0.2px;
         }
 
-        .eh-nav-link { color: var(--brown); }
+        .eh-nav-link {
+            color: var(--brown);
+        }
 
         .eh-nav-link:hover {
             color: var(--gold);
@@ -207,62 +226,92 @@
         }
 
         /* ── HERO ────────────────────────────────────── */
+
         .hero {
             position: relative;
             min-height: 92vh;
             display: flex;
             align-items: center;
             overflow: hidden;
+            isolation: isolate;
         }
 
         .hero-bg {
             position: absolute;
             inset: 0;
-            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=90");
+            z-index: -3;
+            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=95");
             background-size: cover;
-            background-position: center 30%;
+            background-position: center 35%;
             background-repeat: no-repeat;
-            transform: scale(1.04);
-            animation: heroZoom 18s ease-in-out infinite alternate;
+            transform: scale(1.01);
+            filter: contrast(1.08) saturate(1.08) brightness(1.02);
         }
 
-        @keyframes heroZoom {
-            from { transform: scale(1.04); }
-            to   { transform: scale(1.0); }
+        .hero-bg::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 72% 20%, rgba(255,255,255,0.08), transparent 28%),
+                linear-gradient(180deg, rgba(26,17,8,0.04), rgba(26,17,8,0.12));
+            pointer-events: none;
         }
 
         .hero-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(
-                105deg,
-                rgba(254,250,243,0.97) 0%,
-                rgba(245,237,216,0.88) 38%,
-                rgba(196,146,42,0.12)  65%,
-                rgba(26,17,8,0.20)     100%
-            );
+            z-index: -2;
+            background:
+                linear-gradient(
+                    105deg,
+                    rgba(254,250,243,0.70) 0%,
+                    rgba(245,237,216,0.46) 34%,
+                    rgba(245,237,216,0.18) 58%,
+                    rgba(26,17,8,0.05) 100%
+                ),
+                linear-gradient(
+                    180deg,
+                    rgba(254,250,243,0.08) 0%,
+                    rgba(254,250,243,0.16) 100%
+                );
         }
-
 
         .hero-content {
             position: relative;
             z-index: 2;
             width: min(94%, 1400px);
             margin: 0 auto;
-            padding: 80px 0 100px;
-            max-width: 680px;
+            padding: 92px 0 120px;
+            max-width: 720px;
+        }
+
+        .hero-content-inner {
+            width: 100%;
+            max-width: 660px;
+            padding: 42px 46px 46px;
+            border-radius: 28px;
+            background:
+                linear-gradient(135deg, rgba(254,250,243,0.82), rgba(255,255,255,0.58));
+            border: 1px solid rgba(196,146,42,0.22);
+            box-shadow:
+                0 30px 80px rgba(30,15,5,0.16),
+                inset 0 1px 0 rgba(255,255,255,0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
         }
 
         .hero-eyebrow {
             display: inline-flex;
             align-items: center;
             gap: 10px;
-            background: var(--gold-pale);
-            border: 1px solid rgba(196,146,42,0.30);
+            background: rgba(245,232,200,0.92);
+            border: 1px solid rgba(196,146,42,0.34);
             border-radius: 100px;
-            padding: 6px 16px 6px 10px;
-            margin-bottom: 32px;
+            padding: 7px 16px 7px 10px;
+            margin-bottom: 28px;
             animation: fadeUp 0.7s ease both;
+            box-shadow: 0 8px 22px rgba(196,146,42,0.12);
         }
 
         .hero-eyebrow-dot {
@@ -275,42 +324,51 @@
         }
 
         @keyframes pulse {
-            0%, 100% { box-shadow: 0 0 0 3px rgba(196,146,42,0.20); }
-            50%       { box-shadow: 0 0 0 6px rgba(196,146,42,0.08); }
+            0%, 100% {
+                box-shadow: 0 0 0 3px rgba(196,146,42,0.20);
+            }
+            50% {
+                box-shadow: 0 0 0 6px rgba(196,146,42,0.08);
+            }
         }
 
         .hero-eyebrow span {
             font-size: 0.78rem;
-            font-weight: 600;
+            font-weight: 700;
             color: var(--gold);
             letter-spacing: 1.2px;
             text-transform: uppercase;
         }
 
         .hero-title {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: clamp(3.4rem, 7vw, 6rem);
-            font-weight: 700;
-            line-height: 1.04;
-            color: var(--espresso);
-            margin-bottom: 26px;
-            letter-spacing: -1px;
+            font-family: 'Cormorant Garamond', serif !important;
+            font-size: clamp(3.4rem, 7vw, 6rem) !important;
+            font-weight: 700 !important;
+            line-height: 1.02 !important;
+            color: var(--espresso) !important;
+            margin-bottom: 24px !important;
+            letter-spacing: -1px !important;
             animation: fadeUp 0.7s 0.1s ease both;
+            text-shadow: 0 2px 10px rgba(255,255,255,0.75);
         }
 
         .hero-title em {
-            font-style: italic;
-            color: var(--gold);
+            font-style: italic !important;
+            color: var(--gold) !important;
+            text-shadow:
+                0 2px 12px rgba(255,255,255,0.85),
+                0 8px 24px rgba(196,146,42,0.18);
         }
 
         .hero-subtitle {
-            font-size: 1.05rem;
-            font-weight: 400;
-            color: var(--mocha);
-            line-height: 1.75;
-            max-width: 520px;
-            margin-bottom: 44px;
+            font-size: 1.06rem !important;
+            font-weight: 600 !important;
+            color: var(--brown) !important;
+            line-height: 1.75 !important;
+            max-width: 540px;
+            margin-bottom: 38px !important;
             animation: fadeUp 0.7s 0.2s ease both;
+            text-shadow: 0 1px 8px rgba(255,255,255,0.75);
         }
 
         .hero-actions {
@@ -322,8 +380,14 @@
         }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(22px); }
-            to   { opacity: 1; transform: translateY(0);    }
+            from {
+                opacity: 0;
+                transform: translateY(22px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .btn-gold {
@@ -334,7 +398,7 @@
             border-radius: 10px;
             font-family: 'DM Sans', sans-serif;
             font-size: 0.92rem;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 0.3px;
             text-decoration: none;
             transition: all 0.22s ease;
@@ -353,18 +417,26 @@
         }
 
         .btn-gold-outline {
-            border: 1.5px solid rgba(196,146,42,0.50);
+            border: 1.5px solid rgba(196,146,42,0.55);
             color: var(--brown);
-            background: rgba(254,250,243,0.80);
+            background: rgba(254,250,243,0.86);
+            box-shadow: 0 8px 24px rgba(30,15,5,0.06);
         }
 
         .btn-gold-outline:hover {
             border-color: var(--gold);
             color: var(--gold);
             background: var(--gold-pale);
+            transform: translateY(-2px);
         }
 
         /* hero stats strip */
+
+        .container {
+            width: min(94%, 1300px);
+            margin: 0 auto;
+        }
+
         .hero-stats {
             position: relative;
             z-index: 2;
@@ -380,7 +452,7 @@
         }
 
         .hero-stat {
-            background: var(--white);
+            background: rgba(255,255,255,0.96);
             padding: 28px 32px;
             text-align: center;
             animation: fadeUp 0.7s 0.4s ease both;
@@ -397,20 +469,19 @@
 
         .hero-stat-label {
             font-size: 0.78rem;
-            font-weight: 500;
+            font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
         }
 
         /* ── FEATURES ────────────────────────────────── */
+
         .features-section {
             padding: 120px 0 80px;
-        }
-
-        .container {
-            width: min(94%, 1300px);
-            margin: 0 auto;
+            background:
+                radial-gradient(circle at top left, rgba(196,146,42,0.08), transparent 28%),
+                linear-gradient(180deg, var(--ivory), #fffaf1);
         }
 
         .section-header {
@@ -421,7 +492,7 @@
         .section-label {
             display: inline-block;
             font-size: 0.72rem;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 2.5px;
             text-transform: uppercase;
             color: var(--gold);
@@ -466,12 +537,15 @@
             overflow: hidden;
             transition: all 0.28s ease;
             cursor: default;
+            box-shadow: 0 12px 34px rgba(30,15,5,0.045);
         }
 
         .feature-card::before {
             content: '';
             position: absolute;
-            top: 0; left: 0; right: 0;
+            top: 0;
+            left: 0;
+            right: 0;
             height: 3px;
             background: linear-gradient(90deg, var(--gold), var(--gold-light));
             transform: scaleX(0);
@@ -485,7 +559,9 @@
             border-color: rgba(196,146,42,0.25);
         }
 
-        .feature-card:hover::before { transform: scaleX(1); }
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
 
         .feature-icon-wrap {
             width: 52px;
@@ -516,8 +592,10 @@
         }
 
         /* ── CTA BAND ─────────────────────────────────── */
+
         .home-cta {
             padding: 0 0 120px;
+            background: #fffaf1;
         }
 
         .cta-box {
@@ -534,10 +612,11 @@
             content: '';
             position: absolute;
             inset: 0;
-            background-image: url("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=80");
+            background-image: url("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=1200&q=90");
             background-size: cover;
             background-position: center;
-            opacity: 0.12;
+            opacity: 0.16;
+            filter: saturate(1.1) contrast(1.05);
         }
 
         .cta-box-inner {
@@ -548,7 +627,7 @@
         .cta-label {
             display: inline-block;
             font-size: 0.72rem;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 2.5px;
             text-transform: uppercase;
             color: var(--gold-light);
@@ -571,7 +650,7 @@
         }
 
         .cta-box p {
-            color: rgba(255,255,255,0.65);
+            color: rgba(255,255,255,0.70);
             font-size: 1rem;
             margin-bottom: 36px;
             line-height: 1.7;
@@ -585,7 +664,7 @@
             border-radius: 10px;
             font-family: 'DM Sans', sans-serif;
             font-size: 0.92rem;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 0.3px;
             text-decoration: none;
             background: linear-gradient(135deg, var(--gold), var(--gold-light));
@@ -600,6 +679,7 @@
         }
 
         /* ── FOOTER ──────────────────────────────────── */
+
         .footer {
             background: var(--espresso);
             color: rgba(255,255,255,0.72);
@@ -635,7 +715,7 @@
         .footer-col h4 {
             font-family: 'DM Sans', sans-serif;
             font-size: 0.72rem;
-            font-weight: 600;
+            font-weight: 700;
             letter-spacing: 2px;
             text-transform: uppercase;
             color: var(--gold-light);
@@ -656,7 +736,9 @@
             transition: color 0.18s ease;
         }
 
-        .footer-col ul li a:hover { color: var(--gold-light); }
+        .footer-col ul li a:hover {
+            color: var(--gold-light);
+        }
 
         .footer-bottom {
             border-top: 1px solid rgba(255,255,255,0.08);
@@ -677,22 +759,105 @@
         }
 
         /* ── RESPONSIVE ──────────────────────────────── */
+
         @media (max-width: 1024px) {
-            .features-grid { grid-template-columns: repeat(2, 1fr); }
-            .footer-container { grid-template-columns: 1fr 1fr; gap: 36px; }
-            .hero-stats { grid-template-columns: repeat(3, 1fr); }
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr 1fr;
+                gap: 36px;
+            }
+
+            .hero-stats {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         @media (max-width: 768px) {
-            .eh-navbar-inner { flex-direction: column; align-items: stretch; }
-            .eh-nav-links { justify-content: center; }
-            .eh-brand { justify-content: center; }
-            .hero-content { padding: 60px 0 160px; }
-            .hero-stats { grid-template-columns: 1fr; margin-top: -30px; }
-            .features-grid { grid-template-columns: 1fr; }
-            .footer-container { grid-template-columns: 1fr; gap: 28px; padding: 48px 0 36px; }
-            .cta-box { padding: 50px 24px; }
-            .footer-bottom-inner { flex-direction: column; gap: 8px; text-align: center; }
+            .eh-navbar-inner {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .eh-nav-links {
+                justify-content: center;
+            }
+
+            .eh-brand {
+                justify-content: center;
+            }
+
+            .hero {
+                min-height: auto;
+            }
+
+            .hero-content {
+                padding: 60px 0 140px;
+            }
+
+            .hero-content-inner {
+                padding: 34px 24px 38px;
+                border-radius: 22px;
+            }
+
+            .hero-title {
+                font-size: clamp(3rem, 13vw, 4.5rem) !important;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem !important;
+            }
+
+            .hero-stats {
+                grid-template-columns: 1fr;
+                margin-top: -30px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer-container {
+                grid-template-columns: 1fr;
+                gap: 28px;
+                padding: 48px 0 36px;
+            }
+
+            .cta-box {
+                padding: 50px 24px;
+            }
+
+            .footer-bottom-inner {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .eh-nav-link span,
+            .eh-nav-btn span,
+            .eh-nav-btn-outline span {
+                display: none;
+            }
+
+            .eh-nav-link,
+            .eh-nav-btn,
+            .eh-nav-btn-outline {
+                width: 40px;
+                padding: 0;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .btn-gold {
+                justify-content: center;
+            }
         }
     </style>
 </head>
@@ -712,6 +877,7 @@
                     <i class="fa-solid fa-house"></i><span>Home</span>
                 </a>
             </li>
+
             <li>
                 <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
                     <i class="fa-solid fa-calendar-days"></i><span>Events</span>
@@ -725,6 +891,7 @@
                             <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
                         </a>
                     </li>
+
                     <li>
                         <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell" title="Issue notifications">
                             <i class="fa-regular fa-bell"></i>
@@ -733,11 +900,13 @@
                             <% } %>
                         </a>
                     </li>
+
                     <li>
                         <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
                             <i class="fa-regular fa-user"></i><span>Profile</span>
                         </a>
                     </li>
+
                     <li>
                         <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
                             <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
@@ -751,11 +920,13 @@
                             <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
                         </a>
                     </li>
+
                     <li>
                         <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
                             <i class="fa-regular fa-user"></i><span>Profile</span>
                         </a>
                     </li>
+
                     <li>
                         <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
                             <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
@@ -769,6 +940,7 @@
                             <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
                         </a>
                     </li>
+
                     <li>
                         <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
                             <i class="fa-solid fa-user-plus"></i><span>Register</span>
@@ -786,34 +958,38 @@
     <div class="hero-overlay"></div>
 
     <div class="hero-content">
-        <div class="hero-eyebrow">
-            <span class="hero-eyebrow-dot"></span>
-            <span>Premium Event Booking Platform</span>
-        </div>
+        <div class="hero-content-inner">
+            <div class="hero-eyebrow">
+                <span class="hero-eyebrow-dot"></span>
+                <span>Premium Event Booking Platform</span>
+            </div>
 
-        <h1 class="hero-title">
-            Experience<br>the <em>Extraordinary</em>
-        </h1>
+            <h1 class="hero-title">
+                Experience<br>the <em>Extraordinary</em>
+            </h1>
 
-        <p class="hero-subtitle">
-            Discover concerts, sports events, tech summits and cultural shows.
-            Book your tickets in seconds with a seamless and secure experience.
-        </p>
+            <p class="hero-subtitle">
+                Discover concerts, sports events, tech summits and cultural shows.
+                Book your tickets in seconds with a seamless and secure experience.
+            </p>
 
-        <div class="hero-actions">
-            <a href="${pageContext.request.contextPath}/event?action=list" class="btn-gold btn-gold-solid">
-                <i class="fa-solid fa-ticket"></i> Browse Events
-            </a>
-            <c:if test="${empty sessionScope.userId}">
-                <a href="${pageContext.request.contextPath}/register.jsp" class="btn-gold btn-gold-outline">
-                    <i class="fa-solid fa-user-plus"></i> Create Account
+            <div class="hero-actions">
+                <a href="${pageContext.request.contextPath}/event?action=list" class="btn-gold btn-gold-solid">
+                    <i class="fa-solid fa-ticket"></i> Browse Events
                 </a>
-            </c:if>
-            <c:if test="${not empty sessionScope.userId}">
-                <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="btn-gold btn-gold-outline">
-                    <i class="fa-regular fa-flag"></i> Report an Issue
-                </a>
-            </c:if>
+
+                <c:if test="${empty sessionScope.userId}">
+                    <a href="${pageContext.request.contextPath}/register.jsp" class="btn-gold btn-gold-outline">
+                        <i class="fa-solid fa-user-plus"></i> Create Account
+                    </a>
+                </c:if>
+
+                <c:if test="${not empty sessionScope.userId}">
+                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="btn-gold btn-gold-outline">
+                        <i class="fa-regular fa-flag"></i> Report an Issue
+                    </a>
+                </c:if>
+            </div>
         </div>
     </div>
 </section>
@@ -824,10 +1000,12 @@
         <div class="hero-stat-num">500+</div>
         <div class="hero-stat-label">Live Events</div>
     </div>
+
     <div class="hero-stat">
         <div class="hero-stat-num">80K+</div>
         <div class="hero-stat-label">Tickets Sold</div>
     </div>
+
     <div class="hero-stat">
         <div class="hero-stat-num">4.9★</div>
         <div class="hero-stat-label">User Rating</div>
@@ -849,16 +1027,19 @@
                 <h3>Instant Booking</h3>
                 <p>Reserve your seat in real-time with no waiting and no confusion.</p>
             </div>
+
             <div class="feature-card">
                 <div class="feature-icon-wrap">🔒</div>
                 <h3>Secure &amp; Safe</h3>
                 <p>Your account, payments, and bookings stay protected and reliable.</p>
             </div>
+
             <div class="feature-card">
                 <div class="feature-icon-wrap">🎭</div>
                 <h3>All Categories</h3>
                 <p>Concerts, sports, tech, and cultural events — all in one place.</p>
             </div>
+
             <div class="feature-card">
                 <div class="feature-icon-wrap">📱</div>
                 <h3>Easy to Use</h3>
@@ -876,6 +1057,7 @@
                 <span class="cta-label">Don't miss out</span>
                 <h2>Ready to book your<br><em>next experience?</em></h2>
                 <p>Explore trending events and reserve your seat before they sell out.</p>
+
                 <a href="${pageContext.request.contextPath}/event?action=list" class="btn-gold-cta">
                     <i class="fa-solid fa-arrow-right"></i> Explore Events
                 </a>
@@ -900,9 +1082,11 @@
             <ul>
                 <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
                 <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
+
                 <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
                     <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
                 </c:if>
+
                 <c:if test="${not empty sessionScope.userId}">
                     <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
                 </c:if>
