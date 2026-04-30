@@ -243,6 +243,7 @@
             );
         }
 
+
         .hero-content {
             position: relative;
             z-index: 2;
