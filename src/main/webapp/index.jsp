@@ -251,6 +251,7 @@
             padding: 80px 0 110px;
             display: flex;
             align-items: center;
+            justify-content: center;
         }
 
         /* Warm-white frosted card — text sits on this, NOT the image */
@@ -260,6 +261,8 @@
             border-radius: 20px;
             padding: 52px 52px;
             max-width: 570px;
+            width: 100%;
+            text-align: center;
             box-shadow:
                 0 2px 0 rgba(168,120,50,0.12),
                 0 24px 64px rgba(28,18,8,0.16),
@@ -319,6 +322,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
+            justify-content: center;
         }
 
         .btn-hero-primary {
@@ -693,11 +697,10 @@
             .nav-links { justify-content: center; }
 
             .hero { min-height: auto; }
-            .hero-panel { padding: 36px 0 110px; }
+            .hero-panel { padding: 36px 16px 110px; }
             .hero-card { padding: 32px 22px; max-width: 100%; }
             .hero-heading { font-size: 2.1rem; }
-            .hero-btns { flex-direction: column; }
-            .btn-hero-primary, .btn-hero-outline { justify-content: center; }
+            .hero-btns { flex-direction: column; align-items: center; }
 
             .stats-bar { margin-top: -20px; }
             .stats-grid { grid-template-columns: 1fr; border-radius: 12px; }
@@ -805,11 +808,6 @@
 
     <div class="hero-panel">
         <div class="hero-card">
-            <div class="hero-eyebrow">
-                <span class="eyebrow-dot"></span>
-                <span>Premium Event Booking Platform</span>
-            </div>
-
             <h1 class="hero-heading">
                 Experience the<br><em>Extraordinary</em>
             </h1>
