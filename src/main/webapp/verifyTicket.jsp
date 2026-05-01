@@ -1,20 +1,24 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="com.eventhorizon.model.Ticket" %>
 <%@ page import="com.eventhorizon.model.Booking" %>
+<%@ page import="com.eventhorizon.service.IssueService" %>
+
 <%
     Ticket ticket = (Ticket) request.getAttribute("ticket");
     Booking booking = (Booking) request.getAttribute("booking");
     Boolean approved = (Boolean) request.getAttribute("approved");
     String scannedToken = (String) request.getAttribute("scannedToken");
-    if (approved == null) approved = false;
-%>
-<%@ page import="com.eventhorizon.service.IssueService" %>
 
+    if (approved == null) {
+        approved = false;
+    }
+%>
 
 <%
     int ehNavIssueCount = 0;
     String ehNavRole = (String) session.getAttribute("role");
     Object ehNavUserIdObj = session.getAttribute("userId");
+
     boolean ehCustomerLogged = ehNavUserIdObj != null && "CUSTOMER".equals(ehNavRole);
     boolean ehAdminLogged = ehNavUserIdObj != null && "ADMIN".equals(ehNavRole);
 
@@ -34,142 +38,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ticket Verification - EventHorizon</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            background: #050816;
-            color: #eef2ff;
-            min-height: 100vh;
-        }
-
-        .navbar {
-            width: 100%;
-            background: linear-gradient(90deg, #060b1f, #0b1434);
-            border-bottom: 1px solid rgba(130, 90, 255, 0.22);
-            padding: 18px 30px;
-        }
-
-        .brand {
-            font-size: 32px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: #7c5cff;
-        }
-
-        .container {
-            width: 92%;
-            max-width: 900px;
-            margin: 40px auto;
-        }
-
-        .card {
-            background: linear-gradient(180deg, #0b1431, #09112a);
-            border: 1px solid rgba(126, 93, 255, 0.18);
-            border-radius: 24px;
-            padding: 32px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22);
-        }
-
-        .title {
-            font-size: 38px;
-            font-weight: 800;
-            margin-bottom: 24px;
-        }
-
-        .status-box {
-            padding: 20px;
-            border-radius: 18px;
-            margin-bottom: 24px;
-            font-size: 28px;
-            font-weight: 800;
-            text-align: center;
-        }
-
-        .approved {
-            background: rgba(46, 204, 113, 0.14);
-            border: 1px solid rgba(46, 204, 113, 0.35);
-            color: #8df0b0;
-        }
-
-        .not-approved {
-            background: rgba(231, 76, 60, 0.14);
-            border: 1px solid rgba(231, 76, 60, 0.35);
-            color: #ffb1a8;
-        }
-
-        .row {
-            display: flex;
-            justify-content: space-between;
-            gap: 20px;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-        }
-
-        .row:last-child {
-            border-bottom: none;
-        }
-
-        .label {
-            color: #9eabd9;
-            font-weight: 700;
-        }
-
-        .value {
-            color: #ffffff;
-            font-weight: 800;
-            text-align: right;
-            word-break: break-word;
-        }
-
-        /* Ticket type badge */
-        .type-pill {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 5px 13px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 800;
-            letter-spacing: 0.4px;
-            text-transform: uppercase;
-            background: rgba(43, 192, 255, 0.13);
-            color: #2bc0ff;
-            border: 1px solid rgba(43, 192, 255, 0.24);
-        }
-
-        .note {
-            margin-top: 24px;
-            color: #9eabd9;
-            line-height: 1.7;
-        }
-
-        @media (max-width: 768px) {
-            .row {
-                flex-direction: column;
-            }
-
-            .value {
-                text-align: left;
-            }
-
-            .title {
-                font-size: 30px;
-            }
-
-            .status-box {
-                font-size: 24px;
-            }
-        }
-
-
-        /* EventHorizon shared light navbar/footer override */
-
         *,
         *::before,
         *::after {
@@ -181,21 +57,33 @@
         :root {
             --linen: #FAF8F4;
             --linen-deep: #F1EBDD;
-            --linen-warm: #F6F1E8;
             --paper: #FFFFFF;
+
             --forest: #1E4A3A;
             --forest-dark: #123528;
-            --forest-deep: #0E2A20;
             --forest-soft: #E8F1EC;
+
             --sage: #72887A;
             --clay: #B08D65;
+
             --text: #18251F;
             --text-soft: #52635A;
-            --muted: #7C8A82;
-            --border: rgba(30, 74, 58, 0.14);
-            --border-strong: rgba(30, 74, 58, 0.24);
+            --muted: #6F7F76;
+
+            --border: rgba(30, 74, 58, 0.16);
+            --border-strong: rgba(30, 74, 58, 0.30);
+
+            --success-bg: #E8F6EE;
+            --success-text: #176B3B;
+
+            --danger-bg: #FFF0EC;
+            --danger-text: #A23A27;
+
+            --warning-bg: #FFF7E3;
+            --warning-text: #76520F;
+
             --shadow-soft: 0 18px 50px rgba(24, 37, 31, 0.09);
-            --shadow-premium: 0 30px 90px rgba(24, 37, 31, 0.16);
+            --shadow-premium: 0 30px 90px rgba(24, 37, 31, 0.15);
         }
 
         html {
@@ -204,16 +92,16 @@
 
         body {
             position: relative;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
             background:
                 radial-gradient(circle at top left, rgba(30, 74, 58, 0.08), transparent 32%),
                 radial-gradient(circle at top right, rgba(176, 141, 101, 0.10), transparent 30%),
                 linear-gradient(180deg, #ffffff 0%, var(--linen) 48%, #F7F3EA 100%);
             color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
-            line-height: 1.6;
-            min-height: 100vh;
         }
 
         body::before {
@@ -228,7 +116,7 @@
                 linear-gradient(45deg, rgba(176, 141, 101, 0.035) 25%, transparent 25%);
             background-size: 34px 34px, 88px 88px, 88px 88px;
             background-position: 0 0, 0 0, 44px 44px;
-            opacity: 0.70;
+            opacity: 0.72;
         }
 
         a {
@@ -236,17 +124,14 @@
             color: inherit;
         }
 
-        .eh-container {
-            width: min(92%, 1240px);
-            margin: 0 auto;
-        }
+        /* ================= NAVBAR ================= */
 
         .eh-navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
             width: 100%;
-            background: rgba(250, 248, 244, 0.94);
+            background: rgba(250, 248, 244, 0.96);
             border-bottom: 1px solid var(--border);
             backdrop-filter: blur(18px);
             -webkit-backdrop-filter: blur(18px);
@@ -283,6 +168,11 @@
             color: #ffffff;
             background: linear-gradient(135deg, var(--forest), var(--forest-dark));
             box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24);
+            flex-shrink: 0;
+        }
+
+        .eh-brand-mark i {
+            color: #ffffff;
         }
 
         .eh-brand-text {
@@ -315,7 +205,7 @@
             border-radius: 13px;
             border: 1px solid transparent;
             font-size: 0.88rem;
-            font-weight: 800;
+            font-weight: 850;
             color: var(--text-soft);
             transition: 0.22s ease;
             white-space: nowrap;
@@ -323,23 +213,24 @@
 
         .eh-nav-link:hover,
         .eh-nav-link.active {
-            color: var(--forest);
-            background: var(--forest-soft);
-            border-color: var(--border);
+            color: var(--forest-dark);
+            background: #ffffff;
+            border-color: var(--border-strong);
+            box-shadow: 0 8px 18px rgba(24, 37, 31, 0.06);
         }
 
         .eh-nav-bell {
             position: relative;
             width: 44px;
             padding: 0;
-            background: rgba(255, 255, 255, 0.82);
+            background: #ffffff;
             border-color: var(--border);
             box-shadow: 0 8px 18px rgba(24, 37, 31, 0.05);
         }
 
         .eh-nav-bell:hover {
-            color: var(--forest);
-            background: var(--forest-soft);
+            color: var(--forest-dark);
+            background: #ffffff;
             border-color: var(--border-strong);
         }
 
@@ -367,145 +258,164 @@
             box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24);
         }
 
+        .eh-nav-btn i {
+            color: #ffffff;
+        }
+
         .eh-nav-btn:hover {
             transform: translateY(-1px);
             box-shadow: 0 18px 42px rgba(30, 74, 58, 0.30);
         }
 
         .eh-nav-btn-outline {
-            color: var(--forest);
-            background: rgba(255, 255, 255, 0.86);
+            color: var(--forest-dark);
+            background: #ffffff;
             border-color: var(--border-strong);
         }
 
         .eh-nav-btn-outline:hover {
-            background: var(--forest-soft);
-            border-color: rgba(30, 74, 58, 0.34);
+            background: #ffffff;
+            border-color: rgba(30, 74, 58, 0.48);
         }
 
-        .eh-footer {
-            position: relative;
+        /* ================= VERIFICATION PAGE ================= */
+
+        .container {
+            width: 92%;
+            max-width: 920px;
+            margin: 42px auto 70px;
+        }
+
+        .verification-card {
+            background: #ffffff;
+            border: 2px solid rgba(30, 74, 58, 0.22);
+            border-radius: 28px;
+            padding: 34px;
+            box-shadow: var(--shadow-premium);
+            color: var(--text);
             overflow: hidden;
-            background: linear-gradient(180deg, #FAF8F4 0%, #F1EBDD 100%);
-            color: var(--muted);
-            border-top: 1px solid var(--border);
+            position: relative;
         }
 
-        .eh-footer::before {
+        .verification-card::before {
             content: "";
             position: absolute;
-            inset: 0;
-            z-index: 0;
-            pointer-events: none;
-            background-image:
-                radial-gradient(circle at 18% 18%, rgba(30, 74, 58, 0.14), transparent 24%),
-                radial-gradient(circle at 82% 12%, rgba(176, 141, 101, 0.16), transparent 26%),
-                repeating-linear-gradient(45deg, rgba(30, 74, 58, 0.055) 0px, rgba(30, 74, 58, 0.055) 1px, transparent 1px, transparent 18px),
-                repeating-linear-gradient(-45deg, rgba(176, 141, 101, 0.050) 0px, rgba(176, 141, 101, 0.050) 1px, transparent 1px, transparent 22px),
-                radial-gradient(circle at 1px 1px, rgba(30, 74, 58, 0.16) 1.15px, transparent 1.35px);
-            background-size: 100% 100%, 100% 100%, 42px 42px, 52px 52px, 28px 28px;
-            opacity: 0.95;
+            inset: 0 0 auto 0;
+            height: 6px;
+            background: linear-gradient(90deg, var(--forest), var(--sage));
         }
 
-        .eh-footer > * {
-            position: relative;
-            z-index: 2;
-        }
-
-        .eh-footer-grid {
-            display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr 1fr;
-            gap: 48px;
-            padding: 70px 0 56px;
-        }
-
-        .eh-footer-brand {
+        .title {
+            color: var(--forest-dark);
+            font-size: clamp(2rem, 4vw, 2.7rem);
+            font-weight: 900;
+            margin-bottom: 24px;
+            letter-spacing: -0.05em;
+            line-height: 1.1;
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 18px;
         }
 
-        .eh-footer-brand-mark {
-            width: 40px;
-            height: 40px;
-            border-radius: 14px;
+        .title i {
+            color: var(--forest);
+        }
+
+        .status-box {
+            padding: 22px;
+            border-radius: 20px;
+            margin-bottom: 26px;
+            font-size: clamp(1.35rem, 3vw, 2rem);
+            font-weight: 900;
+            text-align: center;
+            letter-spacing: 0.8px;
+            border: 2px solid transparent;
+        }
+
+        .approved {
+            background: var(--success-bg);
+            border-color: rgba(23, 107, 59, 0.24);
+            color: var(--success-text);
+        }
+
+        .not-approved {
+            background: var(--danger-bg);
+            border-color: rgba(162, 58, 39, 0.24);
+            color: var(--danger-text);
+        }
+
+        .details-box {
+            background: #FAF8F4;
+            border: 1px solid rgba(30, 74, 58, 0.14);
+            border-radius: 20px;
+            padding: 10px 20px;
+        }
+
+        .row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(30, 74, 58, 0.14);
+        }
+
+        .row:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            color: var(--forest-dark);
+            font-weight: 900;
+            font-size: 0.92rem;
+            min-width: 160px;
+        }
+
+        .value {
+            color: var(--text);
+            font-weight: 900;
+            font-size: 0.94rem;
+            text-align: right;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .type-pill {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            color: #ffffff;
-            background: linear-gradient(135deg, var(--forest), var(--forest-dark));
-            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.22);
-            flex-shrink: 0;
-        }
-
-        .eh-footer-logo {
-            margin: 0;
-            color: var(--forest-dark);
-            font-size: 1.3rem;
+            padding: 6px 13px;
+            border-radius: 999px;
+            font-size: 0.78rem;
             font-weight: 900;
-            letter-spacing: 2px;
-        }
-
-        .eh-footer-logo span {
-            color: var(--forest);
-        }
-
-        .eh-footer-text {
-            max-width: 320px;
-            color: var(--muted);
-            font-size: 0.9rem;
-            font-weight: 550;
-            line-height: 1.8;
-        }
-
-        .eh-footer-col h4 {
-            margin-bottom: 20px;
-            color: var(--forest-dark);
-            font-size: 0.74rem;
-            font-weight: 900;
-            letter-spacing: 2px;
+            letter-spacing: 0.45px;
             text-transform: uppercase;
+            background: #ffffff;
+            color: var(--forest-dark);
+            border: 1px solid rgba(30, 74, 58, 0.34);
+            box-shadow: none;
         }
 
-        .eh-footer-col ul {
-            list-style: none;
-            display: flex;
-            flex-direction: column;
-            gap: 11px;
-        }
-
-        .eh-footer-col ul li a {
+        .dash-text {
             color: var(--muted);
-            font-size: 0.9rem;
-            font-weight: 650;
-            transition: 0.2s ease;
+            font-weight: 900;
         }
 
-        .eh-footer-col ul li a:hover {
-            color: var(--forest);
+        .note {
+            margin-top: 24px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            color: var(--forest-dark);
+            background: var(--forest-soft);
+            border: 1px solid rgba(30, 74, 58, 0.22);
+            line-height: 1.7;
+            font-weight: 750;
         }
 
-        .eh-footer-bottom {
-            border-top: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.52);
-        }
-
-        .eh-footer-bottom-inner {
-            min-height: 62px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-            color: var(--muted);
-            font-size: 0.82rem;
-            font-weight: 650;
-        }
-
-        @media (max-width: 1100px) {
-            .eh-footer-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+        .note.danger-note {
+            background: var(--danger-bg);
+            color: var(--danger-text);
+            border-color: rgba(162, 58, 39, 0.22);
         }
 
         @media (max-width: 768px) {
@@ -524,16 +434,21 @@
                 justify-content: center;
             }
 
-            .eh-footer-grid {
-                grid-template-columns: 1fr;
-                gap: 32px;
+            .verification-card {
+                padding: 26px;
             }
 
-            .eh-footer-bottom-inner {
+            .row {
                 flex-direction: column;
-                justify-content: center;
-                text-align: center;
-                padding: 18px 0;
+                gap: 4px;
+            }
+
+            .value {
+                text-align: left;
+            }
+
+            .label {
+                min-width: auto;
             }
         }
 
@@ -550,544 +465,14 @@
                 width: 42px;
                 padding: 0;
             }
-        }
 
-
-    </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-    <style>
-        /* =========================================================
-           EVENTHORIZON FINAL LIGHT THEME OVERRIDE
-           Purpose: remove purple/dark theme, keep all text readable,
-           and use the same green leaf brand icon style on every page.
-        ========================================================= */
-        :root {
-            --linen: #FAF8F4;
-            --linen-deep: #F1EBDD;
-            --paper: #FFFFFF;
-            --forest: #1E4A3A;
-            --forest-dark: #123528;
-            --forest-deep: #0E2A20;
-            --forest-soft: #E8F1EC;
-            --sage: #72887A;
-            --clay: #B08D65;
-            --text: #18251F;
-            --text-primary: #18251F;
-            --text-soft: #52635A;
-            --text-muted: #52635A;
-            --muted: #7C8A82;
-            --bg: #FAF8F4;
-            --bg-card: #FFFFFF;
-            --border: rgba(30, 74, 58, 0.14);
-            --border-strong: rgba(30, 74, 58, 0.24);
-            --accent-purple: #1E4A3A;
-            --accent-teal: #1E4A3A;
-            --accent-blue: #1E4A3A;
-            --radius: 22px;
-            --shadow-soft: 0 18px 50px rgba(24, 37, 31, 0.09);
-            --shadow-premium: 0 30px 90px rgba(24, 37, 31, 0.16);
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body,
-        body.events-page,
-        .auth-wrapper {
-            background:
-                radial-gradient(circle at top left, rgba(30, 74, 58, 0.08), transparent 32%),
-                radial-gradient(circle at top right, rgba(176, 141, 101, 0.10), transparent 30%),
-                linear-gradient(180deg, #ffffff 0%, var(--linen) 48%, #F7F3EA 100%) !important;
-            color: var(--text) !important;
-            font-family: 'Inter', 'Segoe UI', Arial, sans-serif !important;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body::before,
-        .auth-wrapper::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            z-index: -10;
-            pointer-events: none;
-            background-image:
-                radial-gradient(circle at 1px 1px, rgba(30, 74, 58, 0.10) 1.2px, transparent 1.4px),
-                linear-gradient(135deg, rgba(30, 74, 58, 0.035) 25%, transparent 25%),
-                linear-gradient(45deg, rgba(176, 141, 101, 0.035) 25%, transparent 25%);
-            background-size: 34px 34px, 88px 88px, 88px 88px;
-            background-position: 0 0, 0 0, 44px 44px;
-            opacity: 0.70;
-        }
-
-        /* ---------- Top navigation ---------- */
-        .eh-navbar,
-        .navbar {
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 1000 !important;
-            width: 100% !important;
-            background: rgba(250, 248, 244, 0.96) !important;
-            border-bottom: 1px solid var(--border) !important;
-            backdrop-filter: blur(18px) !important;
-            -webkit-backdrop-filter: blur(18px) !important;
-            box-shadow: 0 10px 28px rgba(24, 37, 31, 0.05) !important;
-        }
-
-        .eh-navbar-inner {
-            min-height: 76px !important;
-        }
-
-        .eh-navbar-inner {
-            width: min(92%, 1240px) !important;
-            margin: 0 auto !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            gap: 18px !important;
-        }
-
-        .eh-brand {
-            display: inline-flex !important;
-            align-items: center !important;
-            gap: 12px !important;
-        }
-
-        .eh-brand-text {
-            font-size: 1.08rem !important;
-        }
-
-        .navbar {
-            padding: 0 40px !important;
-            min-height: 76px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            gap: 18px !important;
-        }
-
-        .eh-brand,
-        .brand,
-        .navbar-brand,
-        .auth-logo,
-        .footer-brand,
-        .mini-footer-brand {
-            color: var(--forest-dark) !important;
-            font-weight: 900 !important;
-            letter-spacing: 1.8px !important;
-            text-transform: uppercase !important;
-            text-decoration: none !important;
-        }
-
-        .eh-brand-mark,
-        .eh-icon-mark,
-        .mini-footer-icon {
-            width: 42px !important;
-            height: 42px !important;
-            border-radius: 14px !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            color: #ffffff !important;
-            background: linear-gradient(135deg, var(--forest), var(--forest-dark)) !important;
-            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24) !important;
-            flex-shrink: 0 !important;
-        }
-
-        .eh-brand i.fa-hexagon,
-        .fa-hexagon {
-            display: none !important;
-        }
-
-        .navbar .brand,
-        .navbar-brand,
-        .auth-logo,
-        .footer-brand {
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 12px !important;
-        }
-
-        .navbar .brand::before,
-        .navbar-brand::before,
-        .auth-logo::before,
-        .footer-brand::before {
-            content: "\f06c";
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            background: linear-gradient(135deg, var(--forest), var(--forest-dark));
-            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24);
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            font-size: 1rem;
-            letter-spacing: 0;
-        }
-
-        .eh-nav-links,
-        .nav-links,
-        .navbar-links {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: flex-end !important;
-            gap: 8px !important;
-            flex-wrap: wrap !important;
-            list-style: none !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-
-        .eh-nav-link,
-        .eh-nav-bell,
-        .eh-nav-btn,
-        .eh-nav-btn-outline,
-        .nav-links a,
-        .navbar-links a,
-        .btn-nav {
-            min-height: 42px !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            gap: 8px !important;
-            padding: 10px 15px !important;
-            border-radius: 13px !important;
-            border: 1px solid transparent !important;
-            font-size: 0.88rem !important;
-            font-weight: 800 !important;
-            color: var(--text-soft) !important;
-            background: transparent !important;
-            transition: 0.22s ease !important;
-            white-space: nowrap !important;
-            text-decoration: none !important;
-        }
-
-        .eh-nav-link:hover,
-        .eh-nav-link.active,
-        .nav-links a:hover,
-        .nav-links a.active,
-        .navbar-links a:hover,
-        .navbar-links a.active {
-            color: var(--forest) !important;
-            background: var(--forest-soft) !important;
-            border-color: var(--border) !important;
-        }
-
-        .eh-nav-btn,
-        .eh-nav-btn-outline,
-        .btn-nav,
-        .nav-links a.btn-nav,
-        .navbar-links a.btn-nav {
-            color: #ffffff !important;
-            background: linear-gradient(135deg, var(--forest), var(--forest-dark)) !important;
-            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24) !important;
-        }
-
-        .eh-nav-bell {
-            position: relative !important;
-            width: 44px !important;
-            padding: 0 !important;
-            background: rgba(255, 255, 255, 0.86) !important;
-            border-color: var(--border) !important;
-        }
-
-        .eh-bell-badge {
-            background: linear-gradient(135deg, #D94B32, #F08A4C) !important;
-            color: #ffffff !important;
-        }
-
-        /* ---------- Cards, panels, forms ---------- */
-        .auth-card,
-        .card,
-        .hero-card,
-        .section-card,
-        .stat-box,
-        .team-note,
-        .booking-card,
-        .summary,
-        .checkout-card,
-        .ticket-card,
-        .profile-card,
-        .content-card,
-        .info-card,
-        .contact-card,
-        .faq-card,
-        .policy-card,
-        .terms-card,
-        .support-card,
-        .empty-state,
-        .event-meta-item,
-        .event-detail-hero,
-        .mini-ticket,
-        .ticket-box,
-        .verify-card,
-        .details-card,
-        .panel,
-        .box {
-            background: rgba(255, 255, 255, 0.96) !important;
-            color: var(--text) !important;
-            border: 1px solid var(--border) !important;
-            box-shadow: var(--shadow-soft) !important;
-        }
-
-        .auth-wrapper {
-            min-height: calc(100vh - 76px) !important;
-            padding: 82px 20px !important;
-            display: flex !important;
-            align-items: flex-start !important;
-            justify-content: center !important;
-        }
-
-        .auth-card {
-            border-radius: 28px !important;
-            max-width: 460px !important;
-            width: min(100%, 460px) !important;
-            padding: 42px !important;
-        }
-
-        .search-panel {
-            background: rgba(255, 255, 255, 0.96) !important;
-            border: 1px solid var(--border) !important;
-            box-shadow: var(--shadow-premium) !important;
-        }
-
-        .search-panel::before,
-        .events-hero::before {
-            background: radial-gradient(circle, rgba(30, 74, 58, 0.12) 0%, rgba(176, 141, 101, 0.08) 38%, transparent 74%) !important;
-        }
-
-        input,
-        select,
-        textarea,
-        .form-control,
-        .search-input,
-        .search-select {
-            background: #ffffff !important;
-            color: var(--text) !important;
-            border: 1px solid var(--border-strong) !important;
-            box-shadow: none !important;
-        }
-
-        input::placeholder,
-        textarea::placeholder,
-        .search-input::placeholder {
-            color: #7E8F86 !important;
-        }
-
-        .search-select option {
-            background: #ffffff !important;
-            color: var(--text) !important;
-        }
-
-        input:focus,
-        select:focus,
-        textarea:focus,
-        .form-control:focus,
-        .search-input:focus,
-        .search-select:focus {
-            border-color: rgba(30, 74, 58, 0.46) !important;
-            box-shadow: 0 0 0 4px rgba(30, 74, 58, 0.10) !important;
-        }
-
-        .btn,
-        .btn-primary,
-        .btn-block,
-        .search-btn,
-        button[type="submit"],
-        .button-primary,
-        .submit-btn {
-            color: #ffffff !important;
-            background: linear-gradient(135deg, var(--forest), var(--forest-dark)) !important;
-            border-color: transparent !important;
-            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24) !important;
-            font-weight: 900 !important;
-        }
-
-        .btn:hover,
-        .btn-primary:hover,
-        .search-btn:hover,
-        button[type="submit"]:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 18px 42px rgba(30, 74, 58, 0.30) !important;
-        }
-
-        .btn-secondary,
-        .btn-outline,
-        .button-secondary {
-            color: var(--forest) !important;
-            background: var(--forest-soft) !important;
-            border: 1px solid var(--border-strong) !important;
-            box-shadow: none !important;
-        }
-
-        /* ---------- Text readability ---------- */
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6,
-        .hero-title,
-        .section-title,
-        .section-title span,
-        .card-title,
-        .page-title,
-        .event-detail-title,
-        .summary-title,
-        .booking-price,
-        .total-amount,
-        .price,
-        .stat-number,
-        .auth-logo {
-            color: var(--forest-dark) !important;
-            text-shadow: none !important;
-        }
-
-        p,
-        li,
-        label,
-        .hero-sub,
-        .section-card p,
-        .section-card ul,
-        .section-subtitle,
-        .card-meta,
-        .card-meta span,
-        .card-body p,
-        .filter-summary,
-        .auth-subtitle,
-        .stat-label,
-        .footer,
-        .mini-footer-text,
-        .eh-footer-text,
-        .s-label,
-        .s-value,
-        .breadcrumb,
-        .breadcrumb a {
-            color: var(--text-soft) !important;
-        }
-
-        strong,
-        .highlight,
-        .filter-summary strong,
-        .clear-link,
-        .footer strong {
-            color: var(--forest) !important;
-        }
-
-        .card-category,
-        .hero-badge,
-        .type-badge,
-        .badge,
-        .badge-purple {
-            background: var(--forest-soft) !important;
-            color: var(--forest) !important;
-            border: 1px solid var(--border-strong) !important;
-            box-shadow: none !important;
-        }
-
-        .stat-icon,
-        .event-detail-icon,
-        .empty-state .emoji,
-        .mini-footer-icon i,
-        .card-meta i,
-        .search-btn i,
-        .footer-brand i {
-            color: var(--forest) !important;
-        }
-
-        .event-detail-icon {
-            background: var(--forest-soft) !important;
-            border: 1px solid var(--border) !important;
-        }
-
-        .events-grid .card {
-            background: rgba(255, 255, 255, 0.96) !important;
-            border-color: var(--border) !important;
-            box-shadow: var(--shadow-soft) !important;
-        }
-
-        .events-grid .card::before {
-            background: linear-gradient(180deg, rgba(30, 74, 58, 0.04), transparent) !important;
-        }
-
-        .card-footer,
-        .footer,
-        .mini-footer,
-        .eh-footer,
-        .eh-footer-bottom {
-            background: rgba(250, 248, 244, 0.94) !important;
-            color: var(--text-soft) !important;
-            border-color: var(--border) !important;
-        }
-
-        .seats-bar,
-        .progress,
-        .progress-bar-bg {
-            background: #E2E8E3 !important;
-        }
-
-        .seats-bar-fill,
-        .progress-bar,
-        .progress-fill {
-            background: linear-gradient(90deg, var(--forest), var(--sage)) !important;
-        }
-
-        .alert,
-        .alert-info {
-            background: var(--forest-soft) !important;
-            color: var(--forest-dark) !important;
-            border: 1px solid var(--border-strong) !important;
-        }
-
-        .alert-danger,
-        .alert-error {
-            background: #FFF0EC !important;
-            color: #A23A27 !important;
-            border: 1px solid rgba(162, 58, 39, 0.22) !important;
-        }
-
-        .alert-success {
-            background: #E8F6EE !important;
-            color: #176B3B !important;
-            border: 1px solid rgba(23, 107, 59, 0.22) !important;
-        }
-
-        .alert-warning {
-            background: #FFF7E3 !important;
-            color: #8A5A00 !important;
-            border: 1px solid rgba(138, 90, 0, 0.22) !important;
-        }
-
-        @media (max-width: 768px) {
-            .navbar,
-            .eh-navbar-inner {
-                min-height: auto !important;
-                padding: 14px 20px !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-            }
-
-            .eh-nav-links,
-            .nav-links,
-            .navbar-links {
-                justify-content: center !important;
-            }
-
-            .auth-card {
-                padding: 30px 22px !important;
+            .title {
+                font-size: 2rem;
             }
         }
     </style>
-
 </head>
+
 <body>
 
 <nav class="eh-navbar">
@@ -1101,14 +486,14 @@
 
         <ul class="eh-nav-links">
             <li>
-                <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link ">
+                <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link">
                     <i class="fa-solid fa-house"></i>
                     <span>Home</span>
                 </a>
             </li>
 
             <li>
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link ">
+                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Events</span>
                 </a>
@@ -1116,7 +501,7 @@
 
             <% if (ehCustomerLogged) { %>
                 <li>
-                    <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link ">
+                    <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
                         <i class="fa-solid fa-ticket"></i>
                         <span>My Bookings</span>
                     </a>
@@ -1125,6 +510,7 @@
                 <li>
                     <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell" title="Issue notifications">
                         <i class="fa-regular fa-bell"></i>
+
                         <% if (ehNavIssueCount > 0) { %>
                             <span class="eh-bell-badge"><%= ehNavIssueCount %></span>
                         <% } %>
@@ -1132,7 +518,7 @@
                 </li>
 
                 <li>
-                    <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link ">
+                    <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
                         <i class="fa-regular fa-user"></i>
                         <span>Profile</span>
                     </a>
@@ -1153,7 +539,7 @@
                 </li>
 
                 <li>
-                    <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link ">
+                    <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
                         <i class="fa-regular fa-user"></i>
                         <span>Profile</span>
                     </a>
@@ -1185,78 +571,96 @@
 </nav>
 
 <div class="container">
-    <div class="card">
-        <div class="title">Ticket Verification</div>
+    <div class="verification-card">
+        <div class="title">
+            <i class="fa-solid fa-qrcode"></i>
+            Ticket Verification
+        </div>
 
         <% if (approved && ticket != null && booking != null) { %>
-            <div class="status-box approved">✓ APPROVED</div>
 
-            <div class="row">
-                <div class="label">Ticket ID</div>
-                <div class="value"><%= ticket.getTicketId() %></div>
+            <div class="status-box approved">
+                <i class="fa-solid fa-circle-check"></i>
+                APPROVED
             </div>
 
-            <div class="row">
-                <div class="label">Booking ID</div>
-                <div class="value"><%= ticket.getBookingId() %></div>
-            </div>
+            <div class="details-box">
+                <div class="row">
+                    <div class="label">Ticket ID</div>
+                    <div class="value"><%= ticket.getTicketId() %></div>
+                </div>
 
-            <div class="row">
-                <div class="label">Event ID</div>
-                <div class="value"><%= ticket.getEventId() %></div>
-            </div>
+                <div class="row">
+                    <div class="label">Booking ID</div>
+                    <div class="value"><%= ticket.getBookingId() %></div>
+                </div>
 
-            <div class="row">
-                <div class="label">Customer ID</div>
-                <div class="value"><%= ticket.getCustomerId() %></div>
-            </div>
+                <div class="row">
+                    <div class="label">Event ID</div>
+                    <div class="value"><%= ticket.getEventId() %></div>
+                </div>
 
-            <%-- Ticket type --%>
-            <div class="row">
-                <div class="label">Ticket Type</div>
-                <div class="value">
-                    <%
-                        String ttn = ticket.getTicketTypeName();
-                        if (ttn != null && !ttn.trim().isEmpty()) {
-                    %>
-                        <span class="type-pill"><%= ttn %></span>
-                    <%  } else { %>
-                        <span style="color:#5a6a9a;">—</span>
-                    <%  } %>
+                <div class="row">
+                    <div class="label">Customer ID</div>
+                    <div class="value"><%= ticket.getCustomerId() %></div>
+                </div>
+
+                <div class="row">
+                    <div class="label">Ticket Type</div>
+                    <div class="value">
+                        <%
+                            String ttn = ticket.getTicketTypeName();
+
+                            if (ttn != null && !ttn.trim().isEmpty()) {
+                        %>
+                            <span class="type-pill"><%= ttn %></span>
+                        <% } else { %>
+                            <span class="dash-text">—</span>
+                        <% } %>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="label">Booking Payment</div>
+                    <div class="value"><%= booking.getPaymentStatus() %></div>
+                </div>
+
+                <div class="row">
+                    <div class="label">Booking Status</div>
+                    <div class="value"><%= booking.getStatus() %></div>
+                </div>
+
+                <div class="row">
+                    <div class="label">Scanned Token</div>
+                    <div class="value"><%= scannedToken == null ? "-" : scannedToken %></div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="label">Booking Payment</div>
-                <div class="value"><%= booking.getPaymentStatus() %></div>
-            </div>
-
-            <div class="row">
-                <div class="label">Booking Status</div>
-                <div class="value"><%= booking.getStatus() %></div>
-            </div>
-
-            <div class="row">
-                <div class="label">Scanned Token</div>
-                <div class="value"><%= scannedToken == null ? "-" : scannedToken %></div>
-            </div>
-
             <div class="note">
+                <i class="fa-solid fa-shield-halved"></i>
                 This is a valid ticket issued by the EventHorizon system.
             </div>
 
         <% } else { %>
-            <div class="status-box not-approved">✕ NOT APPROVED</div>
 
-            <div class="row">
-                <div class="label">Scanned Token</div>
-                <div class="value"><%= scannedToken == null ? "-" : scannedToken %></div>
+            <div class="status-box not-approved">
+                <i class="fa-solid fa-circle-xmark"></i>
+                NOT APPROVED
             </div>
 
-            <div class="note">
+            <div class="details-box">
+                <div class="row">
+                    <div class="label">Scanned Token</div>
+                    <div class="value"><%= scannedToken == null ? "-" : scannedToken %></div>
+                </div>
+            </div>
+
+            <div class="note danger-note">
+                <i class="fa-solid fa-triangle-exclamation"></i>
                 This QR code is not a valid approved EventHorizon ticket.
                 It may be fake, expired, or not found in the system.
             </div>
+
         <% } %>
     </div>
 </div>
