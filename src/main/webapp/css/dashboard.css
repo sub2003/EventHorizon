@@ -745,4 +745,31 @@ button {
     .stats-grid {
         grid-template-columns: 1fr;
     }
+
+    }
+
+    /* Permission box style */
+    .permission-box {
+        padding: 12px 14px;
+        margin-bottom: 12px;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #123528;
+        border: 1px solid rgba(30, 74, 58, 0.16);
+        font-size: 0.9rem;
+    }
+
+    .permission-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: #52635A;
+        font-weight: 900;
+        letter-spacing: 0.6px;
+        margin-bottom: 4px;
+    }
+
+    .permission-box strong {
+        color: #18251F;
+        font-weight: 900;
+    }
 }
