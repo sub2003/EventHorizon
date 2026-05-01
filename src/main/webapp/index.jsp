@@ -24,7 +24,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventHorizon – Book Your Experience</title>
 
-    <!-- style.css is intentionally NOT linked on this page -->
+    <!-- css/style.css is intentionally NOT linked on this page -->
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -42,11 +42,13 @@
         :root {
             --linen: #FAF8F4;
             --linen-deep: #F1EBDD;
+            --linen-warm: #F6F1E8;
             --paper: #FFFFFF;
             --paper-soft: rgba(255, 255, 255, 0.88);
 
             --forest: #1E4A3A;
             --forest-dark: #123528;
+            --forest-deep: #0E2A20;
             --forest-soft: #E8F1EC;
             --forest-glass: rgba(30, 74, 58, 0.14);
 
@@ -95,12 +97,12 @@
             z-index: -10;
             pointer-events: none;
             background-image:
-                radial-gradient(circle at 1px 1px, rgba(30, 74, 58, 0.075) 1px, transparent 0),
-                linear-gradient(135deg, rgba(30, 74, 58, 0.022) 25%, transparent 25%),
-                linear-gradient(45deg, rgba(176, 141, 101, 0.024) 25%, transparent 25%);
-            background-size: 34px 34px, 86px 86px, 86px 86px;
-            background-position: 0 0, 0 0, 43px 43px;
-            opacity: 0.50;
+                radial-gradient(circle at 1px 1px, rgba(30, 74, 58, 0.10) 1.2px, transparent 1.4px),
+                linear-gradient(135deg, rgba(30, 74, 58, 0.035) 25%, transparent 25%),
+                linear-gradient(45deg, rgba(176, 141, 101, 0.035) 25%, transparent 25%);
+            background-size: 34px 34px, 88px 88px, 88px 88px;
+            background-position: 0 0, 0 0, 44px 44px;
+            opacity: 0.70;
         }
 
         a {
@@ -434,7 +436,7 @@
             transform: translateY(-2px);
         }
 
-        /* ================= PREMIUM PATTERNS ================= */
+        /* ================= PREMIUM VISIBLE PATTERNS ================= */
 
         .eh-features,
         .eh-cta-section,
@@ -449,18 +451,47 @@
             content: "";
             position: absolute;
             inset: 0;
+            z-index: 0;
             pointer-events: none;
             background-image:
-                radial-gradient(circle at 20% 10%, rgba(30, 74, 58, 0.08), transparent 28%),
-                radial-gradient(circle at 85% 30%, rgba(176, 141, 101, 0.10), transparent 30%),
+                radial-gradient(circle at 18% 18%, rgba(30, 74, 58, 0.14), transparent 24%),
+                radial-gradient(circle at 82% 12%, rgba(176, 141, 101, 0.16), transparent 26%),
+                radial-gradient(circle at 70% 86%, rgba(30, 74, 58, 0.10), transparent 28%),
                 repeating-linear-gradient(
-                    135deg,
-                    rgba(30, 74, 58, 0.032) 0px,
-                    rgba(30, 74, 58, 0.032) 1px,
+                    45deg,
+                    rgba(30, 74, 58, 0.055) 0px,
+                    rgba(30, 74, 58, 0.055) 1px,
                     transparent 1px,
                     transparent 18px
-                );
-            opacity: 0.45;
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(176, 141, 101, 0.050) 0px,
+                    rgba(176, 141, 101, 0.050) 1px,
+                    transparent 1px,
+                    transparent 22px
+                ),
+                radial-gradient(circle at 1px 1px, rgba(30, 74, 58, 0.16) 1.15px, transparent 1.35px);
+            background-size:
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                42px 42px,
+                52px 52px,
+                28px 28px;
+            opacity: 0.95;
+        }
+
+        .eh-features::after,
+        .eh-cta-section::after,
+        .eh-footer::after {
+            content: "";
+            position: absolute;
+            inset: 22px;
+            z-index: 0;
+            pointer-events: none;
+            border: 1px solid rgba(30, 74, 58, 0.09);
+            border-radius: 34px;
         }
 
         .eh-features > *,
@@ -518,10 +549,7 @@
 
         .eh-features {
             padding: 126px 0 90px;
-            background:
-                radial-gradient(circle at top left, rgba(30, 74, 58, 0.07), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(176, 141, 101, 0.10), transparent 32%),
-                linear-gradient(180deg, var(--linen), #F6F1E8);
+            background: linear-gradient(180deg, #FAF8F4 0%, #F3EEE4 100%);
         }
 
         .eh-section-header {
@@ -634,7 +662,7 @@
 
         .eh-cta-section {
             padding: 0 0 112px;
-            background: #F6F1E8;
+            background: linear-gradient(180deg, #F3EEE4 0%, #FAF8F4 100%);
         }
 
         .eh-cta-box {
@@ -703,7 +731,7 @@
         /* ================= FOOTER ================= */
 
         .eh-footer {
-            background: var(--linen);
+            background: linear-gradient(180deg, #FAF8F4 0%, #F1EBDD 100%);
             color: var(--muted);
             border-top: 1px solid var(--border);
         }
