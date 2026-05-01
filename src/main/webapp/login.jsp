@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login – EventHorizon</title>
 
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <!-- Do not link old css/style.css here because it may bring old dark/purple styles -->
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -94,7 +94,7 @@
             color: inherit;
         }
 
-        /* ================= NAVBAR ================= */
+        /* ================= SAME NAVBAR AS PROFILE PAGE ================= */
 
         .eh-navbar {
             position: sticky;
@@ -199,7 +199,7 @@
             border-color: rgba(30, 74, 58, 0.45);
         }
 
-        /* ================= AUTH LAYOUT ================= */
+        /* ================= AUTH PAGE ================= */
 
         .auth-wrapper {
             width: 100%;
@@ -267,6 +267,10 @@
             letter-spacing: -0.05em;
             margin-top: 18px;
             margin-bottom: 6px;
+        }
+
+        .auth-title i {
+            color: var(--forest);
         }
 
         .auth-subtitle {
@@ -405,7 +409,9 @@
             font-weight: 900;
         }
 
-        /* ================= ALERTS ================= */
+        .demo-box i {
+            color: var(--forest);
+        }
 
         .alert {
             border-radius: 14px;
@@ -440,8 +446,6 @@
             color: var(--info-text);
             border: 1px solid var(--border-strong);
         }
-
-        /* ================= RESPONSIVE ================= */
 
         @media (max-width: 900px) {
             .eh-navbar-inner {
@@ -530,6 +534,7 @@
 
 <div class="auth-wrapper">
     <div class="auth-card">
+
         <div class="auth-logo">
             <span class="auth-brand-mark">
                 <i class="fa-solid fa-leaf"></i>
@@ -646,9 +651,7 @@
 
         <p class="auth-link-row">
             Don't have an account?
-            <a href="${pageContext.request.contextPath}/register.jsp">
-                Sign up
-            </a>
+            <a href="${pageContext.request.contextPath}/register.jsp">Sign up</a>
         </p>
 
         <p class="back-home">
