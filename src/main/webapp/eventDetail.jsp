@@ -1044,6 +1044,318 @@
         }
     </style>
 
+
+<!-- FINAL MATCHING LIGHT THEME OVERRIDE - fixes purple icons, dark blocks, and low-contrast text -->
+<style>
+    :root {
+        --linen: #FAF8F4 !important;
+        --linen-deep: #F1EBDD !important;
+        --paper: #FFFFFF !important;
+        --forest: #1E4A3A !important;
+        --forest-dark: #123528 !important;
+        --forest-soft: #E8F1EC !important;
+        --sage: #72887A !important;
+        --text: #18251F !important;
+        --text-soft: #52635A !important;
+        --muted: #6F7F76 !important;
+        --border: rgba(30, 74, 58, 0.16) !important;
+        --border-strong: rgba(30, 74, 58, 0.30) !important;
+        --accent-purple: #1E4A3A !important;
+        --accent-teal: #1E4A3A !important;
+        --accent-blue: #1E4A3A !important;
+        --bg: #FAF8F4 !important;
+        --bg-card: #FFFFFF !important;
+        --text-primary: #18251F !important;
+        --text-muted: #52635A !important;
+    }
+
+    html, body {
+        color: var(--text) !important;
+        background:
+            radial-gradient(circle at top left, rgba(30, 74, 58, 0.08), transparent 32%),
+            radial-gradient(circle at top right, rgba(176, 141, 101, 0.09), transparent 30%),
+            linear-gradient(180deg, #ffffff 0%, #FAF8F4 52%, #F7F3EA 100%) !important;
+    }
+
+    body::before {
+        content: "" !important;
+        position: fixed !important;
+        inset: 0 !important;
+        z-index: -10 !important;
+        pointer-events: none !important;
+        background-image:
+            radial-gradient(circle at 1px 1px, rgba(30, 74, 58, 0.10) 1.2px, transparent 1.4px),
+            linear-gradient(135deg, rgba(30, 74, 58, 0.035) 25%, transparent 25%),
+            linear-gradient(45deg, rgba(176, 141, 101, 0.035) 25%, transparent 25%) !important;
+        background-size: 34px 34px, 88px 88px, 88px 88px !important;
+        background-position: 0 0, 0 0, 44px 44px !important;
+        opacity: 0.72 !important;
+    }
+
+    .eh-navbar,
+    .navbar {
+        background: rgba(250, 248, 244, 0.96) !important;
+        border-bottom: 1px solid var(--border) !important;
+        box-shadow: 0 10px 28px rgba(24, 37, 31, 0.05) !important;
+        backdrop-filter: blur(18px) !important;
+        -webkit-backdrop-filter: blur(18px) !important;
+    }
+
+    .eh-brand,
+    .navbar-brand,
+    .brand {
+        color: var(--forest-dark) !important;
+        letter-spacing: 1.8px !important;
+        font-weight: 900 !important;
+    }
+
+    .eh-brand-mark,
+    .auth-brand-mark,
+    .mini-footer-icon,
+    .event-detail-icon,
+    .profile-avatar,
+    .card-img-placeholder div,
+    .empty-state .emoji {
+        background: linear-gradient(135deg, var(--forest), var(--forest-dark)) !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 14px 30px rgba(30, 74, 58, 0.22) !important;
+    }
+
+    .eh-brand-mark i,
+    .auth-brand-mark i,
+    .mini-footer-icon i,
+    .profile-avatar i,
+    .event-detail-icon i,
+    .eh-brand i,
+    .fa-leaf,
+    .fa-hexagon {
+        color: #ffffff !important;
+    }
+
+    .eh-nav-link,
+    .navbar-links a,
+    .nav-links a {
+        color: var(--text-soft) !important;
+        background: transparent !important;
+        border-color: transparent !important;
+        font-weight: 850 !important;
+    }
+
+    .eh-nav-link:hover,
+    .eh-nav-link.active,
+    .navbar-links a:hover,
+    .navbar-links a.active,
+    .nav-links a:hover,
+    .nav-links a.active,
+    .eh-nav-bell:hover,
+    .eh-nav-bell.active {
+        color: var(--forest) !important;
+        background: var(--forest-soft) !important;
+        border-color: var(--border) !important;
+        box-shadow: none !important;
+    }
+
+    .eh-nav-btn,
+    .btn-nav,
+    .eh-nav-btn-outline.active,
+    .btn-primary {
+        background: linear-gradient(135deg, var(--forest), var(--forest-dark)) !important;
+        color: #ffffff !important;
+        box-shadow: 0 14px 30px rgba(30, 74, 58, 0.22) !important;
+    }
+
+    .eh-nav-btn i,
+    .btn-primary i,
+    .btn-nav i {
+        color: #ffffff !important;
+    }
+
+    .eh-nav-btn-outline,
+    .btn-secondary,
+    .btn-outline {
+        color: var(--forest) !important;
+        background: var(--forest-soft) !important;
+        border-color: var(--border-strong) !important;
+    }
+
+    .auth-wrapper,
+    .container,
+    .events-hero,
+    .page-shell {
+        color: var(--text) !important;
+    }
+
+    .auth-card,
+    .card,
+    .booking-card,
+    .profile-card,
+    .detail-card,
+    .booking-panel,
+    .checkout-card,
+    .summary,
+    .form-panel,
+    .side-panel,
+    .empty-box,
+    .event-meta-item,
+    .description-box {
+        background: rgba(255, 255, 255, 0.95) !important;
+        color: var(--text) !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: 0 18px 50px rgba(24, 37, 31, 0.09) !important;
+    }
+
+    .page-title,
+    .section-title,
+    .card-title,
+    .booking-title,
+    .event-detail-title,
+    .detail-title,
+    .auth-logo,
+    .auth-logo span,
+    .profile-name,
+    .summary-title,
+    .panel-title,
+    .bank-value,
+    .s-value,
+    .total-amount,
+    h1, h2, h3, h4 {
+        color: var(--forest-dark) !important;
+        text-shadow: none !important;
+    }
+
+    .page-subtitle,
+    .section-header p,
+    .card-meta,
+    .card-meta span,
+    .event-description,
+    .booking-label,
+    .booking-value,
+    .profile-email,
+    .form-label,
+    label,
+    .hint,
+    .step-text,
+    .bank-label,
+    .mini-footer-text,
+    p,
+    .auth-subtitle {
+        color: var(--text-soft) !important;
+        text-shadow: none !important;
+    }
+
+    .booking-value,
+    .s-value,
+    .bank-value,
+    .step-text strong,
+    .description-box p,
+    .event-meta-item span {
+        color: var(--text) !important;
+        font-weight: 800 !important;
+    }
+
+    input,
+    select,
+    textarea,
+    .form-control,
+    .search-input,
+    .search-select {
+        background: rgba(255, 255, 255, 0.98) !important;
+        color: var(--text) !important;
+        border: 1px solid rgba(30, 74, 58, 0.25) !important;
+        box-shadow: none !important;
+    }
+
+    input::placeholder,
+    textarea::placeholder,
+    .search-input::placeholder {
+        color: #7E9086 !important;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus,
+    .form-control:focus,
+    .search-input:focus,
+    .search-select:focus {
+        border-color: rgba(30, 74, 58, 0.52) !important;
+        box-shadow: 0 0 0 4px rgba(30, 74, 58, 0.10) !important;
+    }
+
+    .search-panel,
+    .events-search-panel {
+        background: rgba(255, 255, 255, 0.94) !important;
+        border: 1px solid var(--border) !important;
+        box-shadow: 0 18px 50px rgba(24, 37, 31, 0.09) !important;
+    }
+
+    .search-panel::before,
+    .events-hero::before,
+    .auth-logo::before {
+        display: none !important;
+    }
+
+    .search-btn,
+    .btn-primary,
+    button[type="submit"] {
+        background: linear-gradient(135deg, var(--forest), var(--forest-dark)) !important;
+        color: #ffffff !important;
+    }
+
+    .card-category,
+    .ticket-type-pill,
+    .type-badge,
+    .role-pill,
+    .badge,
+    .bank-badge {
+        background: var(--forest-soft) !important;
+        color: var(--forest-dark) !important;
+        border: 1px solid var(--border-strong) !important;
+    }
+
+    .status-confirmed,
+    .payment-approved,
+    .badge-success,
+    .badge-available {
+        background: rgba(30, 122, 74, 0.12) !important;
+        color: #17613B !important;
+    }
+
+    .payment-pending,
+    .alert-warning {
+        background: rgba(183, 121, 31, 0.12) !important;
+        color: #76520F !important;
+        border-color: rgba(183, 121, 31, 0.26) !important;
+    }
+
+    .status-cancelled {
+        background: rgba(120, 130, 125, 0.14) !important;
+        color: #65726C !important;
+    }
+
+    .payment-rejected,
+    .badge-danger {
+        background: rgba(192, 57, 43, 0.12) !important;
+        color: #9C3127 !important;
+    }
+
+    .seats-bar-fill,
+    .progress-fill {
+        background: linear-gradient(90deg, var(--forest), var(--sage)) !important;
+    }
+
+    .mini-footer,
+    .footer {
+        background: rgba(250, 248, 244, 0.96) !important;
+        color: var(--muted) !important;
+        border-top: 1px solid var(--border) !important;
+    }
+
+    .footer-brand,
+    .mini-footer-name {
+        color: var(--forest-dark) !important;
+    }
+</style>
 </head>
 <body>
 
