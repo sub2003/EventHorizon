@@ -10,10 +10,13 @@
     if ("CUSTOMER".equals(navRole) && navUserIdObj != null) {
         try {
             String numericPart = String.valueOf(navUserIdObj).replaceAll("\\D+", "");
+
             if (!numericPart.isEmpty()) {
-                navIssueCount = new IssueService().countIssuesWithRepliesByUser(Integer.parseInt(numericPart));
+                navIssueCount = new IssueService()
+                        .countIssuesWithRepliesByUser(Integer.parseInt(numericPart));
             }
-        } catch (Exception ignored) { }
+        } catch (Exception ignored) {
+        }
     }
 %>
 
@@ -28,12 +31,19 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet"
+    >
+    <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    >
 
     <style>
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
@@ -44,33 +54,19 @@
             --linen-deep: #F1EBDD;
             --linen-warm: #F6F1E8;
             --paper: #FFFFFF;
-            --paper-soft: rgba(255, 255, 255, 0.88);
-
             --forest: #1E4A3A;
             --forest-dark: #123528;
             --forest-deep: #0E2A20;
             --forest-soft: #E8F1EC;
-            --forest-glass: rgba(30, 74, 58, 0.14);
-
             --sage: #72887A;
-            --olive: #50685C;
             --clay: #B08D65;
-            --sand: #E5D8C2;
-
             --text: #18251F;
             --text-soft: #52635A;
             --muted: #7C8A82;
-
             --border: rgba(30, 74, 58, 0.14);
             --border-strong: rgba(30, 74, 58, 0.24);
-
             --shadow-soft: 0 18px 50px rgba(24, 37, 31, 0.09);
             --shadow-premium: 0 30px 90px rgba(24, 37, 31, 0.16);
-
-            --radius-sm: 12px;
-            --radius-md: 18px;
-            --radius-lg: 26px;
-            --radius-xl: 34px;
         }
 
         html {
@@ -274,9 +270,9 @@
             position: absolute;
             inset: 0;
             z-index: -4;
-            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=95");
+            background-image: url("${pageContext.request.contextPath}/images/eventhorizon-hero.png");
             background-size: cover;
-            background-position: center 36%;
+            background-position: center center;
             filter: brightness(0.86) contrast(1.08) saturate(1.05);
             transform: scale(1.01);
         }
@@ -286,12 +282,17 @@
             inset: 0;
             z-index: -3;
             background:
-                radial-gradient(circle at center, rgba(250, 248, 244, 0.70) 0%, rgba(250, 248, 244, 0.34) 33%, rgba(30, 74, 58, 0.14) 100%),
+                radial-gradient(
+                    circle at center,
+                    rgba(250, 248, 244, 0.60) 0%,
+                    rgba(250, 248, 244, 0.24) 38%,
+                    rgba(30, 74, 58, 0.12) 100%
+                ),
                 linear-gradient(
                     90deg,
-                    rgba(250, 248, 244, 0.70) 0%,
-                    rgba(250, 248, 244, 0.42) 38%,
-                    rgba(250, 248, 244, 0.14) 68%,
+                    rgba(250, 248, 244, 0.52) 0%,
+                    rgba(250, 248, 244, 0.28) 42%,
+                    rgba(250, 248, 244, 0.10) 70%,
                     rgba(18, 53, 40, 0.16) 100%
                 );
         }
@@ -361,8 +362,8 @@
             text-align: center;
             text-wrap: balance;
             text-shadow:
-                0 2px 0 rgba(250,248,244,0.68),
-                0 18px 46px rgba(250,248,244,0.72);
+                0 2px 0 rgba(250, 248, 244, 0.68),
+                0 18px 46px rgba(250, 248, 244, 0.72);
         }
 
         .eh-hero-title span {
@@ -385,8 +386,8 @@
             line-height: 1.78 !important;
             text-align: center;
             text-shadow:
-                0 1px 0 rgba(250,248,244,0.90),
-                0 12px 32px rgba(250,248,244,0.66);
+                0 1px 0 rgba(250, 248, 244, 0.90),
+                0 12px 32px rgba(250, 248, 244, 0.66);
         }
 
         .eh-hero-actions {
@@ -673,9 +674,9 @@
             text-align: center;
             background:
                 linear-gradient(135deg, rgba(250, 248, 244, 0.90), rgba(232, 241, 236, 0.82)),
-                url("https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1300&q=90");
+                url("${pageContext.request.contextPath}/images/eventhorizon-hero.png");
             background-size: cover;
-            background-position: center;
+            background-position: center center;
             border: 1px solid var(--border);
             box-shadow: var(--shadow-premium);
         }
@@ -685,7 +686,7 @@
             position: absolute;
             inset: 0;
             background:
-                linear-gradient(135deg, rgba(250,248,244,0.88), rgba(232,241,236,0.72)),
+                linear-gradient(135deg, rgba(250, 248, 244, 0.88), rgba(232, 241, 236, 0.72)),
                 radial-gradient(circle at top, rgba(30, 74, 58, 0.12), transparent 34%);
         }
 
@@ -934,283 +935,351 @@
 </head>
 
 <body>
-
-<nav class="eh-navbar">
-    <div class="eh-navbar-inner">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
-            <span class="eh-brand-mark">
-                <i class="fa-solid fa-leaf"></i>
-            </span>
-            <span class="eh-brand-text">EVENTHORIZON</span>
-        </a>
-
-        <ul class="eh-nav-links">
-            <li>
-                <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link active">
-                    <i class="fa-solid fa-house"></i><span>Home</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
-                    <i class="fa-solid fa-calendar-days"></i><span>Events</span>
-                </a>
-            </li>
-
-            <c:choose>
-                <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
-                    <li>
-                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
-                            <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell" title="Issue notifications">
-                            <i class="fa-regular fa-bell"></i>
-                            <% if (navIssueCount > 0) { %>
-                                <span class="eh-bell-badge"><%= navIssueCount %></span>
-                            <% } %>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
-                            <i class="fa-regular fa-user"></i><span>Profile</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
-                        </a>
-                    </li>
-                </c:when>
-
-                <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
-                    <li>
-                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="eh-nav-link">
-                            <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
-                            <i class="fa-regular fa-user"></i><span>Profile</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
-                        </a>
-                    </li>
-                </c:when>
-
-                <c:otherwise>
-                    <li>
-                        <a href="${pageContext.request.contextPath}/login.jsp" class="eh-nav-link">
-                            <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
-                            <i class="fa-solid fa-user-plus"></i><span>Register</span>
-                        </a>
-                    </li>
-                </c:otherwise>
-            </c:choose>
-        </ul>
-    </div>
-</nav>
-
-<section class="eh-hero">
-    <div class="eh-hero-bg"></div>
-    <div class="eh-hero-overlay"></div>
-
-    <div class="eh-hero-inner">
-        <div class="eh-hero-content">
-            <div class="eh-eyebrow">
-                <span class="eh-eyebrow-dot"></span>
-                <span>Premium Event Booking Platform</span>
-            </div>
-
-            <h1 class="eh-hero-title">
-                <span>Experience the</span>
-                <em>Extraordinary</em>
-            </h1>
-
-            <p class="eh-hero-subtitle">
-                Discover concerts, sports events, tech summits and cultural shows.
-                Book your tickets in seconds with a seamless and secure experience.
-            </p>
-
-            <div class="eh-hero-actions">
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-btn eh-btn-primary">
-                    <i class="fa-solid fa-ticket"></i> Browse Events
-                </a>
-
-                <c:if test="${empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/register.jsp" class="eh-btn eh-btn-secondary">
-                        <i class="fa-solid fa-user-plus"></i> Create Account
-                    </a>
-                </c:if>
-
-                <c:if test="${not empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="eh-btn eh-btn-secondary">
-                        <i class="fa-regular fa-flag"></i> Report an Issue
-                    </a>
-                </c:if>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="eh-stats">
-    <div class="eh-stat">
-        <div class="eh-stat-number">500+</div>
-        <div class="eh-stat-label">Live Events</div>
-    </div>
-
-    <div class="eh-stat">
-        <div class="eh-stat-number">80K+</div>
-        <div class="eh-stat-label">Tickets Sold</div>
-    </div>
-
-    <div class="eh-stat">
-        <div class="eh-stat-number">4.9★</div>
-        <div class="eh-stat-label">User Rating</div>
-    </div>
-</section>
-
-<section class="eh-features">
-    <div class="eh-container">
-        <div class="eh-section-header">
-            <span class="eh-section-label">Why choose us</span>
-            <h2 class="eh-section-title">Why <em>EventHorizon?</em></h2>
-            <p class="eh-section-subtitle">
-                Built for speed, security, and unforgettable experiences.
-            </p>
-        </div>
-
-        <div class="eh-feature-grid">
-            <div class="eh-feature-card">
-                <div class="eh-feature-icon">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
-                <h3>Instant Booking</h3>
-                <p>Reserve your seat in real-time with no waiting and no confusion.</p>
-            </div>
-
-            <div class="eh-feature-card">
-                <div class="eh-feature-icon">
-                    <i class="fa-solid fa-lock"></i>
-                </div>
-                <h3>Secure &amp; Safe</h3>
-                <p>Your account, payments, and bookings stay protected and reliable.</p>
-            </div>
-
-            <div class="eh-feature-card">
-                <div class="eh-feature-icon">
-                    <i class="fa-solid fa-masks-theater"></i>
-                </div>
-                <h3>All Categories</h3>
-                <p>Concerts, sports, tech, and cultural events — all in one place.</p>
-            </div>
-
-            <div class="eh-feature-card">
-                <div class="eh-feature-icon">
-                    <i class="fa-solid fa-mobile-screen-button"></i>
-                </div>
-                <h3>Easy to Use</h3>
-                <p>A clean modern interface that works beautifully on desktop and mobile.</p>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section class="eh-cta-section">
-    <div class="eh-container">
-        <div class="eh-cta-box">
-            <div class="eh-cta-content">
-                <span class="eh-cta-label">Don't miss out</span>
-
-                <h2>Ready to book your<br><em>next experience?</em></h2>
-
-                <p>
-                    Explore trending events and reserve your seat before they sell out.
-                </p>
-
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-btn eh-btn-primary">
-                    <i class="fa-solid fa-arrow-right"></i> Explore Events
-                </a>
-            </div>
-        </div>
-    </div>
-</section>
-
-<footer class="eh-footer">
-    <div class="eh-container eh-footer-grid">
-        <div class="eh-footer-col">
-            <div class="eh-footer-brand">
-                <span class="eh-footer-brand-mark">
+    <nav class="eh-navbar">
+        <div class="eh-navbar-inner">
+            <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
+                <span class="eh-brand-mark">
                     <i class="fa-solid fa-leaf"></i>
                 </span>
-                <h2 class="eh-footer-logo">EVENT<span>HORIZON</span></h2>
+                <span class="eh-brand-text">EVENTHORIZON</span>
+            </a>
+
+            <ul class="eh-nav-links">
+                <li>
+                    <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link active">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+
+                <li>
+                    <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
+                        <i class="fa-solid fa-calendar-days"></i>
+                        <span>Events</span>
+                    </a>
+                </li>
+
+                <c:choose>
+                    <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
+                        <li>
+                            <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
+                                <i class="fa-solid fa-ticket"></i>
+                                <span>My Bookings</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a
+                                href="${pageContext.request.contextPath}/IssueServlet?action=myIssues"
+                                class="eh-nav-bell"
+                                title="Issue notifications"
+                            >
+                                <i class="fa-regular fa-bell"></i>
+
+                                <% if (navIssueCount > 0) { %>
+                                    <span class="eh-bell-badge"><%= navIssueCount %></span>
+                                <% } %>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                                <i class="fa-regular fa-user"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span>Logout</span>
+                            </a>
+                        </li>
+                    </c:when>
+
+                    <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
+                        <li>
+                            <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="eh-nav-link">
+                                <i class="fa-solid fa-gauge-high"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                                <i class="fa-regular fa-user"></i>
+                                <span>Profile</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                                <span>Logout</span>
+                            </a>
+                        </li>
+                    </c:when>
+
+                    <c:otherwise>
+                        <li>
+                            <a href="${pageContext.request.contextPath}/login.jsp" class="eh-nav-link">
+                                <i class="fa-solid fa-right-to-bracket"></i>
+                                <span>Login</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
+                                <i class="fa-solid fa-user-plus"></i>
+                                <span>Register</span>
+                            </a>
+                        </li>
+                    </c:otherwise>
+                </c:choose>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="eh-hero">
+        <div class="eh-hero-bg"></div>
+        <div class="eh-hero-overlay"></div>
+
+        <div class="eh-hero-inner">
+            <div class="eh-hero-content">
+                <div class="eh-eyebrow">
+                    <span class="eh-eyebrow-dot"></span>
+                    <span>Premium Event Booking Platform</span>
+                </div>
+
+                <h1 class="eh-hero-title">
+                    <span>Experience the</span>
+                    <em>Extraordinary</em>
+                </h1>
+
+                <p class="eh-hero-subtitle">
+                    Discover concerts, sports events, tech summits and cultural shows.
+                    Book your tickets in seconds with a seamless and secure experience.
+                </p>
+
+                <div class="eh-hero-actions">
+                    <a href="${pageContext.request.contextPath}/event?action=list" class="eh-btn eh-btn-primary">
+                        <i class="fa-solid fa-ticket"></i>
+                        Browse Events
+                    </a>
+
+                    <c:if test="${empty sessionScope.userId}">
+                        <a href="${pageContext.request.contextPath}/register.jsp" class="eh-btn eh-btn-secondary">
+                            <i class="fa-solid fa-user-plus"></i>
+                            Create Account
+                        </a>
+                    </c:if>
+
+                    <c:if test="${not empty sessionScope.userId}">
+                        <a
+                            href="${pageContext.request.contextPath}/IssueServlet?action=report"
+                            class="eh-btn eh-btn-secondary"
+                        >
+                            <i class="fa-regular fa-flag"></i>
+                            Report an Issue
+                        </a>
+                    </c:if>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="eh-stats">
+        <div class="eh-stat">
+            <div class="eh-stat-number">500+</div>
+            <div class="eh-stat-label">Live Events</div>
+        </div>
+
+        <div class="eh-stat">
+            <div class="eh-stat-number">80K+</div>
+            <div class="eh-stat-label">Tickets Sold</div>
+        </div>
+
+        <div class="eh-stat">
+            <div class="eh-stat-number">4.9★</div>
+            <div class="eh-stat-label">User Rating</div>
+        </div>
+    </section>
+
+    <section class="eh-features">
+        <div class="eh-container">
+            <div class="eh-section-header">
+                <span class="eh-section-label">Why choose us</span>
+
+                <h2 class="eh-section-title">
+                    Why <em>EventHorizon?</em>
+                </h2>
+
+                <p class="eh-section-subtitle">
+                    Built for speed, security, and unforgettable experiences.
+                </p>
             </div>
 
-            <p class="eh-footer-text">
-                EventHorizon helps you discover, explore, and book unforgettable
-                experiences with a fast, secure, and modern platform.
-            </p>
+            <div class="eh-feature-grid">
+                <div class="eh-feature-card">
+                    <div class="eh-feature-icon">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+
+                    <h3>Instant Booking</h3>
+                    <p>Reserve your seat in real-time with no waiting and no confusion.</p>
+                </div>
+
+                <div class="eh-feature-card">
+                    <div class="eh-feature-icon">
+                        <i class="fa-solid fa-lock"></i>
+                    </div>
+
+                    <h3>Secure &amp; Safe</h3>
+                    <p>Your account, payments, and bookings stay protected and reliable.</p>
+                </div>
+
+                <div class="eh-feature-card">
+                    <div class="eh-feature-icon">
+                        <i class="fa-solid fa-masks-theater"></i>
+                    </div>
+
+                    <h3>All Categories</h3>
+                    <p>Concerts, sports, tech, and cultural events — all in one place.</p>
+                </div>
+
+                <div class="eh-feature-card">
+                    <div class="eh-feature-icon">
+                        <i class="fa-solid fa-mobile-screen-button"></i>
+                    </div>
+
+                    <h3>Easy to Use</h3>
+                    <p>A clean modern interface that works beautifully on desktop and mobile.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="eh-cta-section">
+        <div class="eh-container">
+            <div class="eh-cta-box">
+                <div class="eh-cta-content">
+                    <span class="eh-cta-label">Don't miss out</span>
+
+                    <h2>
+                        Ready to book your<br>
+                        <em>next experience?</em>
+                    </h2>
+
+                    <p>
+                        Explore trending events and reserve your seat before they sell out.
+                    </p>
+
+                    <a href="${pageContext.request.contextPath}/event?action=list" class="eh-btn eh-btn-primary">
+                        <i class="fa-solid fa-arrow-right"></i>
+                        Explore Events
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="eh-footer">
+        <div class="eh-container eh-footer-grid">
+            <div class="eh-footer-col">
+                <div class="eh-footer-brand">
+                    <span class="eh-footer-brand-mark">
+                        <i class="fa-solid fa-leaf"></i>
+                    </span>
+
+                    <h2 class="eh-footer-logo">
+                        EVENT<span>HORIZON</span>
+                    </h2>
+                </div>
+
+                <p class="eh-footer-text">
+                    EventHorizon helps you discover, explore, and book unforgettable
+                    experiences with a fast, secure, and modern platform.
+                </p>
+            </div>
+
+            <div class="eh-footer-col">
+                <h4>Quick Links</h4>
+
+                <ul>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/index.jsp">Home</a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/event?action=list">Events</a>
+                    </li>
+
+                    <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
+                        <li>
+                            <a href="${pageContext.request.contextPath}/booking?action=myBookings">
+                                My Bookings
+                            </a>
+                        </li>
+                    </c:if>
+
+                    <c:if test="${not empty sessionScope.userId}">
+                        <li>
+                            <a href="${pageContext.request.contextPath}/profile.jsp">Profile</a>
+                        </li>
+                    </c:if>
+                </ul>
+            </div>
+
+            <div class="eh-footer-col">
+                <h4>Company</h4>
+
+                <ul>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/aboutUs.jsp">About Us</a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/contacts.jsp">Contact</a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/privacyPolicy.jsp">Privacy Policy</a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/termsConditions.jsp">
+                            Terms &amp; Conditions
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="eh-footer-col">
+                <h4>Support</h4>
+
+                <ul>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/faqs.jsp">Help Center</a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/faqs.jsp">FAQs</a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/ticketPolicy.jsp">Ticket Policy</a>
+                    </li>
+                    <li>
+                        <a href="${pageContext.request.contextPath}/IssueServlet?action=report">
+                            Report an Issue
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
-        <div class="eh-footer-col">
-            <h4>Quick Links</h4>
-            <ul>
-                <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
-                <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
-
-                <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
-                    <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
-                </c:if>
-
-                <c:if test="${not empty sessionScope.userId}">
-                    <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
-                </c:if>
-            </ul>
+        <div class="eh-footer-bottom">
+            <div class="eh-container eh-footer-bottom-inner">
+                <p>© 2026 EventHorizon. All rights reserved.</p>
+                <p>Designed for modern event experiences.</p>
+            </div>
         </div>
+    </footer>
 
-        <div class="eh-footer-col">
-            <h4>Company</h4>
-            <ul>
-                <li><a href="${pageContext.request.contextPath}/aboutUs.jsp">About Us</a></li>
-                <li><a href="${pageContext.request.contextPath}/contacts.jsp">Contact</a></li>
-                <li><a href="${pageContext.request.contextPath}/privacyPolicy.jsp">Privacy Policy</a></li>
-                <li><a href="${pageContext.request.contextPath}/termsConditions.jsp">Terms &amp; Conditions</a></li>
-            </ul>
-        </div>
-
-        <div class="eh-footer-col">
-            <h4>Support</h4>
-            <ul>
-                <li><a href="${pageContext.request.contextPath}/faqs.jsp">Help Center</a></li>
-                <li><a href="${pageContext.request.contextPath}/faqs.jsp">FAQs</a></li>
-                <li><a href="${pageContext.request.contextPath}/ticketPolicy.jsp">Ticket Policy</a></li>
-                <li><a href="${pageContext.request.contextPath}/IssueServlet?action=report">Report an Issue</a></li>
-            </ul>
-        </div>
-    </div>
-
-    <div class="eh-footer-bottom">
-        <div class="eh-container eh-footer-bottom-inner">
-            <p>© 2026 EventHorizon. All rights reserved.</p>
-            <p>Designed for modern event experiences.</p>
-        </div>
-    </div>
-</footer>
-
-<script src="${pageContext.request.contextPath}/js/main.js"></script>
+    <script src="${pageContext.request.contextPath}/js/main.js"></script>
 </body>
 </html>
