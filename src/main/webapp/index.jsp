@@ -1,12 +1,10 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="com.eventhorizon.service.IssueService" %>
-
 <%
     int navIssueCount = 0;
     String navRole = (String) session.getAttribute("role");
     Object navUserIdObj = session.getAttribute("userId");
-
     if ("CUSTOMER".equals(navRole) && navUserIdObj != null) {
         try {
             String numericPart = String.valueOf(navUserIdObj).replaceAll("\\D+", "");
@@ -16,968 +14,783 @@
         } catch (Exception ignored) { }
     }
 %>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventHorizon – Premium Event Booking</title>
-
-    <!-- IMPORTANT:
-         css/style.css is intentionally NOT linked here.
-         This home page uses only the internal CSS below. -->
-
-    <!-- Google Fonts -->
+    <title>EventHorizon – Book Your Experience</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&display=swap" rel="stylesheet">
-
-    <!-- Font Awesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-            --evh-bg: #fbf6ec;
-            --evh-bg-soft: #fffaf2;
-            --evh-white: #ffffff;
-
-            --evh-espresso: #1f160c;
-            --evh-charcoal: #2c2924;
-            --evh-brown: #4e3920;
-            --evh-muted: #776850;
-
-            --evh-gold: #b8842b;
-            --evh-gold-dark: #9b6a1d;
-            --evh-gold-light: #d7af5d;
-            --evh-gold-soft: #fff0cc;
-
-            --evh-border: rgba(31, 22, 12, 0.10);
-            --evh-gold-border: rgba(184, 132, 43, 0.26);
-
-            --evh-shadow: 0 28px 80px rgba(31, 22, 12, 0.13);
-            --evh-shadow-soft: 0 16px 42px rgba(31, 22, 12, 0.08);
+            --ivory:       #FAF7F2;
+            --cream:       #F2EDE3;
+            --white:       #FFFFFF;
+            --gold:        #A87832;
+            --gold-mid:    #C49A45;
+            --gold-pale:   #F0E4CC;
+            --espresso:    #1C1208;
+            --charcoal:    #2E2416;
+            --brown-soft:  #6B5235;
+            --muted:       #8C7355;
+            --border:      rgba(168,120,50,0.18);
+            --shadow-card: 0 4px 24px rgba(28,18,8,0.09);
+            --shadow-gold: 0 8px 28px rgba(168,120,50,0.22);
+            --radius:      14px;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        html { scroll-behavior: smooth; }
 
         body {
             font-family: 'Inter', sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(184, 132, 43, 0.10), transparent 30%),
-                radial-gradient(circle at top right, rgba(31, 22, 12, 0.06), transparent 30%),
-                linear-gradient(180deg, #ffffff 0%, var(--evh-bg) 46%, var(--evh-bg-soft) 100%);
-            color: var(--evh-charcoal);
-            overflow-x: hidden;
+            background: var(--ivory);
+            color: var(--charcoal);
             -webkit-font-smoothing: antialiased;
+            line-height: 1.6;
         }
 
-        a {
-            text-decoration: none;
-        }
-
-        .evh-container {
-            width: min(92%, 1240px);
-            margin: 0 auto;
-        }
-
-        /* ================= NAVBAR ================= */
-
-        .evh-navbar {
+        /* ━━━━━━━━━━━━━━ NAVBAR ━━━━━━━━━━━━━━ */
+        .navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
-            width: 100%;
-            background: rgba(255, 250, 242, 0.94);
-            border-bottom: 1px solid var(--evh-border);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            box-shadow: 0 10px 30px rgba(31, 22, 12, 0.06);
+            background: rgba(250, 247, 242, 0.95);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
 
-        .evh-navbar-inner {
-            width: min(92%, 1240px);
-            min-height: 74px;
+        .navbar-inner {
+            width: min(95%, 1360px);
             margin: 0 auto;
+            height: 66px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 18px;
+            gap: 20px;
         }
 
-        .evh-brand {
+        .brand {
             display: inline-flex;
             align-items: center;
-            gap: 12px;
-            color: var(--evh-espresso);
-            font-weight: 900;
-            letter-spacing: 1.6px;
-            text-transform: uppercase;
+            gap: 11px;
+            text-decoration: none;
+            flex-shrink: 0;
         }
 
-        .evh-brand-mark {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: inline-flex;
+        .brand-mark {
+            width: 36px;
+            height: 36px;
+            border-radius: 9px;
+            background: linear-gradient(145deg, var(--gold), var(--gold-mid));
+            display: flex;
             align-items: center;
             justify-content: center;
-            color: #ffffff;
-            background: linear-gradient(135deg, var(--evh-gold-dark), var(--evh-gold-light));
-            box-shadow: 0 14px 32px rgba(184, 132, 43, 0.24);
+            color: #fff;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 12px rgba(168,120,50,0.30);
+            flex-shrink: 0;
         }
 
-        .evh-brand-text {
-            font-size: 1.08rem;
+        .brand-name {
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            font-size: 1.28rem;
+            color: var(--espresso);
+            letter-spacing: 1.5px;
         }
 
-        .evh-nav-links {
+        .nav-links {
             list-style: none;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
+            gap: 2px;
             flex-wrap: wrap;
+            justify-content: flex-end;
         }
 
-        .evh-nav-links li {
-            list-style: none;
-        }
+        .nav-links li { list-style: none; }
 
-        .evh-nav-link,
-        .evh-nav-bell,
-        .evh-nav-btn,
-        .evh-nav-btn-outline {
-            min-height: 42px;
+        .nav-link {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px 15px;
-            border-radius: 13px;
+            gap: 6px;
+            padding: 8px 13px;
+            border-radius: 9px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--brown-soft);
             border: 1px solid transparent;
-            font-size: 0.86rem;
-            font-weight: 800;
-            color: var(--evh-brown);
-            transition: 0.22s ease;
+            transition: all 0.18s ease;
             white-space: nowrap;
         }
 
-        .evh-nav-link:hover,
-        .evh-nav-link.active {
-            color: var(--evh-gold-dark);
-            background: var(--evh-gold-soft);
-            border-color: var(--evh-gold-border);
+        .nav-link:hover, .nav-link.active {
+            color: var(--gold);
+            background: var(--gold-pale);
+            border-color: rgba(168,120,50,0.22);
         }
 
-        .evh-nav-bell {
-            position: relative;
-            width: 44px;
-            padding: 0;
-            background: rgba(255, 255, 255, 0.84);
-            border-color: var(--evh-border);
-            box-shadow: 0 8px 20px rgba(31, 22, 12, 0.05);
-        }
-
-        .evh-nav-bell:hover {
-            color: var(--evh-gold-dark);
-            background: var(--evh-gold-soft);
-            border-color: var(--evh-gold-border);
-        }
-
-        .evh-bell-badge {
-            position: absolute;
-            top: -7px;
-            right: -7px;
-            min-width: 19px;
-            height: 19px;
-            padding: 0 6px;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #d94b32, #f08a4c);
-            color: #ffffff;
-            font-size: 0.64rem;
-            font-weight: 900;
+        .nav-bell {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 18px rgba(217, 75, 50, 0.28);
-        }
-
-        .evh-nav-btn {
-            color: #ffffff;
-            background: linear-gradient(135deg, var(--evh-gold-dark), var(--evh-gold-light));
-            box-shadow: 0 14px 30px rgba(184, 132, 43, 0.24);
-        }
-
-        .evh-nav-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 18px 42px rgba(184, 132, 43, 0.30);
-        }
-
-        .evh-nav-btn-outline {
-            color: var(--evh-gold-dark);
-            background: rgba(255, 255, 255, 0.84);
-            border-color: var(--evh-gold-border);
-        }
-
-        .evh-nav-btn-outline:hover {
-            background: var(--evh-gold-soft);
-            border-color: rgba(184, 132, 43, 0.42);
-        }
-
-        /* ================= HERO ================= */
-
-        .evh-hero {
             position: relative;
-            min-height: calc(100vh - 74px);
-            display: flex;
-            align-items: center;
-            overflow: hidden;
-            isolation: isolate;
-            background: var(--evh-bg);
+            width: 38px;
+            height: 38px;
+            border-radius: 9px;
+            color: var(--brown-soft);
+            background: var(--cream);
+            border: 1px solid var(--border);
+            text-decoration: none;
+            transition: all 0.18s ease;
         }
 
-        .evh-hero-bg {
+        .nav-bell:hover {
+            color: var(--gold);
+            border-color: rgba(168,120,50,0.35);
+            background: var(--gold-pale);
+        }
+
+        .bell-badge {
             position: absolute;
-            inset: 0;
-            z-index: -4;
-            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=95");
-            background-size: cover;
-            background-position: center 36%;
-            filter: brightness(1.00) contrast(1.08) saturate(1.08);
-            transform: scale(1.01);
-        }
-
-        .evh-hero-overlay {
-            position: absolute;
-            inset: 0;
-            z-index: -3;
-            background:
-                linear-gradient(
-                    90deg,
-                    rgba(255, 250, 242, 0.94) 0%,
-                    rgba(255, 250, 242, 0.84) 30%,
-                    rgba(255, 250, 242, 0.44) 55%,
-                    rgba(255, 250, 242, 0.10) 76%,
-                    rgba(31, 22, 12, 0.06) 100%
-                ),
-                linear-gradient(
-                    180deg,
-                    rgba(255, 255, 255, 0.00) 0%,
-                    rgba(251, 246, 236, 0.40) 100%
-                );
-        }
-
-        .evh-hero::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 150px;
-            z-index: -2;
-            background: linear-gradient(180deg, transparent, var(--evh-bg));
-        }
-
-        .evh-hero-inner {
-            width: min(92%, 1240px);
-            margin: 0 auto;
-            padding: 74px 0 132px;
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(340px, 0.68fr);
-            align-items: center;
-            gap: 48px;
-        }
-
-        .evh-hero-panel {
-            max-width: 720px;
-            padding: 46px 48px 50px;
-            border-radius: 32px;
-            background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.91), rgba(255, 250, 242, 0.85));
-            border: 1px solid rgba(31, 22, 12, 0.10);
-            box-shadow:
-                0 30px 76px rgba(31, 22, 12, 0.14),
-                inset 0 1px 0 rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-
-        .evh-eyebrow {
-            width: fit-content;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 28px;
-            padding: 9px 17px 9px 10px;
+            top: -5px; right: -5px;
+            min-width: 16px; height: 16px;
+            padding: 0 4px;
             border-radius: 999px;
-            background: var(--evh-gold-soft);
-            border: 1px solid var(--evh-gold-border);
-            color: var(--evh-gold-dark);
-            font-size: 0.74rem;
-            font-weight: 900;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-        }
-
-        .evh-eyebrow-dot {
-            width: 9px;
-            height: 9px;
-            border-radius: 999px;
-            background: var(--evh-gold-dark);
-            box-shadow: 0 0 0 4px rgba(184, 132, 43, 0.16);
-        }
-
-        .evh-hero-title {
-            font-family: 'Playfair Display', serif !important;
-            font-size: clamp(3.4rem, 6.4vw, 6.5rem) !important;
-            line-height: 0.98 !important;
-            letter-spacing: -2.5px !important;
-            font-weight: 800 !important;
-            color: var(--evh-espresso) !important;
-            margin: 0 0 24px !important;
-            text-shadow: none !important;
-        }
-
-        .evh-hero-title em {
-            display: inline-block;
-            font-style: italic !important;
-            color: var(--evh-gold-dark) !important;
-            text-shadow: none !important;
-        }
-
-        .evh-hero-subtitle {
-            max-width: 590px;
-            margin: 0 0 38px !important;
-            color: var(--evh-brown) !important;
-            font-size: 1.08rem !important;
-            font-weight: 700 !important;
-            line-height: 1.78 !important;
-        }
-
-        .evh-hero-actions {
+            background: #D94F38;
+            color: #fff;
+            font-size: 0.62rem;
+            font-weight: 700;
             display: flex;
-            align-items: center;
-            gap: 14px;
-            flex-wrap: wrap;
-        }
-
-        .evh-btn {
-            min-height: 54px;
-            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            padding: 15px 28px;
-            border-radius: 15px;
-            font-size: 0.94rem;
-            font-weight: 900;
-            transition: 0.24s ease;
-            border: 1px solid transparent;
         }
 
-        .evh-btn-primary {
-            color: #ffffff;
-            background: linear-gradient(135deg, var(--evh-gold-dark), var(--evh-gold-light));
-            box-shadow: 0 18px 42px rgba(184, 132, 43, 0.28);
-        }
-
-        .evh-btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 24px 54px rgba(184, 132, 43, 0.36);
-        }
-
-        .evh-btn-secondary {
-            color: var(--evh-gold-dark);
-            background: #ffffff;
-            border-color: var(--evh-gold-border);
-            box-shadow: 0 12px 30px rgba(31, 22, 12, 0.08);
-        }
-
-        .evh-btn-secondary:hover {
-            background: var(--evh-gold-soft);
-            transform: translateY(-2px);
-        }
-
-        .evh-hero-card {
-            justify-self: end;
-            width: min(100%, 420px);
-            border-radius: 30px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.94);
-            border: 1px solid rgba(255, 255, 255, 0.78);
-            box-shadow: 0 30px 80px rgba(31, 22, 12, 0.18);
-            backdrop-filter: blur(12px);
-        }
-
-        .evh-hero-card-image {
-            height: 260px;
-            background-image:
-                linear-gradient(180deg, rgba(31,22,12,0.00), rgba(31,22,12,0.26)),
-                url("https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=900&q=90");
-            background-size: cover;
-            background-position: center;
-        }
-
-        .evh-hero-card-body {
-            padding: 24px;
-        }
-
-        .evh-hero-card-badge {
-            width: fit-content;
+        .nav-btn {
             display: inline-flex;
             align-items: center;
             gap: 7px;
-            margin-bottom: 15px;
-            padding: 8px 12px;
-            border-radius: 999px;
-            color: var(--evh-gold-dark);
-            background: var(--evh-gold-soft);
-            font-size: 0.72rem;
-            font-weight: 900;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            padding: 9px 18px;
+            border-radius: 9px;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 600;
+            white-space: nowrap;
+            transition: all 0.20s ease;
+            border: 1.5px solid transparent;
         }
 
-        .evh-hero-card-body h3 {
-            margin: 0 0 10px;
-            color: var(--evh-espresso);
-            font-size: 1.16rem;
-            font-weight: 900;
-            letter-spacing: -0.4px;
+        .nav-btn-gold {
+            background: linear-gradient(135deg, var(--gold), var(--gold-mid));
+            color: #fff;
+            box-shadow: var(--shadow-gold);
         }
 
-        .evh-hero-card-body p {
-            color: var(--evh-muted);
-            font-size: 0.92rem;
-            font-weight: 650;
-            line-height: 1.65;
+        .nav-btn-gold:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 12px 32px rgba(168,120,50,0.30);
         }
 
-        /* ================= STATS ================= */
+        .nav-btn-outline {
+            color: var(--gold);
+            border-color: rgba(168,120,50,0.40);
+            background: transparent;
+        }
 
-        .evh-stats {
+        .nav-btn-outline:hover {
+            background: var(--gold-pale);
+            border-color: var(--gold);
+        }
+
+        /* ━━━━━━━━━━━━━━ HERO ━━━━━━━━━━━━━━ */
+        .hero {
             position: relative;
-            z-index: 5;
-            width: min(92%, 1240px);
-            margin: -78px auto 0;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            min-height: 88vh;
+            display: flex;
+            align-items: center;
             overflow: hidden;
-            border-radius: 24px;
-            background: rgba(184, 132, 43, 0.14);
-            border: 1px solid var(--evh-gold-border);
-            box-shadow: var(--evh-shadow);
         }
 
-        .evh-stat {
-            padding: 32px 28px;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.98);
-            border-right: 1px solid rgba(184, 132, 43, 0.16);
+        /* Full-bleed background image — clearly visible */
+        .hero-img {
+            position: absolute;
+            inset: 0;
+            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=90");
+            background-size: cover;
+            background-position: center 35%;
+            z-index: 0;
         }
 
-        .evh-stat:last-child {
-            border-right: none;
+        /* Soft left-fade only — image stays bright on the right */
+        .hero-img::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                100deg,
+                rgba(250,247,242,0.55) 0%,
+                rgba(250,247,242,0.10) 52%,
+                rgba(250,247,242,0.00) 100%
+            );
         }
 
-        .evh-stat-number {
-            font-family: 'Playfair Display', serif;
-            color: var(--evh-gold-dark);
-            font-size: 2.6rem;
-            line-height: 1;
-            font-weight: 800;
-            margin-bottom: 9px;
+        .hero-panel {
+            position: relative;
+            z-index: 2;
+            width: min(95%, 1360px);
+            margin: 0 auto;
+            padding: 80px 0 110px;
+            display: flex;
+            align-items: center;
         }
 
-        .evh-stat-label {
-            color: var(--evh-muted);
-            font-size: 0.76rem;
-            font-weight: 900;
+        /* Warm-white frosted card — text sits on this, NOT the image */
+        .hero-card {
+            background: rgba(255, 252, 248, 0.94);
+            border: 1px solid rgba(168,120,50,0.18);
+            border-radius: 20px;
+            padding: 52px 52px;
+            max-width: 570px;
+            box-shadow:
+                0 2px 0 rgba(168,120,50,0.12),
+                0 24px 64px rgba(28,18,8,0.16),
+                0 4px 16px rgba(28,18,8,0.07);
+        }
+
+        .hero-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            padding: 6px 14px 6px 10px;
+            border-radius: 100px;
+            background: var(--gold-pale);
+            border: 1px solid rgba(168,120,50,0.25);
+        }
+
+        .eyebrow-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: var(--gold);
+            flex-shrink: 0;
+        }
+
+        .hero-eyebrow span {
+            font-size: 0.73rem;
+            font-weight: 600;
             letter-spacing: 1.4px;
             text-transform: uppercase;
+            color: var(--gold);
         }
 
-        /* ================= FEATURES ================= */
-
-        .evh-features {
-            padding: 126px 0 90px;
-            background:
-                radial-gradient(circle at top left, rgba(184, 132, 43, 0.07), transparent 30%),
-                radial-gradient(circle at bottom right, rgba(31, 22, 12, 0.05), transparent 32%),
-                linear-gradient(180deg, var(--evh-bg), var(--evh-bg-soft));
-        }
-
-        .evh-section-header {
-            max-width: 740px;
-            margin: 0 auto 60px;
-            text-align: center;
-        }
-
-        .evh-section-label {
-            display: inline-block;
-            margin-bottom: 14px;
-            color: var(--evh-gold-dark);
-            font-size: 0.74rem;
-            font-weight: 900;
-            letter-spacing: 2.2px;
-            text-transform: uppercase;
-        }
-
-        .evh-section-title {
+        .hero-heading {
             font-family: 'Playfair Display', serif;
-            color: var(--evh-espresso);
-            font-size: clamp(2.3rem, 4vw, 3.6rem);
+            font-size: clamp(2.4rem, 4.5vw, 3.8rem);
             font-weight: 800;
-            line-height: 1.08;
-            letter-spacing: -1.4px;
-            margin-bottom: 16px;
+            line-height: 1.10;
+            color: var(--espresso);
+            margin-bottom: 20px;
+            letter-spacing: -0.5px;
         }
 
-        .evh-section-title em {
-            color: var(--evh-gold-dark);
+        .hero-heading em {
             font-style: italic;
+            color: var(--gold);
         }
 
-        .evh-section-subtitle {
-            color: var(--evh-muted);
+        .hero-sub {
             font-size: 1rem;
-            font-weight: 650;
+            font-weight: 400;
+            color: var(--brown-soft);
             line-height: 1.75;
+            margin-bottom: 36px;
         }
 
-        .evh-feature-grid {
+        .hero-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .btn-hero-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 13px 28px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            text-decoration: none;
+            background: linear-gradient(135deg, var(--gold), var(--gold-mid));
+            color: #fff;
+            box-shadow: var(--shadow-gold);
+            transition: all 0.22s ease;
+            border: none;
+        }
+
+        .btn-hero-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(168,120,50,0.32);
+        }
+
+        .btn-hero-outline {
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            text-decoration: none;
+            border: 1.5px solid rgba(168,120,50,0.40);
+            color: var(--charcoal);
+            background: rgba(255,252,248,0.70);
+            transition: all 0.22s ease;
+        }
+
+        .btn-hero-outline:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: var(--gold-pale);
+        }
+
+        /* ━━━━━━━━━━━━━━ STATS ━━━━━━━━━━━━━━ */
+        .stats-bar {
+            position: relative;
+            z-index: 3;
+            width: min(95%, 1360px);
+            margin: -38px auto 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 32px rgba(28,18,8,0.10);
+            background: #fff;
+        }
+
+        .stat-item {
+            padding: 30px 32px;
+            text-align: center;
+            border-right: 1px solid var(--border);
+            background: #fff;
+            transition: background 0.2s ease;
+        }
+
+        .stat-item:last-child { border-right: none; }
+        .stat-item:hover { background: var(--gold-pale); }
+
+        .stat-num {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--gold);
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.77rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+        }
+
+        /* ━━━━━━━━━━━━━━ FEATURES ━━━━━━━━━━━━━━ */
+        .features-section {
+            padding: 110px 0 80px;
+        }
+
+        .container {
+            width: min(95%, 1360px);
+            margin: 0 auto;
+        }
+
+        .sec-label {
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 2.5px;
+            text-transform: uppercase;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .sec-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.9rem, 3.5vw, 2.9rem);
+            font-weight: 700;
+            color: var(--espresso);
+            line-height: 1.15;
+            margin-bottom: 14px;
+            letter-spacing: -0.3px;
+        }
+
+        .sec-title em {
+            font-style: italic;
+            color: var(--gold);
+        }
+
+        .sec-sub {
+            font-size: 0.975rem;
+            color: var(--muted);
+            line-height: 1.72;
+            max-width: 480px;
+        }
+
+        .section-header { margin-bottom: 52px; }
+
+        .features-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 22px;
         }
 
-        .evh-feature-card {
-            position: relative;
-            min-height: 235px;
+        .feat-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             padding: 34px 28px;
-            border-radius: 24px;
-            background: rgba(255, 255, 255, 0.98);
-            border: 1px solid var(--evh-border);
-            box-shadow: var(--evh-shadow-soft);
-            transition: 0.28s ease;
+            position: relative;
             overflow: hidden;
+            transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
         }
 
-        .evh-feature-card::before {
-            content: "";
+        .feat-card::after {
+            content: '';
             position: absolute;
-            inset: 0 0 auto 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--evh-gold-dark), var(--evh-gold-light));
+            bottom: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-mid));
             transform: scaleX(0);
             transform-origin: left;
-            transition: 0.28s ease;
+            transition: transform 0.28s ease;
         }
 
-        .evh-feature-card:hover {
-            transform: translateY(-7px);
-            border-color: rgba(184, 132, 43, 0.26);
-            box-shadow: 0 24px 70px rgba(31, 22, 12, 0.13);
+        .feat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 44px rgba(28,18,8,0.10), 0 4px 12px rgba(168,120,50,0.12);
+            border-color: rgba(168,120,50,0.28);
         }
 
-        .evh-feature-card:hover::before {
-            transform: scaleX(1);
-        }
+        .feat-card:hover::after { transform: scaleX(1); }
 
-        .evh-feature-icon {
-            width: 58px;
-            height: 58px;
-            margin-bottom: 22px;
+        .feat-icon {
+            width: 50px; height: 50px;
+            border-radius: 12px;
+            background: var(--gold-pale);
+            border: 1px solid rgba(168,120,50,0.20);
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 18px;
-            background: linear-gradient(135deg, var(--evh-gold-soft), #ffffff);
-            border: 1px solid var(--evh-gold-border);
-            color: var(--evh-gold-dark);
-            font-size: 1.35rem;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--gold);
         }
 
-        .evh-feature-card h3 {
+        .feat-card h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.18rem;
+            font-weight: 700;
+            color: var(--espresso);
             margin-bottom: 10px;
-            color: var(--evh-espresso);
-            font-size: 1.16rem;
-            font-weight: 900;
-            letter-spacing: -0.4px;
         }
 
-        .evh-feature-card p {
-            color: var(--evh-muted);
-            font-size: 0.92rem;
-            font-weight: 650;
+        .feat-card p {
+            font-size: 0.875rem;
+            color: var(--muted);
             line-height: 1.72;
         }
 
-        /* ================= CTA ================= */
+        /* ━━━━━━━━━━━━━━ CTA ━━━━━━━━━━━━━━ */
+        .cta-section { padding: 0 0 110px; }
 
-        .evh-cta-section {
-            padding: 0 0 112px;
-            background: var(--evh-bg-soft);
+        .cta-box {
+            border-radius: 22px;
+            border: 1px solid rgba(168,120,50,0.18);
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(115deg, #FFFDF8 0%, #FDF5E4 60%, #F5E8CC 100%);
+            box-shadow: 0 8px 40px rgba(168,120,50,0.12), 0 2px 8px rgba(28,18,8,0.06);
         }
 
-        .evh-cta-box {
-            position: relative;
-            overflow: hidden;
-            padding: 78px 46px;
-            border-radius: 32px;
-            text-align: center;
-            background:
-                linear-gradient(135deg, rgba(255, 255, 255, 0.90), rgba(255, 250, 242, 0.82)),
-                url("https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1300&q=90");
+        /* Subtle image texture on right side */
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 52%;
+            height: 100%;
+            background-image: url("https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=900&q=80");
             background-size: cover;
             background-position: center;
-            border: 1px solid var(--evh-gold-border);
-            box-shadow: var(--evh-shadow);
+            opacity: 0.14;
+            border-radius: 0 22px 22px 0;
         }
 
-        .evh-cta-box::before {
-            content: "";
+        /* Gold top accent line */
+        .cta-box::after {
+            content: '';
             position: absolute;
-            inset: 0;
-            background:
-                linear-gradient(135deg, rgba(255,255,255,0.86), rgba(255,250,242,0.72)),
-                radial-gradient(circle at top, rgba(184, 132, 43, 0.10), transparent 34%);
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--gold-mid), transparent);
         }
 
-        .evh-cta-content {
+        .cta-inner {
             position: relative;
-            z-index: 2;
+            z-index: 1;
+            padding: 72px 64px;
+            max-width: 620px;
         }
 
-        .evh-cta-label {
-            display: inline-block;
-            margin-bottom: 16px;
-            color: var(--evh-gold-dark);
-            font-size: 0.74rem;
-            font-weight: 900;
-            letter-spacing: 2.2px;
-            text-transform: uppercase;
-        }
-
-        .evh-cta-box h2 {
+        .cta-inner h2 {
             font-family: 'Playfair Display', serif;
-            color: var(--evh-espresso);
-            font-size: clamp(2.2rem, 4vw, 3.4rem);
+            font-size: clamp(1.8rem, 3vw, 2.6rem);
             font-weight: 800;
-            line-height: 1.12;
-            letter-spacing: -1.2px;
+            color: var(--espresso);
+            line-height: 1.18;
             margin-bottom: 16px;
+            letter-spacing: -0.3px;
         }
 
-        .evh-cta-box h2 em {
-            color: var(--evh-gold-dark);
-            font-style: italic;
+        .cta-inner h2 em { font-style: italic; color: var(--gold); }
+
+        .cta-inner p {
+            font-size: 0.975rem;
+            color: var(--brown-soft);
+            line-height: 1.72;
+            margin-bottom: 36px;
         }
 
-        .evh-cta-box p {
-            max-width: 560px;
-            margin: 0 auto 34px;
-            color: var(--evh-brown);
-            font-size: 1rem;
-            font-weight: 700;
-            line-height: 1.75;
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 32px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            font-weight: 600;
+            text-decoration: none;
+            background: linear-gradient(135deg, var(--gold), var(--gold-mid));
+            color: #fff;
+            box-shadow: var(--shadow-gold);
+            transition: all 0.22s ease;
         }
 
-        /* ================= FOOTER ================= */
-
-        .evh-footer {
-            background: #fffaf2;
-            color: var(--evh-muted);
-            border-top: 1px solid var(--evh-border);
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 36px rgba(168,120,50,0.32);
         }
 
-        .evh-footer-grid {
+        /* ━━━━━━━━━━━━━━ FOOTER ━━━━━━━━━━━━━━ */
+        .footer {
+            background: #F5EFE4;
+            border-top: 1px solid rgba(168,120,50,0.18);
+        }
+
+        .footer-main {
+            width: min(95%, 1360px);
+            margin: 0 auto;
+            padding: 72px 0 56px;
             display: grid;
-            grid-template-columns: 1.5fr 1fr 1fr 1fr;
-            gap: 48px;
-            padding: 70px 0 56px;
+            grid-template-columns: 1.8fr 1fr 1fr 1fr;
+            gap: 52px;
         }
 
-        .evh-footer-logo {
-            margin-bottom: 18px;
-            color: var(--evh-espresso);
+        .footer-brand-name {
+            font-family: 'Playfair Display', serif;
             font-size: 1.3rem;
-            font-weight: 900;
-            letter-spacing: 2px;
+            font-weight: 700;
+            color: var(--espresso);
+            letter-spacing: 1.5px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
         }
 
-        .evh-footer-logo span {
-            color: var(--evh-gold-dark);
+        .f-mark {
+            width: 28px; height: 28px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-mid));
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.75rem;
         }
 
-        .evh-footer-text {
-            max-width: 320px;
-            color: var(--evh-muted);
-            font-size: 0.9rem;
-            font-weight: 550;
-            line-height: 1.8;
+        .footer-desc {
+            font-size: 0.875rem;
+            color: var(--muted);
+            line-height: 1.78;
+            max-width: 270px;
         }
 
-        .evh-footer-col h4 {
-            margin-bottom: 20px;
-            color: var(--evh-espresso);
-            font-size: 0.74rem;
-            font-weight: 900;
+        .footer-col h4 {
+            font-size: 0.7rem;
+            font-weight: 700;
             letter-spacing: 2px;
             text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 20px;
         }
 
-        .evh-footer-col ul {
+        .footer-col ul {
             list-style: none;
             display: flex;
             flex-direction: column;
             gap: 11px;
         }
 
-        .evh-footer-col ul li a {
-            color: var(--evh-muted);
-            font-size: 0.9rem;
-            font-weight: 650;
-            transition: 0.2s ease;
+        .footer-col ul li a {
+            font-size: 0.875rem;
+            color: var(--brown-soft);
+            text-decoration: none;
+            transition: color 0.17s ease;
         }
 
-        .evh-footer-col ul li a:hover {
-            color: var(--evh-gold-dark);
+        .footer-col ul li a:hover { color: var(--gold); }
+
+        .footer-bottom {
+            border-top: 1px solid rgba(168,120,50,0.14);
         }
 
-        .evh-footer-bottom {
-            border-top: 1px solid var(--evh-border);
-            background: #ffffff;
-        }
-
-        .evh-footer-bottom-inner {
-            min-height: 62px;
+        .footer-bottom-inner {
+            width: min(95%, 1360px);
+            margin: 0 auto;
+            padding: 22px 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 18px;
-            color: var(--evh-muted);
-            font-size: 0.82rem;
-            font-weight: 650;
+            font-size: 0.8rem;
+            color: var(--muted);
         }
 
-        /* ================= RESPONSIVE ================= */
-
+        /* ━━━━━━━━━━━━━━ RESPONSIVE ━━━━━━━━━━━━━━ */
         @media (max-width: 1100px) {
-            .evh-hero-inner {
-                grid-template-columns: 1fr;
-                padding-top: 62px;
-            }
-
-            .evh-hero-panel {
-                max-width: 760px;
-            }
-
-            .evh-hero-card {
-                display: none;
-            }
-
-            .evh-feature-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .evh-footer-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+            .features-grid { grid-template-columns: repeat(2, 1fr); }
+            .footer-main { grid-template-columns: 1fr 1fr; gap: 36px; }
         }
 
         @media (max-width: 768px) {
-            .evh-navbar-inner {
-                min-height: auto;
-                padding: 14px 0;
-                flex-direction: column;
-                justify-content: center;
-            }
+            .navbar-inner { height: auto; padding: 14px 0; flex-direction: column; align-items: stretch; }
+            .brand { justify-content: center; }
+            .nav-links { justify-content: center; }
 
-            .evh-brand {
-                justify-content: center;
-            }
+            .hero { min-height: auto; }
+            .hero-panel { padding: 36px 0 110px; }
+            .hero-card { padding: 32px 22px; max-width: 100%; }
+            .hero-heading { font-size: 2.1rem; }
+            .hero-btns { flex-direction: column; }
+            .btn-hero-primary, .btn-hero-outline { justify-content: center; }
 
-            .evh-nav-links {
-                justify-content: center;
-            }
+            .stats-bar { margin-top: -20px; }
+            .stats-grid { grid-template-columns: 1fr; border-radius: 12px; }
+            .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+            .stat-item:last-child { border-bottom: none; }
 
-            .evh-hero {
-                min-height: auto;
-            }
+            .features-section { padding: 72px 0 56px; }
+            .features-grid { grid-template-columns: 1fr; }
 
-            .evh-hero-inner {
-                padding: 46px 0 116px;
-            }
+            .cta-inner { padding: 44px 24px; }
+            .cta-box::before { width: 100%; opacity: 0.07; border-radius: 22px; }
 
-            .evh-hero-panel {
-                padding: 32px 24px;
-                border-radius: 24px;
-            }
-
-            .evh-hero-title {
-                font-size: clamp(3rem, 13vw, 4.5rem) !important;
-                letter-spacing: -1.6px !important;
-            }
-
-            .evh-hero-subtitle {
-                font-size: 1rem !important;
-            }
-
-            .evh-stats {
-                grid-template-columns: 1fr;
-                margin-top: -54px;
-            }
-
-            .evh-stat {
-                border-right: none;
-                border-bottom: 1px solid rgba(184, 132, 43, 0.16);
-            }
-
-            .evh-stat:last-child {
-                border-bottom: none;
-            }
-
-            .evh-features {
-                padding-top: 100px;
-            }
-
-            .evh-feature-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .evh-footer-grid {
-                grid-template-columns: 1fr;
-                gap: 32px;
-            }
-
-            .evh-footer-bottom-inner {
-                flex-direction: column;
-                justify-content: center;
-                text-align: center;
-                padding: 18px 0;
-            }
-        }
-
-        @media (max-width: 520px) {
-            .evh-nav-link span,
-            .evh-nav-btn span,
-            .evh-nav-btn-outline span {
-                display: none;
-            }
-
-            .evh-nav-link,
-            .evh-nav-btn,
-            .evh-nav-btn-outline {
-                width: 42px;
-                padding: 0;
-            }
-
-            .evh-hero-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .evh-btn {
-                width: 100%;
-            }
+            .footer-main { grid-template-columns: 1fr; gap: 32px; padding: 48px 0 36px; }
+            .footer-bottom-inner { flex-direction: column; gap: 6px; text-align: center; }
         }
     </style>
 </head>
-
 <body>
 
-<nav class="evh-navbar">
-    <div class="evh-navbar-inner">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="evh-brand">
-            <span class="evh-brand-mark">
-                <i class="fa-solid fa-diamond"></i>
-            </span>
-            <span class="evh-brand-text">EVENTHORIZON</span>
+<!-- ════════════════════ NAVBAR ════════════════════ -->
+<nav class="navbar">
+    <div class="navbar-inner">
+        <a href="${pageContext.request.contextPath}/index.jsp" class="brand">
+            <span class="brand-mark"><i class="fa-regular fa-hexagon"></i></span>
+            <span class="brand-name">EVENTHORIZON</span>
         </a>
 
-        <ul class="evh-nav-links">
+        <ul class="nav-links">
             <li>
-                <a href="${pageContext.request.contextPath}/index.jsp" class="evh-nav-link active">
-                    <i class="fa-solid fa-house"></i><span>Home</span>
+                <a href="${pageContext.request.contextPath}/index.jsp" class="nav-link active">
+                    <i class="fa-solid fa-house"></i> Home
                 </a>
             </li>
-
             <li>
-                <a href="${pageContext.request.contextPath}/event?action=list" class="evh-nav-link">
-                    <i class="fa-solid fa-calendar-days"></i><span>Events</span>
+                <a href="${pageContext.request.contextPath}/event?action=list" class="nav-link">
+                    <i class="fa-solid fa-calendar-days"></i> Events
                 </a>
             </li>
 
             <c:choose>
                 <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
                     <li>
-                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="evh-nav-link">
-                            <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
+                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="nav-link">
+                            <i class="fa-solid fa-ticket"></i> My Bookings
                         </a>
                     </li>
-
                     <li>
-                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="evh-nav-bell" title="Issue notifications">
+                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="nav-bell" title="Notifications">
                             <i class="fa-regular fa-bell"></i>
                             <% if (navIssueCount > 0) { %>
-                                <span class="evh-bell-badge"><%= navIssueCount %></span>
+                                <span class="bell-badge"><%= navIssueCount %></span>
                             <% } %>
                         </a>
                     </li>
-
                     <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="evh-nav-link">
-                            <i class="fa-regular fa-user"></i><span>Profile</span>
+                        <a href="${pageContext.request.contextPath}/profile.jsp" class="nav-link">
+                            <i class="fa-regular fa-user"></i> Profile
                         </a>
                     </li>
-
                     <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="evh-nav-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+                        <a href="${pageContext.request.contextPath}/user?action=logout" class="nav-btn nav-btn-gold">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>
                     </li>
                 </c:when>
 
                 <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
                     <li>
-                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="evh-nav-link">
-                            <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
+                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="nav-link">
+                            <i class="fa-solid fa-gauge-high"></i> Dashboard
                         </a>
                     </li>
-
                     <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="evh-nav-link">
-                            <i class="fa-regular fa-user"></i><span>Profile</span>
+                        <a href="${pageContext.request.contextPath}/profile.jsp" class="nav-link">
+                            <i class="fa-regular fa-user"></i> Profile
                         </a>
                     </li>
-
                     <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="evh-nav-btn">
-                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+                        <a href="${pageContext.request.contextPath}/user?action=logout" class="nav-btn nav-btn-gold">
+                            <i class="fa-solid fa-right-from-bracket"></i> Logout
                         </a>
                     </li>
                 </c:when>
 
                 <c:otherwise>
                     <li>
-                        <a href="${pageContext.request.contextPath}/login.jsp" class="evh-nav-link">
-                            <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
+                        <a href="${pageContext.request.contextPath}/login.jsp" class="nav-link">
+                            <i class="fa-solid fa-right-to-bracket"></i> Login
                         </a>
                     </li>
-
                     <li>
-                        <a href="${pageContext.request.contextPath}/register.jsp" class="evh-nav-btn-outline">
-                            <i class="fa-solid fa-user-plus"></i><span>Register</span>
+                        <a href="${pageContext.request.contextPath}/register.jsp" class="nav-btn nav-btn-outline">
+                            <i class="fa-solid fa-user-plus"></i> Register
                         </a>
                     </li>
                 </c:otherwise>
@@ -986,119 +799,90 @@
     </div>
 </nav>
 
-<section class="evh-hero">
-    <div class="evh-hero-bg"></div>
-    <div class="evh-hero-overlay"></div>
+<!-- ════════════════════ HERO ════════════════════ -->
+<section class="hero">
+    <div class="hero-img"></div>
 
-    <div class="evh-hero-inner">
-        <div class="evh-hero-panel">
-            <div class="evh-eyebrow">
-                <span class="evh-eyebrow-dot"></span>
+    <div class="hero-panel">
+        <div class="hero-card">
+            <div class="hero-eyebrow">
+                <span class="eyebrow-dot"></span>
                 <span>Premium Event Booking Platform</span>
             </div>
 
-            <h1 class="evh-hero-title">
-                Experience<br>the <em>Extraordinary</em>
+            <h1 class="hero-heading">
+                Experience the<br><em>Extraordinary</em>
             </h1>
 
-            <p class="evh-hero-subtitle">
+            <p class="hero-sub">
                 Discover concerts, sports events, tech summits and cultural shows.
                 Book your tickets in seconds with a seamless and secure experience.
             </p>
 
-            <div class="evh-hero-actions">
-                <a href="${pageContext.request.contextPath}/event?action=list" class="evh-btn evh-btn-primary">
+            <div class="hero-btns">
+                <a href="${pageContext.request.contextPath}/event?action=list" class="btn-hero-primary">
                     <i class="fa-solid fa-ticket"></i> Browse Events
                 </a>
-
                 <c:if test="${empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/register.jsp" class="evh-btn evh-btn-secondary">
+                    <a href="${pageContext.request.contextPath}/register.jsp" class="btn-hero-outline">
                         <i class="fa-solid fa-user-plus"></i> Create Account
                     </a>
                 </c:if>
-
                 <c:if test="${not empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="evh-btn evh-btn-secondary">
+                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="btn-hero-outline">
                         <i class="fa-regular fa-flag"></i> Report an Issue
                     </a>
                 </c:if>
             </div>
         </div>
-
-        <div class="evh-hero-card">
-            <div class="evh-hero-card-image"></div>
-            <div class="evh-hero-card-body">
-                <div class="evh-hero-card-badge">
-                    <i class="fa-solid fa-shield-halved"></i>
-                    Secure Booking
-                </div>
-
-                <h3>Book events with confidence</h3>
-                <p>
-                    Manage bookings, view tickets, and access event details through a clean,
-                    secure and reliable platform.
-                </p>
-            </div>
-        </div>
     </div>
 </section>
 
-<section class="evh-stats">
-    <div class="evh-stat">
-        <div class="evh-stat-number">500+</div>
-        <div class="evh-stat-label">Live Events</div>
+<!-- ════════════════════ STATS ════════════════════ -->
+<div class="stats-bar">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div class="stat-num">500+</div>
+            <div class="stat-label">Live Events</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">80K+</div>
+            <div class="stat-label">Tickets Sold</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-num">4.9 ★</div>
+            <div class="stat-label">User Rating</div>
+        </div>
     </div>
+</div>
 
-    <div class="evh-stat">
-        <div class="evh-stat-number">80K+</div>
-        <div class="evh-stat-label">Tickets Sold</div>
-    </div>
-
-    <div class="evh-stat">
-        <div class="evh-stat-number">4.9★</div>
-        <div class="evh-stat-label">User Rating</div>
-    </div>
-</section>
-
-<section class="evh-features">
-    <div class="evh-container">
-        <div class="evh-section-header">
-            <span class="evh-section-label">Why choose us</span>
-            <h2 class="evh-section-title">Why <em>EventHorizon?</em></h2>
-            <p class="evh-section-subtitle">
-                Built for speed, security, and unforgettable experiences.
-            </p>
+<!-- ════════════════════ FEATURES ════════════════════ -->
+<section class="features-section">
+    <div class="container">
+        <div class="section-header">
+            <span class="sec-label">Why choose us</span>
+            <h2 class="sec-title">Why <em>EventHorizon?</em></h2>
+            <p class="sec-sub">Built for speed, security, and unforgettable experiences.</p>
         </div>
 
-        <div class="evh-feature-grid">
-            <div class="evh-feature-card">
-                <div class="evh-feature-icon">
-                    <i class="fa-solid fa-bolt"></i>
-                </div>
+        <div class="features-grid">
+            <div class="feat-card">
+                <div class="feat-icon"><i class="fa-solid fa-bolt"></i></div>
                 <h3>Instant Booking</h3>
                 <p>Reserve your seat in real-time with no waiting and no confusion.</p>
             </div>
-
-            <div class="evh-feature-card">
-                <div class="evh-feature-icon">
-                    <i class="fa-solid fa-lock"></i>
-                </div>
+            <div class="feat-card">
+                <div class="feat-icon"><i class="fa-solid fa-shield-halved"></i></div>
                 <h3>Secure &amp; Safe</h3>
                 <p>Your account, payments, and bookings stay protected and reliable.</p>
             </div>
-
-            <div class="evh-feature-card">
-                <div class="evh-feature-icon">
-                    <i class="fa-solid fa-masks-theater"></i>
-                </div>
+            <div class="feat-card">
+                <div class="feat-icon"><i class="fa-solid fa-masks-theater"></i></div>
                 <h3>All Categories</h3>
                 <p>Concerts, sports, tech, and cultural events — all in one place.</p>
             </div>
-
-            <div class="evh-feature-card">
-                <div class="evh-feature-icon">
-                    <i class="fa-solid fa-mobile-screen-button"></i>
-                </div>
+            <div class="feat-card">
+                <div class="feat-icon"><i class="fa-solid fa-mobile-screen"></i></div>
                 <h3>Easy to Use</h3>
                 <p>A clean modern interface that works beautifully on desktop and mobile.</p>
             </div>
@@ -1106,19 +890,15 @@
     </div>
 </section>
 
-<section class="evh-cta-section">
-    <div class="evh-container">
-        <div class="evh-cta-box">
-            <div class="evh-cta-content">
-                <span class="evh-cta-label">Don't miss out</span>
-
-                <h2>Ready to book your<br><em>next experience?</em></h2>
-
-                <p>
-                    Explore trending events and reserve your seat before they sell out.
-                </p>
-
-                <a href="${pageContext.request.contextPath}/event?action=list" class="evh-btn evh-btn-primary">
+<!-- ════════════════════ CTA ════════════════════ -->
+<section class="cta-section">
+    <div class="container">
+        <div class="cta-box">
+            <div class="cta-inner">
+                <span class="sec-label">Don't miss out</span>
+                <h2>Ready to book your <em>next experience?</em></h2>
+                <p>Explore trending events and reserve your seat before they sell out.</p>
+                <a href="${pageContext.request.contextPath}/event?action=list" class="btn-cta">
                     <i class="fa-solid fa-arrow-right"></i> Explore Events
                 </a>
             </div>
@@ -1126,33 +906,35 @@
     </div>
 </section>
 
-<footer class="evh-footer">
-    <div class="evh-container evh-footer-grid">
-        <div class="evh-footer-col">
-            <h2 class="evh-footer-logo">⬡ EVENT<span>HORIZON</span></h2>
-            <p class="evh-footer-text">
+<!-- ════════════════════ FOOTER ════════════════════ -->
+<footer class="footer">
+    <div class="footer-main">
+        <div>
+            <div class="footer-brand-name">
+                <span class="f-mark"><i class="fa-regular fa-hexagon"></i></span>
+                EVENTHORIZON
+            </div>
+            <p class="footer-desc">
                 EventHorizon helps you discover, explore, and book unforgettable
                 experiences with a fast, secure, and modern platform.
             </p>
         </div>
 
-        <div class="evh-footer-col">
+        <div class="footer-col">
             <h4>Quick Links</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
                 <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
-
                 <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
                     <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
                 </c:if>
-
                 <c:if test="${not empty sessionScope.userId}">
                     <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
                 </c:if>
             </ul>
         </div>
 
-        <div class="evh-footer-col">
+        <div class="footer-col">
             <h4>Company</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/aboutUs.jsp">About Us</a></li>
@@ -1162,7 +944,7 @@
             </ul>
         </div>
 
-        <div class="evh-footer-col">
+        <div class="footer-col">
             <h4>Support</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/faqs.jsp">Help Center</a></li>
@@ -1173,8 +955,8 @@
         </div>
     </div>
 
-    <div class="evh-footer-bottom">
-        <div class="evh-container evh-footer-bottom-inner">
+    <div class="footer-bottom">
+        <div class="footer-bottom-inner">
             <p>© 2026 EventHorizon. All rights reserved.</p>
             <p>Designed for modern event experiences.</p>
         </div>
