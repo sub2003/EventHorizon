@@ -5,6 +5,7 @@
     int navIssueCount = 0;
     String navRole = (String) session.getAttribute("role");
     Object navUserIdObj = session.getAttribute("userId");
+
     if ("CUSTOMER".equals(navRole) && navUserIdObj != null) {
         try {
             String numericPart = String.valueOf(navUserIdObj).replaceAll("\\D+", "");
@@ -20,848 +21,896 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>EventHorizon – Book Your Experience</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+
+    <!-- style.css is intentionally NOT linked on this page -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        :root {
-            --bg:           #F6F7F9;
-            --bg-card:      #FFFFFF;
-            --bg-silver:    #EEF0F4;
-            --midnight:     #181C2E;
-            --midnight-80:  rgba(24,28,46,0.80);
-            --midnight-08:  rgba(24,28,46,0.08);
-            --midnight-06:  rgba(24,28,46,0.06);
-            --silver:       #8A96A8;
-            --silver-light: #C8CDD6;
-            --silver-pale:  #F0F2F5;
-            --text:         #181C2E;
-            --text-sub:     #4A5368;
-            --text-muted:   #8A96A8;
-            --border:       rgba(24,28,46,0.10);
-            --border-mid:   rgba(24,28,46,0.16);
-            --shadow-sm:    0 1px 3px rgba(24,28,46,0.07), 0 4px 12px rgba(24,28,46,0.05);
-            --shadow-md:    0 4px 20px rgba(24,28,46,0.10), 0 1px 4px rgba(24,28,46,0.06);
-            --shadow-lg:    0 12px 40px rgba(24,28,46,0.14), 0 2px 8px rgba(24,28,46,0.07);
-            --radius-sm:    8px;
-            --radius-md:    12px;
-            --radius-lg:    18px;
-            --radius-xl:    24px;
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
-        html { scroll-behavior: smooth; }
+        :root {
+            --linen: #FAF8F4;
+            --linen-deep: #F1EBDD;
+            --paper: #FFFFFF;
+            --paper-soft: rgba(255, 255, 255, 0.88);
+
+            --forest: #1E4A3A;
+            --forest-dark: #123528;
+            --forest-soft: #E8F1EC;
+            --forest-glass: rgba(30, 74, 58, 0.14);
+
+            --sage: #72887A;
+            --olive: #50685C;
+            --clay: #B08D65;
+            --sand: #E5D8C2;
+
+            --text: #18251F;
+            --text-soft: #52635A;
+            --muted: #7C8A82;
+
+            --border: rgba(30, 74, 58, 0.14);
+            --border-strong: rgba(30, 74, 58, 0.24);
+
+            --shadow-soft: 0 18px 50px rgba(24, 37, 31, 0.09);
+            --shadow-premium: 0 30px 90px rgba(24, 37, 31, 0.16);
+
+            --radius-sm: 12px;
+            --radius-md: 18px;
+            --radius-lg: 26px;
+            --radius-xl: 34px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
 
         body {
             font-family: 'Inter', sans-serif;
-            background: var(--bg);
+            background:
+                radial-gradient(circle at top left, rgba(30, 74, 58, 0.08), transparent 32%),
+                radial-gradient(circle at top right, rgba(176, 141, 101, 0.10), transparent 30%),
+                linear-gradient(180deg, #ffffff 0%, var(--linen) 48%, #F7F3EA 100%);
             color: var(--text);
+            overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             line-height: 1.6;
         }
 
-        /* ━━━━━━━━━━━━━━━━ NAVBAR ━━━━━━━━━━━━━━━━ */
-        .navbar {
+        a {
+            text-decoration: none;
+        }
+
+        .eh-container {
+            width: min(92%, 1240px);
+            margin: 0 auto;
+        }
+
+        /* ================= NAVBAR ================= */
+
+        .eh-navbar {
             position: sticky;
             top: 0;
             z-index: 1000;
-            background: rgba(246, 247, 249, 0.94);
+            width: 100%;
+            background: rgba(250, 248, 244, 0.94);
             border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            box-shadow: 0 10px 28px rgba(24, 37, 31, 0.05);
         }
 
-        .navbar-inner {
-            width: min(96%, 1380px);
+        .eh-navbar-inner {
+            width: min(92%, 1240px);
+            min-height: 76px;
             margin: 0 auto;
-            height: 64px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            gap: 18px;
         }
 
-        .brand {
+        .eh-brand {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
-
-        .brand-mark {
-            width: 34px;
-            height: 34px;
-            border-radius: var(--radius-sm);
-            background: var(--midnight);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 0.85rem;
-            flex-shrink: 0;
-        }
-
-        .brand-name {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1.12rem;
-            color: var(--midnight);
+            gap: 12px;
+            color: var(--forest-dark);
+            font-weight: 900;
             letter-spacing: 1.8px;
             text-transform: uppercase;
         }
 
-        .nav-links {
+        .eh-brand-mark {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--forest), var(--forest-dark));
+            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24);
+        }
+
+        .eh-brand-text {
+            font-size: 1.08rem;
+        }
+
+        .eh-nav-links {
             list-style: none;
             display: flex;
             align-items: center;
-            gap: 2px;
-            flex-wrap: wrap;
             justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .nav-links li { list-style: none; }
-
-        .nav-link {
+        .eh-nav-link,
+        .eh-nav-bell,
+        .eh-nav-btn,
+        .eh-nav-btn-outline {
+            min-height: 42px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 7px 13px;
-            border-radius: var(--radius-sm);
-            text-decoration: none;
-            font-size: 0.865rem;
-            font-weight: 500;
-            color: var(--text-sub);
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 15px;
+            border-radius: 13px;
             border: 1px solid transparent;
-            transition: all 0.16s ease;
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--text-soft);
+            transition: 0.22s ease;
             white-space: nowrap;
         }
 
-        .nav-link:hover {
-            color: var(--midnight);
-            background: var(--midnight-06);
+        .eh-nav-link:hover,
+        .eh-nav-link.active {
+            color: var(--forest);
+            background: var(--forest-soft);
             border-color: var(--border);
         }
 
-        .nav-link.active {
-            color: var(--midnight);
-            background: var(--midnight-08);
-            border-color: var(--border-mid);
-            font-weight: 600;
-        }
-
-        .nav-bell {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+        .eh-nav-bell {
             position: relative;
-            width: 36px;
-            height: 36px;
-            border-radius: var(--radius-sm);
-            color: var(--text-sub);
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            text-decoration: none;
-            transition: all 0.16s ease;
+            width: 44px;
+            padding: 0;
+            background: rgba(255, 255, 255, 0.82);
+            border-color: var(--border);
+            box-shadow: 0 8px 18px rgba(24, 37, 31, 0.05);
         }
 
-        .nav-bell:hover {
-            color: var(--midnight);
-            border-color: var(--border-mid);
-            background: var(--silver-pale);
+        .eh-nav-bell:hover {
+            color: var(--forest);
+            background: var(--forest-soft);
+            border-color: var(--border-strong);
         }
 
-        .bell-badge {
+        .eh-bell-badge {
             position: absolute;
-            top: -5px; right: -5px;
-            min-width: 16px; height: 16px;
-            padding: 0 4px;
+            top: -7px;
+            right: -7px;
+            min-width: 19px;
+            height: 19px;
+            padding: 0 6px;
             border-radius: 999px;
-            background: #E04040;
-            color: #fff;
-            font-size: 0.60rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav-btn {
+            background: linear-gradient(135deg, #D94B32, #F08A4C);
+            color: #ffffff;
+            font-size: 0.64rem;
+            font-weight: 900;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
-            padding: 8px 18px;
-            border-radius: var(--radius-sm);
-            text-decoration: none;
-            font-size: 0.865rem;
-            font-weight: 600;
-            white-space: nowrap;
-            transition: all 0.18s ease;
-            border: 1.5px solid transparent;
-            font-family: 'Inter', sans-serif;
+            justify-content: center;
+            box-shadow: 0 8px 18px rgba(217, 75, 50, 0.30);
         }
 
-        .nav-btn-dark {
-            background: var(--midnight);
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(24,28,46,0.22);
+        .eh-nav-btn {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--forest), var(--forest-dark));
+            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24);
         }
 
-        .nav-btn-dark:hover {
-            background: #252A40;
+        .eh-nav-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 8px 20px rgba(24,28,46,0.28);
+            box-shadow: 0 18px 42px rgba(30, 74, 58, 0.30);
         }
 
-        .nav-btn-outline {
-            color: var(--midnight);
-            border-color: var(--border-mid);
-            background: var(--bg-card);
+        .eh-nav-btn-outline {
+            color: var(--forest);
+            background: rgba(255, 255, 255, 0.86);
+            border-color: var(--border-strong);
         }
 
-        .nav-btn-outline:hover {
-            background: var(--silver-pale);
-            border-color: var(--silver);
+        .eh-nav-btn-outline:hover {
+            background: var(--forest-soft);
+            border-color: rgba(30, 74, 58, 0.34);
         }
 
-        /* ━━━━━━━━━━━━━━━━ HERO ━━━━━━━━━━━━━━━━ */
-        .hero {
+        /* ================= HERO ================= */
+
+        .eh-hero {
             position: relative;
-            min-height: 90vh;
+            min-height: calc(100vh - 76px);
             display: flex;
             align-items: center;
             overflow: hidden;
+            isolation: isolate;
+            background: var(--linen);
         }
 
-        .hero-img {
+        .eh-hero-bg {
             position: absolute;
             inset: 0;
-            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=90");
+            z-index: -4;
+            background-image: url("https://images.unsplash.com/photo-1540039155733-5bb30b53aa14?auto=format&fit=crop&w=1920&q=95");
             background-size: cover;
-            background-position: center 35%;
-            z-index: 0;
+            background-position: center 36%;
+            filter: brightness(0.86) contrast(1.08) saturate(1.05);
+            transform: scale(1.01);
         }
 
-        /* Light silver-left scrim — keeps right image visible */
-        .hero-img::after {
-            content: '';
+        .eh-hero-overlay {
             position: absolute;
             inset: 0;
-            background: linear-gradient(
-                100deg,
-                rgba(246,247,249,0.52) 0%,
-                rgba(246,247,249,0.12) 50%,
-                rgba(246,247,249,0.00) 100%
-            );
+            z-index: -3;
+            background:
+                radial-gradient(circle at center, rgba(250, 248, 244, 0.70) 0%, rgba(250, 248, 244, 0.34) 33%, rgba(30, 74, 58, 0.14) 100%),
+                linear-gradient(
+                    90deg,
+                    rgba(250, 248, 244, 0.70) 0%,
+                    rgba(250, 248, 244, 0.42) 38%,
+                    rgba(250, 248, 244, 0.14) 68%,
+                    rgba(18, 53, 40, 0.16) 100%
+                );
         }
 
-        .hero-wrap {
-            position: relative;
-            z-index: 2;
-            width: min(96%, 1380px);
+        .eh-hero::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 155px;
+            z-index: -2;
+            background: linear-gradient(180deg, transparent, var(--linen));
+        }
+
+        .eh-hero-inner {
+            width: min(92%, 1240px);
             margin: 0 auto;
-            padding: 80px 0 120px;
+            padding: 82px 0 132px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* Crisp white card — midnight border, sharp shadow */
-        .hero-card {
-            background: rgba(255, 255, 255, 0.96);
-            border: 1.5px solid var(--midnight);
-            border-radius: var(--radius-xl);
-            padding: 56px 60px;
-            max-width: 600px;
-            width: 100%;
+        .eh-hero-content {
+            width: min(100%, 900px);
             text-align: center;
-            box-shadow:
-                6px 6px 0px var(--midnight),
-                0 20px 60px rgba(24,28,46,0.18);
+            padding: 0 14px;
         }
 
-        .hero-tag {
+        .eh-eyebrow {
+            width: fit-content;
+            margin: 0 auto 26px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            background: var(--silver-pale);
-            border: 1px solid var(--border-mid);
+            gap: 10px;
+            padding: 10px 18px 10px 11px;
             border-radius: 999px;
-            padding: 5px 14px;
-            margin-bottom: 28px;
-        }
-
-        .hero-tag-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: var(--midnight);
-            flex-shrink: 0;
-        }
-
-        .hero-tag span {
-            font-size: 0.71rem;
-            font-weight: 600;
+            background: rgba(250, 248, 244, 0.82);
+            border: 1px solid rgba(30, 74, 58, 0.20);
+            color: var(--forest);
+            font-size: 0.74rem;
+            font-weight: 900;
             letter-spacing: 1.6px;
             text-transform: uppercase;
-            color: var(--text-sub);
+            box-shadow: 0 12px 28px rgba(24, 37, 31, 0.08);
+            backdrop-filter: blur(8px);
         }
 
-        .hero-heading {
-            font-family: 'Syne', sans-serif;
-            font-size: clamp(2.4rem, 5vw, 4rem);
-            font-weight: 800;
-            line-height: 1.06;
-            color: var(--midnight);
-            margin-bottom: 20px;
-            letter-spacing: -1px;
+        .eh-eyebrow-dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 999px;
+            background: var(--forest);
+            box-shadow: 0 0 0 4px rgba(30, 74, 58, 0.16);
         }
 
-        .hero-heading mark {
-            background: none;
-            color: var(--silver);
-            position: relative;
+        .eh-hero-title {
+            font-family: 'Fraunces', serif !important;
+            width: min(100%, 940px);
+            margin: 0 auto 24px !important;
+            color: var(--forest-dark) !important;
+            font-size: clamp(3.25rem, 7.4vw, 7.4rem) !important;
+            line-height: 0.92 !important;
+            letter-spacing: -4px !important;
+            font-weight: 900 !important;
+            text-align: center;
+            text-wrap: balance;
+            text-shadow:
+                0 2px 0 rgba(250,248,244,0.68),
+                0 18px 46px rgba(250,248,244,0.72);
         }
 
-        .hero-sub {
-            font-size: 1rem;
-            font-weight: 400;
-            color: var(--text-sub);
-            line-height: 1.75;
-            margin-bottom: 38px;
-            max-width: 460px;
-            margin-left: auto;
-            margin-right: auto;
+        .eh-hero-title span {
+            display: block;
         }
 
-        .hero-btns {
+        .eh-hero-title em {
+            display: block;
+            font-style: normal !important;
+            color: var(--forest) !important;
+            opacity: 0.92;
+        }
+
+        .eh-hero-subtitle {
+            max-width: 650px;
+            margin: 0 auto 40px !important;
+            color: #2F4B3F !important;
+            font-size: 1.12rem !important;
+            font-weight: 750 !important;
+            line-height: 1.78 !important;
+            text-align: center;
+            text-shadow:
+                0 1px 0 rgba(250,248,244,0.90),
+                0 12px 32px rgba(250,248,244,0.66);
+        }
+
+        .eh-hero-actions {
             display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
+            align-items: center;
             justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
 
-        .btn-midnight {
+        .eh-btn {
+            min-height: 60px;
             display: inline-flex;
             align-items: center;
-            gap: 9px;
-            padding: 13px 28px;
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            background: var(--midnight);
-            color: #fff;
-            border: 1.5px solid var(--midnight);
-            box-shadow: 0 4px 16px rgba(24,28,46,0.22);
-            transition: all 0.20s ease;
-            font-family: 'Inter', sans-serif;
+            justify-content: center;
+            gap: 11px;
+            padding: 17px 34px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 900;
+            transition: 0.24s ease;
+            border: 1px solid transparent;
+            box-shadow: 0 16px 36px rgba(24, 37, 31, 0.13);
         }
 
-        .btn-midnight:hover {
-            background: #252A40;
+        .eh-btn-primary {
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--forest), var(--forest-dark));
+            box-shadow: 0 18px 42px rgba(30, 74, 58, 0.30);
+        }
+
+        .eh-btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 28px rgba(24,28,46,0.28);
+            box-shadow: 0 24px 54px rgba(30, 74, 58, 0.38);
         }
 
-        .btn-ghost {
-            display: inline-flex;
-            align-items: center;
-            gap: 9px;
-            padding: 12px 26px;
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            border: 1.5px solid var(--border-mid);
-            color: var(--midnight);
-            background: transparent;
-            transition: all 0.20s ease;
-            font-family: 'Inter', sans-serif;
+        .eh-btn-secondary {
+            color: var(--forest);
+            background: rgba(250, 248, 244, 0.92);
+            border-color: rgba(30, 74, 58, 0.22);
+            backdrop-filter: blur(8px);
         }
 
-        .btn-ghost:hover {
-            background: var(--silver-pale);
-            border-color: var(--silver);
+        .eh-btn-secondary:hover {
+            background: var(--forest-soft);
+            border-color: rgba(30, 74, 58, 0.36);
+            transform: translateY(-2px);
         }
 
-        /* ━━━━━━━━━━━━━━━━ STATS ━━━━━━━━━━━━━━━━ */
-        .stats-wrap {
+        /* ================= STATS ================= */
+
+        .eh-stats {
             position: relative;
-            z-index: 3;
-            width: min(96%, 1380px);
-            margin: -44px auto 0;
-        }
-
-        .stats-grid {
+            z-index: 5;
+            width: min(92%, 1240px);
+            margin: -76px auto 0;
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            border-radius: var(--radius-lg);
             overflow: hidden;
+            border-radius: 24px;
+            background: rgba(30, 74, 58, 0.12);
             border: 1px solid var(--border);
-            box-shadow: var(--shadow-lg);
-            background: var(--bg-card);
+            box-shadow: var(--shadow-premium);
         }
 
-        .stat-item {
-            padding: 32px 36px;
+        .eh-stat {
+            padding: 34px 28px;
             text-align: center;
-            border-right: 1px solid var(--border);
-            transition: background 0.18s ease;
+            background: rgba(255, 255, 255, 0.96);
+            border-right: 1px solid rgba(30, 74, 58, 0.12);
         }
 
-        .stat-item:last-child { border-right: none; }
-        .stat-item:hover { background: var(--silver-pale); }
+        .eh-stat:last-child {
+            border-right: none;
+        }
 
-        .stat-num {
-            font-family: 'Syne', sans-serif;
-            font-size: 2.6rem;
-            font-weight: 800;
-            color: var(--midnight);
+        .eh-stat-number {
+            font-family: 'Fraunces', serif;
+            color: var(--forest);
+            font-size: 3rem;
             line-height: 1;
-            margin-bottom: 6px;
-            letter-spacing: -1px;
+            font-weight: 900;
+            margin-bottom: 8px;
         }
 
-        .stat-label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--text-muted);
+        .eh-stat-label {
+            color: var(--muted);
+            font-size: 0.76rem;
+            font-weight: 900;
+            letter-spacing: 1.5px;
             text-transform: uppercase;
-            letter-spacing: 1.4px;
         }
 
-        /* ━━━━━━━━━━━━━━━━ FEATURES ━━━━━━━━━━━━━━━━ */
-        .features-section {
-            padding: 120px 0 80px;
+        /* ================= FEATURES ================= */
+
+        .eh-features {
+            padding: 126px 0 90px;
+            background:
+                radial-gradient(circle at top left, rgba(30, 74, 58, 0.07), transparent 30%),
+                radial-gradient(circle at bottom right, rgba(176, 141, 101, 0.10), transparent 32%),
+                linear-gradient(180deg, var(--linen), #F6F1E8);
         }
 
-        .container {
-            width: min(96%, 1380px);
-            margin: 0 auto;
+        .eh-section-header {
+            max-width: 760px;
+            margin: 0 auto 60px;
+            text-align: center;
         }
 
-        .sec-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .eh-section-label {
+            display: inline-block;
+            margin-bottom: 14px;
+            color: var(--forest);
+            font-size: 0.74rem;
+            font-weight: 900;
+            letter-spacing: 2.2px;
+            text-transform: uppercase;
+        }
+
+        .eh-section-title {
+            font-family: 'Fraunces', serif;
+            color: var(--forest-dark);
+            font-size: clamp(2.4rem, 4vw, 3.8rem);
+            font-weight: 900;
+            line-height: 1.05;
+            letter-spacing: -1.4px;
             margin-bottom: 16px;
         }
 
-        .sec-eyebrow-line {
-            width: 24px;
-            height: 2px;
-            background: var(--silver);
-            border-radius: 2px;
+        .eh-section-title em {
+            color: var(--forest);
+            font-style: italic;
         }
 
-        .sec-eyebrow span {
-            font-size: 0.72rem;
-            font-weight: 600;
-            letter-spacing: 2.2px;
-            text-transform: uppercase;
-            color: var(--silver);
+        .eh-section-subtitle {
+            color: var(--text-soft);
+            font-size: 1rem;
+            font-weight: 650;
+            line-height: 1.75;
         }
 
-        .sec-title {
-            font-family: 'Syne', sans-serif;
-            font-size: clamp(1.9rem, 3.5vw, 2.8rem);
-            font-weight: 800;
-            color: var(--midnight);
-            line-height: 1.12;
-            margin-bottom: 14px;
-            letter-spacing: -0.5px;
-        }
-
-        .sec-title mark {
-            background: none;
-            color: var(--silver);
-        }
-
-        .sec-sub {
-            font-size: 0.975rem;
-            color: var(--text-sub);
-            line-height: 1.72;
-            max-width: 460px;
-        }
-
-        .section-header { margin-bottom: 56px; }
-
-        .features-grid {
+        .eh-feature-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
+            gap: 22px;
         }
 
-        .feat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 36px 28px;
+        .eh-feature-card {
             position: relative;
+            min-height: 235px;
+            padding: 34px 28px;
+            border-radius: 24px;
+            background: rgba(255, 255, 255, 0.96);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-soft);
+            transition: 0.28s ease;
             overflow: hidden;
-            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
         }
 
-        .feat-card::before {
-            content: '';
+        .eh-feature-card::before {
+            content: "";
             position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 2px;
-            background: var(--midnight);
+            inset: 0 0 auto 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--forest), var(--sage));
             transform: scaleX(0);
             transform-origin: left;
-            transition: transform 0.28s ease;
+            transition: 0.28s ease;
         }
 
-        .feat-card:hover {
-            transform: translateY(-6px);
-            box-shadow: var(--shadow-lg);
-            border-color: var(--border-mid);
+        .eh-feature-card:hover {
+            transform: translateY(-7px);
+            border-color: rgba(30, 74, 58, 0.26);
+            box-shadow: 0 24px 70px rgba(24, 37, 31, 0.13);
         }
 
-        .feat-card:hover::before { transform: scaleX(1); }
+        .eh-feature-card:hover::before {
+            transform: scaleX(1);
+        }
 
-        .feat-icon {
-            width: 48px; height: 48px;
-            border-radius: var(--radius-md);
-            background: var(--bg-silver);
-            border: 1px solid var(--border);
+        .eh-feature-icon {
+            width: 58px;
+            height: 58px;
+            margin-bottom: 22px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            color: var(--midnight);
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--forest-soft), #ffffff);
+            border: 1px solid var(--border);
+            color: var(--forest);
+            font-size: 1.35rem;
         }
 
-        .feat-card h3 {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.08rem;
-            font-weight: 700;
-            color: var(--midnight);
+        .eh-feature-card h3 {
             margin-bottom: 10px;
-            letter-spacing: -0.2px;
+            color: var(--forest-dark);
+            font-size: 1.16rem;
+            font-weight: 900;
+            letter-spacing: -0.4px;
         }
 
-        .feat-card p {
-            font-size: 0.875rem;
-            color: var(--text-sub);
-            line-height: 1.70;
+        .eh-feature-card p {
+            color: var(--muted);
+            font-size: 0.92rem;
+            font-weight: 650;
+            line-height: 1.72;
         }
 
-        /* ━━━━━━━━━━━━━━━━ CTA ━━━━━━━━━━━━━━━━ */
-        .cta-section { padding: 0 0 110px; }
+        /* ================= CTA ================= */
 
-        .cta-box {
-            border-radius: var(--radius-xl);
-            overflow: hidden;
+        .eh-cta-section {
+            padding: 0 0 112px;
+            background: #F6F1E8;
+        }
+
+        .eh-cta-box {
             position: relative;
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            box-shadow: 8px 8px 0px var(--midnight), var(--shadow-lg);
-            border: 1.5px solid var(--midnight);
-        }
-
-        .cta-bg {
-            position: absolute;
-            inset: 0;
-            background-image: url("https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&w=1400&q=90");
+            overflow: hidden;
+            padding: 82px 46px;
+            border-radius: 32px;
+            text-align: center;
+            background:
+                linear-gradient(135deg, rgba(250, 248, 244, 0.90), rgba(232, 241, 236, 0.82)),
+                url("https://images.unsplash.com/photo-1505373877841-8d25f7d46678?auto=format&fit=crop&w=1300&q=90");
             background-size: cover;
-            background-position: center 45%;
-            z-index: 0;
+            background-position: center;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-premium);
         }
 
-        .cta-bg::after {
-            content: '';
+        .eh-cta-box::before {
+            content: "";
             position: absolute;
             inset: 0;
-            background: linear-gradient(
-                100deg,
-                rgba(24,28,46,0.90) 0%,
-                rgba(24,28,46,0.72) 55%,
-                rgba(24,28,46,0.35) 100%
-            );
+            background:
+                linear-gradient(135deg, rgba(250,248,244,0.88), rgba(232,241,236,0.72)),
+                radial-gradient(circle at top, rgba(30, 74, 58, 0.12), transparent 34%);
         }
 
-        .cta-inner {
+        .eh-cta-content {
             position: relative;
             z-index: 2;
-            padding: 76px 76px;
-            max-width: 660px;
         }
 
-        .cta-eyebrow {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 20px;
-        }
-
-        .cta-eyebrow-line {
-            width: 20px;
-            height: 2px;
-            background: var(--silver-light);
-            border-radius: 2px;
-        }
-
-        .cta-eyebrow span {
-            font-size: 0.71rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--silver-light);
-        }
-
-        .cta-inner h2 {
-            font-family: 'Syne', sans-serif;
-            font-size: clamp(1.9rem, 3.2vw, 2.9rem);
-            font-weight: 800;
-            color: #FFFFFF;
-            line-height: 1.12;
+        .eh-cta-label {
+            display: inline-block;
             margin-bottom: 16px;
-            letter-spacing: -0.5px;
-        }
-
-        .cta-inner h2 mark {
-            background: none;
-            color: var(--silver-light);
-        }
-
-        .cta-inner p {
-            font-size: 1rem;
-            color: rgba(255,255,255,0.65);
-            line-height: 1.72;
-            margin-bottom: 38px;
-            max-width: 460px;
-        }
-
-        .btn-cta {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 32px;
-            border-radius: var(--radius-sm);
-            font-size: 0.9rem;
-            font-weight: 600;
-            text-decoration: none;
-            background: #FFFFFF;
-            color: var(--midnight);
-            border: 1.5px solid #FFFFFF;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.20);
-            transition: all 0.20s ease;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .btn-cta:hover {
-            background: var(--silver-pale);
-            transform: translateY(-2px);
-            box-shadow: 0 10px 32px rgba(0,0,0,0.28);
-        }
-
-        /* ━━━━━━━━━━━━━━━━ FOOTER ━━━━━━━━━━━━━━━━ */
-        .footer {
-            background: var(--midnight);
-            color: rgba(255,255,255,0.65);
-        }
-
-        .footer-main {
-            width: min(96%, 1380px);
-            margin: 0 auto;
-            padding: 76px 0 60px;
-            display: grid;
-            grid-template-columns: 1.8fr 1fr 1fr 1fr;
-            gap: 56px;
-        }
-
-        .footer-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .footer-brand-mark {
-            width: 30px; height: 30px;
-            border-radius: 7px;
-            background: rgba(255,255,255,0.12);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 0.8rem;
-        }
-
-        .footer-brand-name {
-            font-family: 'Syne', sans-serif;
-            font-weight: 700;
-            font-size: 1rem;
-            color: #fff;
-            letter-spacing: 1.8px;
-            text-transform: uppercase;
-        }
-
-        .footer-desc {
-            font-size: 0.875rem;
-            color: rgba(255,255,255,0.42);
-            line-height: 1.78;
-            max-width: 260px;
-        }
-
-        .footer-col h4 {
-            font-family: 'Syne', sans-serif;
-            font-size: 0.68rem;
-            font-weight: 700;
+            color: var(--forest);
+            font-size: 0.74rem;
+            font-weight: 900;
             letter-spacing: 2.2px;
             text-transform: uppercase;
-            color: rgba(255,255,255,0.35);
-            margin-bottom: 20px;
         }
 
-        .footer-col ul {
+        .eh-cta-box h2 {
+            font-family: 'Fraunces', serif;
+            color: var(--forest-dark);
+            font-size: clamp(2.4rem, 4vw, 3.5rem);
+            font-weight: 900;
+            line-height: 1.08;
+            letter-spacing: -1.2px;
+            margin-bottom: 16px;
+        }
+
+        .eh-cta-box h2 em {
+            color: var(--forest);
+            font-style: italic;
+        }
+
+        .eh-cta-box p {
+            max-width: 560px;
+            margin: 0 auto 34px;
+            color: #2F4B3F;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.75;
+        }
+
+        /* ================= FOOTER ================= */
+
+        .eh-footer {
+            background: var(--linen);
+            color: var(--muted);
+            border-top: 1px solid var(--border);
+        }
+
+        .eh-footer-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+            gap: 48px;
+            padding: 70px 0 56px;
+        }
+
+        .eh-footer-logo {
+            margin-bottom: 18px;
+            color: var(--forest-dark);
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+        }
+
+        .eh-footer-logo span {
+            color: var(--forest);
+        }
+
+        .eh-footer-text {
+            max-width: 320px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 550;
+            line-height: 1.8;
+        }
+
+        .eh-footer-col h4 {
+            margin-bottom: 20px;
+            color: var(--forest-dark);
+            font-size: 0.74rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .eh-footer-col ul {
             list-style: none;
             display: flex;
             flex-direction: column;
             gap: 11px;
         }
 
-        .footer-col ul li a {
-            font-size: 0.875rem;
-            color: rgba(255,255,255,0.52);
-            text-decoration: none;
-            transition: color 0.16s ease;
+        .eh-footer-col ul li a {
+            color: var(--muted);
+            font-size: 0.9rem;
+            font-weight: 650;
+            transition: 0.2s ease;
         }
 
-        .footer-col ul li a:hover { color: #fff; }
-
-        .footer-bottom {
-            border-top: 1px solid rgba(255,255,255,0.08);
+        .eh-footer-col ul li a:hover {
+            color: var(--forest);
         }
 
-        .footer-bottom-inner {
-            width: min(96%, 1380px);
-            margin: 0 auto;
-            padding: 22px 0;
+        .eh-footer-bottom {
+            border-top: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.52);
+        }
+
+        .eh-footer-bottom-inner {
+            min-height: 62px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 0.78rem;
-            color: rgba(255,255,255,0.28);
+            gap: 18px;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 650;
         }
 
-        /* ━━━━━━━━━━━━━━━━ RESPONSIVE ━━━━━━━━━━━━━━━━ */
+        /* ================= RESPONSIVE ================= */
+
         @media (max-width: 1100px) {
-            .features-grid { grid-template-columns: repeat(2, 1fr); }
-            .footer-main { grid-template-columns: 1fr 1fr; gap: 36px; }
+            .eh-feature-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .eh-footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
 
         @media (max-width: 768px) {
-            .navbar-inner { height: auto; padding: 14px 0; flex-direction: column; align-items: stretch; }
-            .brand { justify-content: center; }
-            .nav-links { justify-content: center; }
+            .eh-navbar-inner {
+                min-height: auto;
+                padding: 14px 0;
+                flex-direction: column;
+                justify-content: center;
+            }
 
-            .hero { min-height: auto; }
-            .hero-wrap { padding: 40px 0 120px; }
-            .hero-card { padding: 36px 24px; }
-            .hero-heading { font-size: 2.2rem; }
-            .hero-btns { flex-direction: column; align-items: center; }
+            .eh-brand {
+                justify-content: center;
+            }
 
-            .stats-wrap { margin-top: -24px; }
-            .stats-grid { grid-template-columns: 1fr; border-radius: var(--radius-md); }
-            .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
-            .stat-item:last-child { border-bottom: none; }
+            .eh-nav-links {
+                justify-content: center;
+            }
 
-            .features-section { padding: 80px 0 56px; }
-            .features-grid { grid-template-columns: 1fr; }
+            .eh-hero {
+                min-height: auto;
+            }
 
-            .cta-inner { padding: 48px 28px; }
-            .cta-inner p { max-width: 100%; }
+            .eh-hero-inner {
+                padding: 64px 0 116px;
+            }
 
-            .footer-main { grid-template-columns: 1fr; gap: 32px; padding: 52px 0 40px; }
-            .footer-bottom-inner { flex-direction: column; gap: 8px; text-align: center; }
+            .eh-hero-title {
+                font-size: clamp(3rem, 15vw, 4.8rem) !important;
+                letter-spacing: -2px !important;
+            }
+
+            .eh-hero-subtitle {
+                font-size: 1rem !important;
+            }
+
+            .eh-stats {
+                grid-template-columns: 1fr;
+                margin-top: -54px;
+            }
+
+            .eh-stat {
+                border-right: none;
+                border-bottom: 1px solid rgba(30, 74, 58, 0.12);
+            }
+
+            .eh-stat:last-child {
+                border-bottom: none;
+            }
+
+            .eh-features {
+                padding-top: 100px;
+            }
+
+            .eh-feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .eh-footer-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .eh-footer-bottom-inner {
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                padding: 18px 0;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .eh-nav-link span,
+            .eh-nav-btn span,
+            .eh-nav-btn-outline span {
+                display: none;
+            }
+
+            .eh-nav-link,
+            .eh-nav-btn,
+            .eh-nav-btn-outline {
+                width: 42px;
+                padding: 0;
+            }
+
+            .eh-hero-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .eh-btn {
+                width: 100%;
+                min-height: 58px;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<!-- ══════════════════════ NAVBAR ══════════════════════ -->
-<nav class="navbar">
-    <div class="navbar-inner">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="brand">
-            <span class="brand-mark"><i class="fa-regular fa-hexagon"></i></span>
-            <span class="brand-name">EventHorizon</span>
+<nav class="eh-navbar">
+    <div class="eh-navbar-inner">
+        <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
+            <span class="eh-brand-mark">
+                <i class="fa-solid fa-leaf"></i>
+            </span>
+            <span class="eh-brand-text">EVENTHORIZON</span>
         </a>
 
-        <ul class="nav-links">
+        <ul class="eh-nav-links">
             <li>
-                <a href="${pageContext.request.contextPath}/index.jsp" class="nav-link active">
-                    <i class="fa-solid fa-house"></i> Home
+                <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link active">
+                    <i class="fa-solid fa-house"></i><span>Home</span>
                 </a>
             </li>
+
             <li>
-                <a href="${pageContext.request.contextPath}/event?action=list" class="nav-link">
-                    <i class="fa-solid fa-calendar-days"></i> Events
+                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
+                    <i class="fa-solid fa-calendar-days"></i><span>Events</span>
                 </a>
             </li>
 
             <c:choose>
                 <c:when test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
                     <li>
-                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="nav-link">
-                            <i class="fa-solid fa-ticket"></i> My Bookings
+                        <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
+                            <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="nav-bell" title="Notifications">
+                        <a href="${pageContext.request.contextPath}/IssueServlet?action=myIssues" class="eh-nav-bell" title="Issue notifications">
                             <i class="fa-regular fa-bell"></i>
                             <% if (navIssueCount > 0) { %>
-                                <span class="bell-badge"><%= navIssueCount %></span>
+                                <span class="eh-bell-badge"><%= navIssueCount %></span>
                             <% } %>
                         </a>
                     </li>
+
                     <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="nav-link">
-                            <i class="fa-regular fa-user"></i> Profile
+                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                            <i class="fa-regular fa-user"></i><span>Profile</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="nav-btn nav-btn-dark">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
                         </a>
                     </li>
                 </c:when>
 
                 <c:when test="${not empty sessionScope.userId and sessionScope.role == 'ADMIN'}">
                     <li>
-                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="nav-link">
-                            <i class="fa-solid fa-gauge-high"></i> Dashboard
+                        <a href="${pageContext.request.contextPath}/admin/dashboard.jsp" class="eh-nav-link">
+                            <i class="fa-solid fa-gauge-high"></i><span>Dashboard</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="${pageContext.request.contextPath}/profile.jsp" class="nav-link">
-                            <i class="fa-regular fa-user"></i> Profile
+                        <a href="${pageContext.request.contextPath}/profile.jsp" class="eh-nav-link">
+                            <i class="fa-regular fa-user"></i><span>Profile</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="${pageContext.request.contextPath}/user?action=logout" class="nav-btn nav-btn-dark">
-                            <i class="fa-solid fa-right-from-bracket"></i> Logout
+                        <a href="${pageContext.request.contextPath}/user?action=logout" class="eh-nav-btn">
+                            <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
                         </a>
                     </li>
                 </c:when>
 
                 <c:otherwise>
                     <li>
-                        <a href="${pageContext.request.contextPath}/login.jsp" class="nav-link">
-                            <i class="fa-solid fa-right-to-bracket"></i> Login
+                        <a href="${pageContext.request.contextPath}/login.jsp" class="eh-nav-link">
+                            <i class="fa-solid fa-right-to-bracket"></i><span>Login</span>
                         </a>
                     </li>
+
                     <li>
-                        <a href="${pageContext.request.contextPath}/register.jsp" class="nav-btn nav-btn-outline">
-                            <i class="fa-solid fa-user-plus"></i> Register
+                        <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
+                            <i class="fa-solid fa-user-plus"></i><span>Register</span>
                         </a>
                     </li>
                 </c:otherwise>
@@ -870,32 +919,40 @@
     </div>
 </nav>
 
-<!-- ══════════════════════ HERO ══════════════════════ -->
-<section class="hero">
-    <div class="hero-img"></div>
+<section class="eh-hero">
+    <div class="eh-hero-bg"></div>
+    <div class="eh-hero-overlay"></div>
 
-    <div class="hero-wrap">
-        <div class="hero-card">
-            <h1 class="hero-heading">
-                Experience the<br><mark>Extraordinary</mark>
+    <div class="eh-hero-inner">
+        <div class="eh-hero-content">
+            <div class="eh-eyebrow">
+                <span class="eh-eyebrow-dot"></span>
+                <span>Premium Event Booking Platform</span>
+            </div>
+
+            <h1 class="eh-hero-title">
+                <span>Experience the</span>
+                <em>Extraordinary</em>
             </h1>
 
-            <p class="hero-sub">
+            <p class="eh-hero-subtitle">
                 Discover concerts, sports events, tech summits and cultural shows.
                 Book your tickets in seconds with a seamless and secure experience.
             </p>
 
-            <div class="hero-btns">
-                <a href="${pageContext.request.contextPath}/event?action=list" class="btn-midnight">
+            <div class="eh-hero-actions">
+                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-btn eh-btn-primary">
                     <i class="fa-solid fa-ticket"></i> Browse Events
                 </a>
+
                 <c:if test="${empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/register.jsp" class="btn-ghost">
+                    <a href="${pageContext.request.contextPath}/register.jsp" class="eh-btn eh-btn-secondary">
                         <i class="fa-solid fa-user-plus"></i> Create Account
                     </a>
                 </c:if>
+
                 <c:if test="${not empty sessionScope.userId}">
-                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="btn-ghost">
+                    <a href="${pageContext.request.contextPath}/IssueServlet?action=report" class="eh-btn eh-btn-secondary">
                         <i class="fa-regular fa-flag"></i> Report an Issue
                     </a>
                 </c:if>
@@ -904,54 +961,62 @@
     </div>
 </section>
 
-<!-- ══════════════════════ STATS ══════════════════════ -->
-<div class="stats-wrap">
-    <div class="stats-grid">
-        <div class="stat-item">
-            <div class="stat-num">500+</div>
-            <div class="stat-label">Live Events</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-num">80K+</div>
-            <div class="stat-label">Tickets Sold</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-num">4.9 ★</div>
-            <div class="stat-label">User Rating</div>
-        </div>
+<section class="eh-stats">
+    <div class="eh-stat">
+        <div class="eh-stat-number">500+</div>
+        <div class="eh-stat-label">Live Events</div>
     </div>
-</div>
 
-<!-- ══════════════════════ FEATURES ══════════════════════ -->
-<section class="features-section">
-    <div class="container">
-        <div class="section-header">
-            <div class="sec-eyebrow">
-                <span class="sec-eyebrow-line"></span>
-                <span>Why choose us</span>
-            </div>
-            <h2 class="sec-title">Why <mark>EventHorizon?</mark></h2>
-            <p class="sec-sub">Built for speed, security, and unforgettable experiences.</p>
+    <div class="eh-stat">
+        <div class="eh-stat-number">80K+</div>
+        <div class="eh-stat-label">Tickets Sold</div>
+    </div>
+
+    <div class="eh-stat">
+        <div class="eh-stat-number">4.9★</div>
+        <div class="eh-stat-label">User Rating</div>
+    </div>
+</section>
+
+<section class="eh-features">
+    <div class="eh-container">
+        <div class="eh-section-header">
+            <span class="eh-section-label">Why choose us</span>
+            <h2 class="eh-section-title">Why <em>EventHorizon?</em></h2>
+            <p class="eh-section-subtitle">
+                Built for speed, security, and unforgettable experiences.
+            </p>
         </div>
 
-        <div class="features-grid">
-            <div class="feat-card">
-                <div class="feat-icon"><i class="fa-solid fa-bolt"></i></div>
+        <div class="eh-feature-grid">
+            <div class="eh-feature-card">
+                <div class="eh-feature-icon">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
                 <h3>Instant Booking</h3>
                 <p>Reserve your seat in real-time with no waiting and no confusion.</p>
             </div>
-            <div class="feat-card">
-                <div class="feat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+
+            <div class="eh-feature-card">
+                <div class="eh-feature-icon">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
                 <h3>Secure &amp; Safe</h3>
                 <p>Your account, payments, and bookings stay protected and reliable.</p>
             </div>
-            <div class="feat-card">
-                <div class="feat-icon"><i class="fa-solid fa-masks-theater"></i></div>
+
+            <div class="eh-feature-card">
+                <div class="eh-feature-icon">
+                    <i class="fa-solid fa-masks-theater"></i>
+                </div>
                 <h3>All Categories</h3>
                 <p>Concerts, sports, tech, and cultural events — all in one place.</p>
             </div>
-            <div class="feat-card">
-                <div class="feat-icon"><i class="fa-solid fa-mobile-screen"></i></div>
+
+            <div class="eh-feature-card">
+                <div class="eh-feature-icon">
+                    <i class="fa-solid fa-mobile-screen-button"></i>
+                </div>
                 <h3>Easy to Use</h3>
                 <p>A clean modern interface that works beautifully on desktop and mobile.</p>
             </div>
@@ -959,19 +1024,19 @@
     </div>
 </section>
 
-<!-- ══════════════════════ CTA ══════════════════════ -->
-<section class="cta-section">
-    <div class="container">
-        <div class="cta-box">
-            <div class="cta-bg"></div>
-            <div class="cta-inner">
-                <div class="cta-eyebrow">
-                    <span class="cta-eyebrow-line"></span>
-                    <span>Don't miss out</span>
-                </div>
-                <h2>Ready to book your <mark>next experience?</mark></h2>
-                <p>Explore trending events and reserve your seat before they sell out.</p>
-                <a href="${pageContext.request.contextPath}/event?action=list" class="btn-cta">
+<section class="eh-cta-section">
+    <div class="eh-container">
+        <div class="eh-cta-box">
+            <div class="eh-cta-content">
+                <span class="eh-cta-label">Don't miss out</span>
+
+                <h2>Ready to book your<br><em>next experience?</em></h2>
+
+                <p>
+                    Explore trending events and reserve your seat before they sell out.
+                </p>
+
+                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-btn eh-btn-primary">
                     <i class="fa-solid fa-arrow-right"></i> Explore Events
                 </a>
             </div>
@@ -979,35 +1044,33 @@
     </div>
 </section>
 
-<!-- ══════════════════════ FOOTER ══════════════════════ -->
-<footer class="footer">
-    <div class="footer-main">
-        <div>
-            <div class="footer-brand">
-                <span class="footer-brand-mark"><i class="fa-regular fa-hexagon"></i></span>
-                <span class="footer-brand-name">EventHorizon</span>
-            </div>
-            <p class="footer-desc">
+<footer class="eh-footer">
+    <div class="eh-container eh-footer-grid">
+        <div class="eh-footer-col">
+            <h2 class="eh-footer-logo">⬡ EVENT<span>HORIZON</span></h2>
+            <p class="eh-footer-text">
                 EventHorizon helps you discover, explore, and book unforgettable
                 experiences with a fast, secure, and modern platform.
             </p>
         </div>
 
-        <div class="footer-col">
+        <div class="eh-footer-col">
             <h4>Quick Links</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
                 <li><a href="${pageContext.request.contextPath}/event?action=list">Events</a></li>
+
                 <c:if test="${not empty sessionScope.userId and sessionScope.role == 'CUSTOMER'}">
                     <li><a href="${pageContext.request.contextPath}/booking?action=myBookings">My Bookings</a></li>
                 </c:if>
+
                 <c:if test="${not empty sessionScope.userId}">
                     <li><a href="${pageContext.request.contextPath}/profile.jsp">Profile</a></li>
                 </c:if>
             </ul>
         </div>
 
-        <div class="footer-col">
+        <div class="eh-footer-col">
             <h4>Company</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/aboutUs.jsp">About Us</a></li>
@@ -1017,7 +1080,7 @@
             </ul>
         </div>
 
-        <div class="footer-col">
+        <div class="eh-footer-col">
             <h4>Support</h4>
             <ul>
                 <li><a href="${pageContext.request.contextPath}/faqs.jsp">Help Center</a></li>
@@ -1028,8 +1091,8 @@
         </div>
     </div>
 
-    <div class="footer-bottom">
-        <div class="footer-bottom-inner">
+    <div class="eh-footer-bottom">
+        <div class="eh-container eh-footer-bottom-inner">
             <p>© 2026 EventHorizon. All rights reserved.</p>
             <p>Designed for modern event experiences.</p>
         </div>
