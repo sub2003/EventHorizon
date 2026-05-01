@@ -46,8 +46,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
     <!-- Admin Theme CSS -->
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css?v=20260503">
-    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css?v=20260503">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css?v=20260504">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css?v=20260504">
 </head>
 
 <body>
@@ -166,34 +166,3 @@
                 Welcome, <strong><%= userName != null ? userName : "Admin" %></strong>
             </div>
         </div>
-
-        <div class="hero-panel">
-            <div class="hero-text">
-                <h2>EventHorizon Admin Workspace</h2>
-                <p>
-                    Use the sidebar to manage events, bookings, payments, users,
-                    admin requests, and issue requests from one professional workspace.
-                </p>
-            </div>
-
-            <div class="hero-actions">
-                <a href="<%= request.getContextPath() %>/admin/dashboard.jsp" class="primary-btn">
-                    <i class="fa-solid fa-chart-line"></i>
-                    Go to Dashboard
-                </a>
-
-                <a href="<%= request.getContextPath() %>/event?action=list" class="secondary-btn">
-                    <i class="fa-solid fa-globe"></i>
-                    Open Website
-                </a>
-            </div>
-        </div>
-
-    </main>
-
-</div>
-
-<script src="<%= request.getContextPath() %>/js/main.js"></script>
-
-</body>
-</html>
