@@ -673,7 +673,13 @@
             border-radius: 32px;
             text-align: center;
             background:
-                linear-gradient(135deg, rgba(250, 248, 244, 0.90), rgba(232, 241, 236, 0.82)),
+                linear-gradient(
+                    90deg,
+                    rgba(250, 248, 244, 0.92) 0%,
+                    rgba(250, 248, 244, 0.78) 38%,
+                    rgba(250, 248, 244, 0.42) 68%,
+                    rgba(250, 248, 244, 0.12) 100%
+                ),
                 url("${pageContext.request.contextPath}/images/eventhorizon-hero.png");
             background-size: cover;
             background-position: center center;
@@ -686,8 +692,12 @@
             position: absolute;
             inset: 0;
             background:
-                linear-gradient(135deg, rgba(250, 248, 244, 0.88), rgba(232, 241, 236, 0.72)),
-                radial-gradient(circle at top, rgba(30, 74, 58, 0.12), transparent 34%);
+                radial-gradient(circle at center, rgba(255, 255, 255, 0.10), transparent 45%),
+                linear-gradient(
+                    180deg,
+                    rgba(250, 248, 244, 0.10),
+                    rgba(30, 74, 58, 0.06)
+                );
         }
 
         .eh-cta-content {
@@ -713,6 +723,7 @@
             line-height: 1.08;
             letter-spacing: -1.2px;
             margin-bottom: 16px;
+            text-shadow: 0 2px 8px rgba(250, 248, 244, 0.75);
         }
 
         .eh-cta-box h2 em {
@@ -725,8 +736,9 @@
             margin: 0 auto 34px;
             color: #2F4B3F;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 800;
             line-height: 1.75;
+            text-shadow: 0 1px 6px rgba(250, 248, 244, 0.85);
         }
 
         /* ================= FOOTER ================= */
