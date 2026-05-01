@@ -1,7 +1,4 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="java.util.List" %>
-<%@ page import="com.eventhorizon.model.Ticket" %>
-<%@ page import="com.eventhorizon.model.Booking" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="com.eventhorizon.service.IssueService" %>
 
 <%
@@ -20,142 +17,252 @@
         }
     }
 %>
-<%
-    HttpSession currentSession = request.getSession(false);
-    String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
-
-    if (currentSession == null || role == null) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
-        return;
-    }
-
-    Boolean paymentPending = (Boolean) request.getAttribute("paymentPending");
-    if (paymentPending == null) paymentPending = false;
-
-    Booking booking = (Booking) request.getAttribute("booking");
-    List<Ticket> tickets = (List<Ticket>) request.getAttribute("tickets");
-    if (tickets == null) tickets = new java.util.ArrayList<>();
-%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Tickets - EventHorizon</title>
+    <title>About Us | EventHorizon</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-<style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif; }
-        body { background: #050816; color: #eef2ff; }
-        .navbar {
-            background: linear-gradient(90deg, #060b1f, #0b1434);
-            border-bottom: 1px solid rgba(130, 90, 255, 0.22);
-            padding: 18px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .brand { font-size: 32px; font-weight: 800; color: #7c5cff; }
-        .nav-links a { color: #d9defa; text-decoration: none; margin-left: 22px; font-weight: 600; }
-        .container { width: 92%; max-width: 1300px; margin: 30px auto; }
-        .page-title { font-size: 34px; font-weight: 800; margin-bottom: 22px; }
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-        .notice-box, .ticket-card {
-            background: linear-gradient(180deg, #0b1431, #09112a);
-            border: 1px solid rgba(126, 93, 255, 0.18);
-            border-radius: 22px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Segoe UI", Arial, sans-serif;
         }
 
-        .notice-box { padding: 28px; }
-        .notice-box h2 { margin-bottom: 10px; font-size: 28px; }
-        .notice-box p { color: #a8b3de; line-height: 1.6; margin-bottom: 12px; }
+        body {
+            background: radial-gradient(circle at top left, #12002f 0%, #050816 42%, #03152a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
 
-        .btn {
-            display: inline-block;
-            margin-top: 15px;
+        a {
             text-decoration: none;
-            border: none;
-            border-radius: 12px;
-            padding: 12px 18px;
-            font-weight: 800;
-            cursor: pointer;
-            background: linear-gradient(90deg, #7c5cff, #2bc0ff);
-            color: #fff;
+            color: inherit;
         }
 
-        .ticket-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
-            gap: 22px;
-        }
-
-        .ticket-card { padding: 22px; }
-        .ticket-badge {
-            display: inline-block;
-            margin-bottom: 14px;
-            padding: 7px 12px;
-            border-radius: 999px;
-            background: rgba(124, 92, 255, 0.18);
-            color: #bca8ff;
-            font-size: 12px;
-            font-weight: 800;
-        }
-        .ticket-title { font-size: 24px; font-weight: 800; margin-bottom: 16px; }
-
-        .row {
+        .navbar {
+            width: 100%;
+            padding: 18px 40px;
             display: flex;
             justify-content: space-between;
-            gap: 15px;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-        }
-        .label { color: #99a5d7; font-weight: 600; }
-        .value { color: #f8f9ff; font-weight: 700; text-align: right; word-break: break-word; }
-
-        /* Ticket type badge */
-        .type-pill {
-            display: inline-flex;
             align-items: center;
-            justify-content: center;
-            padding: 5px 12px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 800;
-            letter-spacing: 0.4px;
-            text-transform: uppercase;
-            background: rgba(43,192,255,0.13);
-            color: #2bc0ff;
-            border: 1px solid rgba(43,192,255,0.22);
+            background: rgba(6, 10, 30, 0.88);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
         }
 
-        .qr-box {
+        .brand {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #7c5cff;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 28px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: #53d8fb;
+        }
+
+        .page-wrap {
+            max-width: 1150px;
+            margin: 45px auto;
+            padding: 0 20px 40px;
+        }
+
+        .hero-card {
+            background: linear-gradient(135deg, rgba(20, 27, 61, 0.95), rgba(8, 18, 42, 0.95));
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 38px;
+            box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+            margin-bottom: 28px;
+        }
+
+        .hero-badge {
+            display: inline-block;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(124, 92, 255, 0.16);
+            color: #cfc3ff;
+            border: 1px solid rgba(124,92,255,0.28);
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+        }
+
+        .hero-title {
+            font-size: 2.7rem;
+            font-weight: 800;
+            margin-bottom: 14px;
+            color: #ffffff;
+            line-height: 1.2;
+        }
+
+        .hero-sub {
+            color: #b8c4e3;
+            font-size: 1rem;
+            line-height: 1.8;
+            max-width: 900px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+
+        .section-card {
+            background: linear-gradient(135deg, rgba(17, 25, 58, 0.95), rgba(8, 16, 38, 0.95));
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 22px;
+            padding: 28px;
+            box-shadow: 0 14px 36px rgba(0,0,0,0.28);
+        }
+
+        .section-card.full {
+            grid-column: 1 / -1;
+        }
+
+        .section-card h2 {
+            font-size: 1.45rem;
+            margin-bottom: 14px;
+            color: #ffffff;
+        }
+
+        .section-card p {
+            color: #cfd8f2;
+            line-height: 1.9;
+            font-size: 0.98rem;
+            margin-bottom: 12px;
+        }
+
+        .section-card ul {
+            margin-left: 22px;
+            color: #cfd8f2;
+            line-height: 1.9;
+        }
+
+        .section-card li {
+            margin-bottom: 8px;
+        }
+
+        .highlight {
+            color: #53d8fb;
+            font-weight: 700;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
             margin-top: 20px;
-            background: #fff;
+        }
+
+        .stat-box {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
             border-radius: 18px;
-            padding: 18px;
+            padding: 22px 16px;
             text-align: center;
         }
-        .qr-box img {
-            width: 260px;
-            max-width: 100%;
-            height: auto;
-            border-radius: 12px;
-            background: #fff;
-        }
-        .qr-note {
-            margin-top: 10px;
-            color: #222;
-            font-size: 13px;
-            font-weight: 700;
-            word-break: break-all;
+
+        .stat-icon {
+            font-size: 1.4rem;
+            color: #7fe6ff;
+            margin-bottom: 10px;
         }
 
-        .used { color: #ff8f8f; font-weight: 800; }
-        .unused { color: #7ef0aa; font-weight: 800; }
+        .stat-number {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 6px;
+        }
+
+        .stat-label {
+            font-size: 0.92rem;
+            color: #b8c4e3;
+        }
+
+        .team-note {
+            background: rgba(83, 216, 251, 0.08);
+            border: 1px solid rgba(83, 216, 251, 0.18);
+            border-radius: 18px;
+            padding: 18px;
+            margin-top: 14px;
+            color: #d8efff;
+            line-height: 1.8;
+        }
+
+        .footer {
+            margin-top: 35px;
+            text-align: center;
+            color: #9fb0d9;
+            font-size: 0.93rem;
+            padding: 24px 10px 40px;
+        }
+
+        @media (max-width: 992px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 14px;
+                padding: 18px 20px;
+            }
+
+            .nav-links {
+                justify-content: center;
+                gap: 16px;
+            }
+
+            .hero-title {
+                font-size: 2rem;
+            }
+
+            .hero-card,
+            .section-card {
+                padding: 22px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
         /* ================= EVENTHORIZON PREMIUM LIGHT THEME ================= */
         :root {
@@ -466,7 +573,7 @@
 
             <% if (ehNavUserIdObj != null && "CUSTOMER".equals(ehNavRole)) { %>
                 <li>
-                    <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link active">
+                    <a href="${pageContext.request.contextPath}/booking?action=myBookings" class="eh-nav-link">
                         <i class="fa-solid fa-ticket"></i><span>My Bookings</span>
                     </a>
                 </li>
@@ -521,86 +628,136 @@
 </nav>
 
 
-<div class="container">
-    <div class="page-title">My Tickets</div>
+<div class="page-wrap">
 
-    <% if (paymentPending) { %>
-        <div class="notice-box">
-            <h2>Tickets are not available yet</h2>
-            <p>Your payment is still waiting for admin approval.</p>
-            <% if (booking != null) { %>
-                <p><strong>Booking ID:</strong> <%= booking.getBookingId() %></p>
-                <p><strong>Event:</strong> <%= booking.getEventTitle() %></p>
-                <p><strong>Payment Status:</strong> <%= booking.getPaymentStatus() %></p>
-            <% } %>
-            <a class="btn" href="<%= request.getContextPath() %>/booking?action=myBookings">Back to My Bookings</a>
+    <div class="hero-card">
+        <div class="hero-badge">Who We Are</div>
+        <div class="hero-title">About EventHorizon</div>
+        <div class="hero-sub">
+            <span class="highlight">EventHorizon</span> is a modern event booking and ticket management platform
+            created to make discovering, booking, and managing events simple, secure, and efficient.
+            Our system is designed for both customers and administrators, offering a smooth experience for
+            browsing events, managing bookings, verifying payments, and handling ticket access through QR-based features.
         </div>
-    <% } else if (tickets.isEmpty()) { %>
-        <div class="notice-box">
-            <h2>No tickets found</h2>
-            <p>No generated tickets are linked to this booking yet.</p>
-            <a class="btn" href="<%= request.getContextPath() %>/booking?action=myBookings">Back to My Bookings</a>
-        </div>
-    <% } else { %>
-        <div class="ticket-grid">
-            <% int i = 1; for (Ticket t : tickets) { %>
-            <div class="ticket-card">
-                <div class="ticket-badge">TICKET <%= i++ %></div>
-                <div class="ticket-title"><%= booking != null ? booking.getEventTitle() : "Event Ticket" %></div>
 
-                <div class="row">
-                    <div class="label">Ticket ID</div>
-                    <div class="value"><%= t.getTicketId() %></div>
-                </div>
-
-                <div class="row">
-                    <div class="label">Booking ID</div>
-                    <div class="value"><%= t.getBookingId() %></div>
-                </div>
-
-                <%-- Ticket type --%>
-                <div class="row">
-                    <div class="label">Ticket Type</div>
-                    <div class="value">
-                        <%
-                            String ttn = t.getTicketTypeName();
-                            if (ttn != null && !ttn.trim().isEmpty()) {
-                        %>
-                            <span class="type-pill"><%= ttn %></span>
-                        <%  } else { %>
-                            <span style="color:#5a6a9a;">—</span>
-                        <%  } %>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="label">Event ID</div>
-                    <div class="value"><%= t.getEventId() %></div>
-                </div>
-                <div class="row">
-                    <div class="label">Customer ID</div>
-                    <div class="value"><%= t.getCustomerId() %></div>
-                </div>
-                <div class="row">
-                    <div class="label">Issued At</div>
-                    <div class="value"><%= t.getCreatedAt() == null ? "-" : t.getCreatedAt() %></div>
-                </div>
-                <div class="row">
-                    <div class="label">Status</div>
-                    <div class="value <%= t.isUsed() ? "used" : "unused" %>">
-                        <%= t.isUsed() ? "USED" : "APPROVED" %>
-                    </div>
-                </div>
-
-                <div class="qr-box">
-                    <img src="<%= request.getContextPath() %>/ticket?action=qr&token=<%= java.net.URLEncoder.encode(t.getQrToken(), "UTF-8") %>&v=<%= java.net.URLEncoder.encode(t.getTicketId(), "UTF-8") %>"
-                         alt="QR Code">
-                    <div class="qr-note">Secure ticket token stored in system</div>
-                </div>
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                <div class="stat-number">Smart</div>
+                <div class="stat-label">Event Management</div>
             </div>
-            <% } %>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fa-solid fa-ticket"></i></div>
+                <div class="stat-number">Fast</div>
+                <div class="stat-label">Ticket Booking</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="stat-number">Secure</div>
+                <div class="stat-label">User Experience</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-icon"><i class="fa-solid fa-qrcode"></i></div>
+                <div class="stat-number">Digital</div>
+                <div class="stat-label">QR Verification</div>
+            </div>
         </div>
-    <% } %>
+    </div>
+
+    <div class="grid">
+        <div class="section-card">
+            <h2>Our Mission</h2>
+            <p>
+                Our mission is to provide a reliable and user-friendly platform where people can
+                discover exciting events and book tickets with confidence.
+            </p>
+            <p>
+                We focus on combining <span class="highlight">simplicity, speed, and security</span>
+                so users can enjoy a better booking experience while administrators can manage events efficiently.
+            </p>
+        </div>
+
+        <div class="section-card">
+            <h2>Our Vision</h2>
+            <p>
+                We aim to build EventHorizon into a professional and scalable platform that can support
+                real-world event organizers, attendees, and administrators.
+            </p>
+            <p>
+                Our vision is to create a system that is not only useful for academic projects,
+                but also strong enough to grow into a practical event management solution.
+            </p>
+        </div>
+
+        <div class="section-card full">
+            <h2>What EventHorizon Offers</h2>
+            <ul>
+                <li>Easy event browsing across multiple categories.</li>
+                <li>Customer account creation and profile management.</li>
+                <li>Simple booking flow with ticket type selection.</li>
+                <li>Manual payment reference submission and approval workflow.</li>
+                <li>Admin controls for events, bookings, users, and requests.</li>
+                <li>QR-based ticket generation and verification support.</li>
+                <li>Issue reporting and customer support features.</li>
+            </ul>
+        </div>
+
+        <div class="section-card">
+            <h2>Why Choose Us</h2>
+            <p>
+                EventHorizon is built with a clean interface and practical workflow in mind.
+                We believe a booking system should feel easy for customers and powerful for administrators.
+            </p>
+            <p>
+                That is why our platform emphasizes organized event control, accurate booking data,
+                and a modern digital experience.
+            </p>
+        </div>
+
+        <div class="section-card">
+            <h2>Our Core Values</h2>
+            <ul>
+                <li><strong>Reliability</strong> – keep event and booking information accurate.</li>
+                <li><strong>Security</strong> – protect users, tickets, and system access.</li>
+                <li><strong>Usability</strong> – make the platform easy to understand and use.</li>
+                <li><strong>Innovation</strong> – improve the experience with modern digital features.</li>
+            </ul>
+        </div>
+
+        <div class="section-card full">
+            <h2>Our Story</h2>
+            <p>
+                EventHorizon was developed as an event booking web application with the goal of creating
+                a polished and meaningful platform for real users. It brings together event browsing,
+                ticket handling, payment verification, and admin management into one connected system.
+            </p>
+            <p>
+                The project represents effort, creativity, and continuous improvement toward building
+                a professional-quality software solution.
+            </p>
+
+            <div class="team-note">
+                <strong>EventHorizon</strong> is more than just a booking page — it is a complete
+                event experience platform designed to connect users with memorable events through
+                a secure and modern system.
+            </div>
+        </div>
+
+        <div class="section-card full">
+            <h2>Contact & Support</h2>
+            <p>
+                If you have questions, suggestions, or need help using EventHorizon,
+                you can contact the support or administrator team through the platform support features.
+            </p>
+            <p>
+                We are committed to improving the platform and making every booking experience smoother and better.
+            </p>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 <strong>EventHorizon</strong> · About Us Page
+    </div>
 </div>
 
 </body>
