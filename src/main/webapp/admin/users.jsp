@@ -132,12 +132,12 @@
     <div class="topbar">
         <div class="title-block">
             <h1>Manage Users</h1>
-            <p>View, search, edit, and manage all registered system users</p>
+            <p>Search users, review roles, and open one edit panel at a time</p>
         </div>
 
         <div class="top-actions">
-            <a href="<%=request.getContextPath()%>/admin/dashboard.jsp" class="btn btn-outline">Dashboard</a>
-            <a href="<%=request.getContextPath()%>/user?action=listAdminRequests" class="btn btn-primary">Admin Requests</a>
+            <a href="<%=request.getContextPath()%>/admin/dashboard.jsp" class="btn btn-outline"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+            <a href="<%=request.getContextPath()%>/user?action=listAdminRequests" class="btn btn-primary"><i class="fa-solid fa-user-check"></i> Admin Requests</a>
         </div>
     </div>
 
@@ -175,7 +175,7 @@
                     </select>
                 </div>
 
-                <button type="button" class="btn btn-outline" onclick="clearFilters()">Clear</button>
+                <button type="button" class="btn btn-outline" onclick="clearFilters()"><i class="fa-solid fa-rotate-left"></i> Clear</button>
             </div>
 
             <div class="result-count" id="resultCount">0 user(s) found</div>
@@ -244,7 +244,7 @@
                                     <button type="button"
                                             class="btn btn-edit"
                                             onclick="toggleEditPanel('<%= user.getUserId() %>')">
-                                        Edit
+                                        <i class="fa-solid fa-pen-to-square"></i> Edit
                                     </button>
 
                                     <form method="post"
@@ -256,7 +256,7 @@
                                         <button type="submit"
                                                 class="btn btn-delete"
                                                 <%= user.getUserId().equals(currentAdminId) ? "disabled title='You cannot delete your own account.'" : "" %>>
-                                            Delete
+                                            <i class="fa-solid fa-trash"></i> Delete
                                         </button>
                                     </form>
                                 </div>
@@ -337,11 +337,11 @@
                                         </div>
 
                                         <div class="form-actions">
-                                            <button type="submit" class="btn btn-save">Save Changes</button>
+                                            <button type="submit" class="btn btn-save"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
                                             <button type="button"
                                                     class="btn btn-cancel"
                                                     onclick="toggleEditPanel('<%= user.getUserId() %>')">
-                                                Cancel
+                                                <i class="fa-solid fa-xmark"></i> Cancel
                                             </button>
                                         </div>
 

@@ -1344,3 +1344,151 @@ body {
         flex-direction: column;
     }
 }
+
+
+/* =========================================================
+   Expert dashboard facility cards - clearer admin details
+========================================================= */
+.admin-hero-panel,
+.facility-section,
+.access-summary-panel {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid rgba(30, 74, 58, 0.16) !important;
+    border-radius: 26px !important;
+    box-shadow: 0 22px 60px rgba(24, 37, 31, 0.10) !important;
+}
+.facility-section { padding: 28px !important; margin-bottom: 24px !important; }
+.facility-header { margin-bottom: 22px !important; }
+.facility-header h2,
+.facility-section h2 {
+    color: #123528 !important;
+    font-size: clamp(1.45rem, 2.4vw, 2.05rem) !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.04em !important;
+}
+.facility-header p,
+.facility-section p {
+    color: #52635A !important;
+    font-weight: 700 !important;
+}
+.facility-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+    gap: 18px !important;
+}
+.facility-card {
+    min-height: 236px !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 18px !important;
+    padding: 22px !important;
+    border-radius: 22px !important;
+    background: #ffffff !important;
+    border: 2px solid rgba(30, 74, 58, 0.16) !important;
+    box-shadow: 0 14px 34px rgba(24, 37, 31, 0.07) !important;
+    color: #18251F !important;
+    transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease !important;
+}
+.facility-card:hover {
+    transform: translateY(-3px) !important;
+    border-color: rgba(30, 74, 58, 0.34) !important;
+    box-shadow: 0 22px 48px rgba(24, 37, 31, 0.12) !important;
+}
+.facility-card.is-available {
+    border-left: 6px solid #1E4A3A !important;
+}
+.facility-card.is-locked {
+    opacity: 1 !important;
+    background: #FBFAF7 !important;
+    border-left: 6px solid #A8B3AD !important;
+}
+.facility-icon {
+    width: 58px !important;
+    height: 58px !important;
+    min-width: 58px !important;
+    border-radius: 18px !important;
+    display: grid !important;
+    place-items: center !important;
+    background: linear-gradient(135deg, #1E4A3A, #123528) !important;
+    color: #ffffff !important;
+    box-shadow: 0 12px 28px rgba(30, 74, 58, 0.22) !important;
+}
+.facility-icon i { color: #ffffff !important; font-size: 1.18rem !important; }
+.facility-content { flex: 1 !important; }
+.facility-topline {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    margin-bottom: 10px !important;
+}
+.facility-topline h3 {
+    color: #123528 !important;
+    font-size: 1.15rem !important;
+    font-weight: 900 !important;
+    letter-spacing: -0.02em !important;
+    line-height: 1.25 !important;
+}
+.facility-content p {
+    color: #52635A !important;
+    font-weight: 700 !important;
+    line-height: 1.65 !important;
+    margin-bottom: 14px !important;
+}
+.facility-list {
+    list-style: none !important;
+    display: grid !important;
+    gap: 9px !important;
+}
+.facility-list li {
+    color: #18251F !important;
+    font-weight: 800 !important;
+    line-height: 1.45 !important;
+    display: flex !important;
+    gap: 9px !important;
+}
+.facility-list li::before {
+    content: "✓" !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    border-radius: 50% !important;
+    background: #E8F6EE !important;
+    color: #176B3B !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 0.78rem !important;
+    font-weight: 900 !important;
+}
+.facility-status {
+    padding: 7px 12px !important;
+    border-radius: 999px !important;
+    font-size: 0.70rem !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+}
+.facility-status.available {
+    background: #E8F6EE !important;
+    color: #176B3B !important;
+    border: 1px solid rgba(23, 107, 59, 0.24) !important;
+}
+.facility-status.locked {
+    background: #F1F3F1 !important;
+    color: #65726C !important;
+    border: 1px solid rgba(101, 114, 108, 0.24) !important;
+}
+.access-summary-panel {
+    padding: 26px 28px !important;
+}
+.access-chip {
+    background: #ffffff !important;
+    color: #123528 !important;
+    border: 1px solid rgba(30, 74, 58, 0.26) !important;
+    box-shadow: 0 8px 20px rgba(24, 37, 31, 0.05) !important;
+}
+@media (max-width: 760px) {
+    .facility-card { flex-direction: column !important; min-height: auto !important; }
+    .facility-topline { flex-direction: column !important; }
+}
