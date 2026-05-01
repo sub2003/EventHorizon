@@ -248,6 +248,100 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+
+
+<!-- FINAL LOGO MATCH FIX: same green leaf mark used on customer pages/profile.jsp -->
+<style>
+    .brand-icon,
+    .eh-brand-mark,
+    .auth-brand-mark,
+    .eh-footer-brand-mark,
+    .navbar-brand::before {
+        width: 42px !important;
+        height: 42px !important;
+        min-width: 42px !important;
+        min-height: 42px !important;
+        border-radius: 14px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        background: linear-gradient(135deg, #1E4A3A, #123528) !important;
+        color: #ffffff !important;
+        border: none !important;
+        box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24) !important;
+        flex-shrink: 0 !important;
+        font-size: 0 !important;
+        line-height: 1 !important;
+        overflow: hidden !important;
+    }
+
+    /* Prevent double icons. The actual visible icon should be the real <i class="fa-solid fa-leaf"></i>. */
+    .brand-icon::before,
+    .eh-brand-mark::before,
+    .auth-brand-mark::before,
+    .eh-footer-brand-mark::before {
+        content: none !important;
+        display: none !important;
+    }
+
+    .brand-icon i,
+    .eh-brand-mark i,
+    .auth-brand-mark i,
+    .eh-footer-brand-mark i {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #ffffff !important;
+        font-size: 1.05rem !important;
+        line-height: 1 !important;
+        width: auto !important;
+        height: auto !important;
+        margin: 0 !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+
+    .brand-icon i::before,
+    .eh-brand-mark i::before,
+    .auth-brand-mark i::before,
+    .eh-footer-brand-mark i::before {
+        color: #ffffff !important;
+        font-size: 1.05rem !important;
+    }
+
+    .brand,
+    .eh-brand,
+    .navbar-brand {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+        color: #123528 !important;
+        font-weight: 900 !important;
+        letter-spacing: 1.8px !important;
+        text-transform: uppercase !important;
+    }
+
+    .brand h2,
+    .brand-text h2,
+    .eh-brand-text,
+    .navbar-brand span {
+        color: #123528 !important;
+        font-weight: 900 !important;
+        letter-spacing: 1.8px !important;
+        text-transform: uppercase !important;
+    }
+
+    /* For pages that use .navbar-brand without a separate .brand-icon. */
+    .navbar-brand::before {
+        content: "\f06c" !important;
+        font-family: "Font Awesome 6 Free" !important;
+        font-weight: 900 !important;
+        font-size: 1.05rem !important;
+        color: #ffffff !important;
+        letter-spacing: 0 !important;
+    }
+</style>
+
 </head>
 <body>
 
