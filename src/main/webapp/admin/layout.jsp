@@ -5,6 +5,7 @@
 
 <%
     HttpSession currentSession = request.getSession(false);
+
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
     String userName = currentSession != null ? (String) currentSession.getAttribute("userName") : null;
     String adminPermission = currentSession != null ? (String) currentSession.getAttribute("adminPermission") : null;
@@ -23,6 +24,7 @@
     boolean hasFullAccess = UserService.hasFullAccess(adminPermission);
 
     String pageTitle = (String) request.getAttribute("pageTitle");
+
     if (pageTitle == null || pageTitle.trim().isEmpty()) {
         pageTitle = "Admin Panel";
     }
@@ -35,18 +37,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= pageTitle %> - EventHorizon</title>
 
-    <!-- Fonts -->
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Icons -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
-    <!-- Admin CSS -->
-<link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css?v=20260501">
-<link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css?v=20260501">
-<link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css?v=20260501">
+    <!-- Admin Theme CSS -->
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/dashboard.css?v=20260503">
+    <link rel="stylesheet" href="<%= request.getContextPath() %>/css/admin.css?v=20260503">
 </head>
 
 <body>
@@ -54,6 +55,7 @@
 <div class="admin-shell">
 
     <aside class="sidebar">
+
         <div class="sidebar-top">
 
             <div class="brand">
@@ -128,6 +130,7 @@
                 <% } %>
 
             </nav>
+
         </div>
 
         <div class="sidebar-footer">
@@ -148,6 +151,7 @@
             </a>
 
         </div>
+
     </aside>
 
     <main class="main-content">
@@ -163,19 +167,12 @@
             </div>
         </div>
 
-        <!-- =========================================================
-             PAGE CONTENT AREA
-             If you open layout.jsp directly, this message appears.
-             Normal admin pages should put their content here OR
-             include this layout as the opening layout.
-        ========================================================== -->
-
         <div class="hero-panel">
             <div class="hero-text">
                 <h2>EventHorizon Admin Workspace</h2>
                 <p>
                     Use the sidebar to manage events, bookings, payments, users,
-                    admin requests, and issue requests.
+                    admin requests, and issue requests from one professional workspace.
                 </p>
             </div>
 
