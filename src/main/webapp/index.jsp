@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="com.eventhorizon.service.IssueService" %>
+
 <%
     int navIssueCount = 0;
     String navRole = (String) session.getAttribute("role");
@@ -15,6 +16,7 @@
         } catch (Exception ignored) { }
     }
 %>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -74,6 +76,7 @@
         }
 
         body {
+            position: relative;
             font-family: 'Inter', sans-serif;
             background:
                 radial-gradient(circle at top left, rgba(30, 74, 58, 0.08), transparent 32%),
@@ -83,6 +86,21 @@
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
             line-height: 1.6;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -10;
+            pointer-events: none;
+            background-image:
+                radial-gradient(circle at 1px 1px, rgba(30, 74, 58, 0.075) 1px, transparent 0),
+                linear-gradient(135deg, rgba(30, 74, 58, 0.022) 25%, transparent 25%),
+                linear-gradient(45deg, rgba(176, 141, 101, 0.024) 25%, transparent 25%);
+            background-size: 34px 34px, 86px 86px, 86px 86px;
+            background-position: 0 0, 0 0, 43px 43px;
+            opacity: 0.50;
         }
 
         a {
@@ -151,6 +169,10 @@
             justify-content: flex-end;
             gap: 8px;
             flex-wrap: wrap;
+        }
+
+        .eh-nav-links li {
+            list-style: none;
         }
 
         .eh-nav-link,
@@ -349,7 +371,7 @@
             display: block;
             font-style: normal !important;
             color: var(--forest) !important;
-            opacity: 0.92;
+            opacity: 0.94;
         }
 
         .eh-hero-subtitle {
@@ -410,6 +432,42 @@
             background: var(--forest-soft);
             border-color: rgba(30, 74, 58, 0.36);
             transform: translateY(-2px);
+        }
+
+        /* ================= PREMIUM PATTERNS ================= */
+
+        .eh-features,
+        .eh-cta-section,
+        .eh-footer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .eh-features::before,
+        .eh-cta-section::before,
+        .eh-footer::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                radial-gradient(circle at 20% 10%, rgba(30, 74, 58, 0.08), transparent 28%),
+                radial-gradient(circle at 85% 30%, rgba(176, 141, 101, 0.10), transparent 30%),
+                repeating-linear-gradient(
+                    135deg,
+                    rgba(30, 74, 58, 0.032) 0px,
+                    rgba(30, 74, 58, 0.032) 1px,
+                    transparent 1px,
+                    transparent 18px
+                );
+            opacity: 0.45;
+        }
+
+        .eh-features > *,
+        .eh-cta-section > *,
+        .eh-footer > * {
+            position: relative;
+            z-index: 2;
         }
 
         /* ================= STATS ================= */
@@ -657,8 +715,28 @@
             padding: 70px 0 56px;
         }
 
-        .eh-footer-logo {
+        .eh-footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             margin-bottom: 18px;
+        }
+
+        .eh-footer-brand-mark {
+            width: 40px;
+            height: 40px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            background: linear-gradient(135deg, var(--forest), var(--forest-dark));
+            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.22);
+            flex-shrink: 0;
+        }
+
+        .eh-footer-logo {
+            margin: 0;
             color: var(--forest-dark);
             font-size: 1.3rem;
             font-weight: 900;
@@ -1047,7 +1125,13 @@
 <footer class="eh-footer">
     <div class="eh-container eh-footer-grid">
         <div class="eh-footer-col">
-            <h2 class="eh-footer-logo">⬡ EVENT<span>HORIZON</span></h2>
+            <div class="eh-footer-brand">
+                <span class="eh-footer-brand-mark">
+                    <i class="fa-solid fa-leaf"></i>
+                </span>
+                <h2 class="eh-footer-logo">EVENT<span>HORIZON</span></h2>
+            </div>
+
             <p class="eh-footer-text">
                 EventHorizon helps you discover, explore, and book unforgettable
                 experiences with a fast, secure, and modern platform.
