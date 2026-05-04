@@ -868,7 +868,14 @@
 
                         <a class="btn btn-primary"
                            href="<%= request.getContextPath() %>/ticket?action=viewTickets&bookingId=<%= b.getBookingId() %>">
+                            <i class="fa-solid fa-ticket"></i>
                             View Tickets
+                        </a>
+
+                        <a class="btn btn-secondary"
+                           href="<%= request.getContextPath() %>/ticket?action=downloadPdf&bookingId=<%= b.getBookingId() %>">
+                            <i class="fa-solid fa-file-pdf"></i>
+                            Download PDF
                         </a>
 
                     <% } %>

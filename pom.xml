@@ -32,11 +32,17 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>8.0.33</version>
         </dependency>
-        <!--  Email sending  -->
+        <!--   Email sending   -->
         <dependency>
             <groupId>com.sun.mail</groupId>
             <artifactId>javax.mail</artifactId>
             <version>1.6.2</version>
+        </dependency>
+        <!--  PDF ticket generation  -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>1.3.39</version>
         </dependency>
         <dependency>
             <groupId>com.google.zxing</groupId>
@@ -48,7 +54,7 @@
             <artifactId>javase</artifactId>
             <version>3.5.4</version>
         </dependency>
-        <!--  Tomcat embedded — needed for Railway deployment  -->
+        <!--   Tomcat embedded — needed for Railway deployment   -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-jasper</artifactId>
@@ -63,8 +69,8 @@
         </repository>
     </repositories>
     <build>
-        <!--  ROOT = serves at / on Railway instead of /EventHorizon/  -->
-        <!--  Your group members on local XAMPP/Tomcat are NOT affected  -->
+        <!--   ROOT = serves at / on Railway instead of /EventHorizon/   -->
+        <!--   Your group members on local XAMPP/Tomcat are NOT affected   -->
         <finalName>ROOT</finalName>
         <plugins>
             <plugin>

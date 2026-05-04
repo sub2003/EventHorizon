@@ -685,6 +685,15 @@
         <div class="page-subtitle">
             View your approved digital tickets and scan-ready secure QR codes.
         </div>
+
+        <% if (!paymentPending && booking != null
+                && "APPROVED".equalsIgnoreCase(booking.getPaymentStatus())
+                && "CONFIRMED".equalsIgnoreCase(booking.getStatus())) { %>
+            <a class="btn" href="<%= request.getContextPath() %>/ticket?action=downloadPdf&bookingId=<%= booking.getBookingId() %>">
+                <i class="fa-solid fa-file-pdf"></i>
+                Download PDF Ticket
+            </a>
+        <% } %>
     </div>
 
     <% if (paymentPending) { %>
