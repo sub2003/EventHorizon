@@ -4,6 +4,8 @@
   <img src="https://img.shields.io/badge/Java-Full%20Stack%20Web%20Application-6C63FF?style=for-the-badge" alt="Java Full Stack Web Application" />
   <img src="https://img.shields.io/badge/JSP%20%7C%20Servlets%20%7C%20JDBC-0E1530?style=for-the-badge" alt="JSP Servlets JDBC" />
   <img src="https://img.shields.io/badge/MySQL-Database-1D3557?style=for-the-badge" alt="MySQL Database" />
+  <img src="https://img.shields.io/badge/Admin%20%2F%20Customer-Separate%20Tables-2A9D8F?style=for-the-badge" alt="Admin Customer Separate Tables" />
+  <img src="https://img.shields.io/badge/Dedicated-Admin%20Login-E76F51?style=for-the-badge" alt="Dedicated Admin Login" />
   <img src="https://img.shields.io/badge/OpenPDF-PDF%20Tickets-E76F51?style=for-the-badge" alt="OpenPDF PDF Tickets" />
   <img src="https://img.shields.io/badge/ZXing-QR%20Verification-2A9D8F?style=for-the-badge" alt="ZXing QR Verification" />
   <img src="https://img.shields.io/badge/Railway-Cloud%20Deployment-6C63FF?style=for-the-badge" alt="Railway Cloud Deployment" />
@@ -11,7 +13,7 @@
 
 <p align="center">
   <strong>Professional Event Booking, Ticketing, and Administration Platform</strong><br />
-  A full-stack Java web application designed for event discovery, booking management, manual payment verification, digital ticket generation, downloadable PDF tickets, QR-based validation, and permission-based administration.
+  A full-stack Java web application designed for event discovery, booking management, manual payment verification, digital ticket generation, downloadable PDF tickets, QR-based validation, separate customer/admin account management, and permission-based administration.
 </p>
 
 <p align="center">
@@ -31,6 +33,7 @@
 - [System Architecture](#system-architecture)
 - [Functional Modules](#functional-modules)
 - [Admin Permission Model](#admin-permission-model)
+- [Customer and Admin Account Separation](#customer-and-admin-account-separation)
 - [Multi-Ticket-Type Support](#multi-ticket-type-support)
 - [Digital Ticketing and QR Verification](#digital-ticketing-and-qr-verification)
 - [Downloadable PDF Ticket Feature](#downloadable-pdf-ticket-feature)
@@ -46,12 +49,13 @@
 
 ## Overview
 
-**EventHorizon** is a full-stack event booking platform built with **Java, JSP, Servlets, JDBC, and MySQL**. The system provides a complete customer-facing booking experience and a structured administration workflow for managing events, bookings, users, payments, tickets, and admin access levels.
+**EventHorizon** is a full-stack event booking platform built with **Java, JSP, Servlets, JDBC, and MySQL**. The system provides a complete customer-facing booking experience and a structured administration workflow for managing events, bookings, customers, admins, payments, tickets, and admin access levels. The latest version separates customer accounts and admin accounts into dedicated database tables and provides separate login pages for customers and administrators.
 
 The application is designed as a realistic academic full-stack project with a strong focus on:
 
 - clean layered architecture
 - role-based and permission-based access control
+- separate customer and admin authentication flows
 - database-backed workflows
 - production-style deployment
 - professional user interface design
@@ -59,7 +63,7 @@ The application is designed as a realistic academic full-stack project with a st
 - downloadable PDF ticket generation
 - QR-based ticket verification
 
-Unlike a simple CRUD system, EventHorizon connects multiple workflows together: customers browse and book events, submit payment references, admins verify payments, tickets are generated after approval, customers can download official PDF tickets, and QR codes are validated through backend token verification.
+Unlike a simple CRUD system, EventHorizon connects multiple workflows together: customers browse and book events, submit payment references, admins verify payments, tickets are generated after approval, customers can download official PDF tickets, and QR codes are validated through backend token verification. Customer accounts and admin accounts are now handled separately at the database and login level, improving clarity, security, and maintainability.
 
 ---
 
@@ -78,7 +82,7 @@ Unlike a simple CRUD system, EventHorizon connects multiple workflows together: 
 |---|---|
 | Backend | Java, Java Servlets, JDBC |
 | Frontend | JSP, HTML, CSS, JavaScript |
-| Database | MySQL |
+| Database | MySQL with separate `customers` and `admins` tables |
 | Build Tool | Maven |
 | Runtime Server | Apache Tomcat |
 | Development Tools | IntelliJ IDEA, Git, GitHub, XAMPP, MySQL Workbench |
@@ -93,7 +97,7 @@ Unlike a simple CRUD system, EventHorizon connects multiple workflows together: 
 
 ### Customer Features
 
-- User registration and login
+- Customer registration and dedicated customer login
 - Session-based authentication
 - Browse active events
 - Search events by title, venue, or category
@@ -111,6 +115,7 @@ Unlike a simple CRUD system, EventHorizon connects multiple workflows together: 
 
 ### Admin Features
 
+- Dedicated admin login page
 - Dedicated admin dashboard
 - Permission-aware navigation and dashboard modules
 - Add, update, cancel, and delete events
@@ -137,12 +142,13 @@ EventHorizon follows a layered architecture that separates presentation, request
 | View Layer | JSP pages for customer interfaces, admin dashboards, forms, lists, and status pages |
 | Controller Layer | Servlets that handle routing, validation, request processing, and response forwarding |
 | Service Layer | Business logic for authentication, events, bookings, tickets, payments, users, and admin workflows |
-| Data Access Layer | JDBC-based database operations using MySQL |
+| Data Access Layer | JDBC-based database operations using MySQL, including separated `customers` and `admins` account tables |
 | Deployment Layer | Railway-hosted application and MySQL database environment |
 
 ### Architecture Benefits
 
 - Clear separation of concerns
+- Clear separation between customer accounts and admin accounts
 - Easier debugging and maintenance
 - More readable code organization
 - Reusable service-level logic
@@ -155,14 +161,14 @@ EventHorizon follows a layered architecture that separates presentation, request
 
 | Module | Responsibility | Primary Access |
 |---|---|---|
-| Authentication Module | Registration, login, logout, session handling, and role validation | Customers / Admins |
+| Authentication Module | Customer registration, customer login, admin login, logout, session handling, and role validation | Customers / Admins |
 | Event Browsing Module | Display active events, event details, search, and filtering | Customers |
 | Booking Module | Create bookings, submit payment references, cancel bookings, and track history | Customers |
 | Payment Review Module | Review submitted payment references and approve or reject bookings | Admins |
 | Ticket Module | Generate tickets, display ticket details, download PDF tickets, and validate QR tokens | Customers / Admins |
 | Ticket Type Module | Manage VIP, Standard, Early Bird, and other ticket categories | Admins |
 | Event Management Module | Create, edit, cancel, delete, and manage event data | Event Admins |
-| User Management Module | View and manage customer and admin accounts | Full Access Admins |
+| User Management Module | View and manage separated customer and admin accounts | Full Access Admins |
 | Admin Request Module | Submit, review, approve, or reject new admin access requests | Full Access Admins |
 | Issue / Support Module | Allow users to report issues and receive admin responses | Customers / Admins |
 
@@ -187,6 +193,35 @@ EventHorizon includes a permission-based admin system that controls which dashbo
 - Makes the admin dashboard more secure and organized
 - Reflects realistic organizational access control
 - Reduces accidental changes by limited-access admins
+
+---
+
+## Customer and Admin Account Separation
+
+EventHorizon now separates customer accounts and admin accounts into different database tables instead of storing both account types in one shared `users` table.
+
+### Database Separation
+
+| Table | Purpose | Example ID Format |
+|---|---|---|
+| `customers` | Stores registered customer accounts | `USR001` |
+| `admins` | Stores administrator accounts and permission levels | `ADM001` |
+| `users_legacy_before_customer_admin_split` | Backup of the previous combined users table | Legacy records |
+
+### Login Separation
+
+| Login Type | Page | Purpose |
+|---|---|---|
+| Customer Login | `/login.jsp` | Allows customers to sign in, browse events, book tickets, view bookings, and download approved tickets |
+| Admin Login | `/admin/login.jsp` | Allows only administrators to access the admin dashboard and permission-based management modules |
+
+### Separation Benefits
+
+- Keeps customer and admin records clearly organized
+- Prevents customer login and admin login from being handled through the same interface
+- Makes admin access more controlled and easier to protect
+- Improves database clarity for reports, debugging, and future scaling
+- Supports better enterprise-style authentication design
 
 ---
 
@@ -368,6 +403,7 @@ src/main/webapp/viewTickets.jsp
 ### Admin Workflow Logic
 
 - Admin access can be request-based.
+- Admin accounts are stored separately from customer accounts.
 - Requests remain pending until reviewed.
 - Approved requests grant permission-specific access.
 - Admin dashboard modules are shown based on permission level.
@@ -409,6 +445,7 @@ EventHorizon/
 │       ├── resources/
 │       └── webapp/
 │           ├── admin/
+│           │   ├── login.jsp
 │           │   ├── dashboard.jsp
 │           │   ├── events.jsp
 │           │   ├── addEvent.jsp
@@ -448,6 +485,8 @@ EventHorizon/
 │           ├── privacyPolicy.jsp
 │           ├── ticketPolicy.jsp
 │           └── termsConditions.jsp
+├── database/
+│   └── 01_split_users_into_customers_and_admins.sql
 ├── pom.xml
 ├── Dockerfile
 ├── README.md
@@ -458,6 +497,8 @@ EventHorizon/
 
 | File | Responsibility |
 |---|---|
+| `UserServlet.java` | Handles customer registration/login, dedicated admin login, logout, profile updates, admin requests, and account management routing |
+| `UserService.java` | Handles separated customer/admin authentication, registration, admin request approval, account listing, profile updates, and permission checks |
 | `BookingServlet.java` | Handles checkout, booking creation, cancellation, payment approval, and booking routing |
 | `BookingService.java` | Contains booking business logic, seat updates, payment approval, rejection, and ticket generation trigger |
 | `TicketServlet.java` | Handles ticket viewing, QR image generation, QR verification, admin scan page routing, and downloadable PDF ticket generation |
@@ -494,7 +535,7 @@ MYSQLUSER=
 MYSQLPASSWORD=
 ```
 
-The application can use these variables to connect to the Railway MySQL database in production.
+The application can use these variables to connect to the Railway MySQL database in production. The production database contains separated account tables for `customers` and `admins`, while legacy user data can be preserved in a backup table during migration.
 
 For ticket security, the application can also use a ticket secret environment variable:
 
@@ -529,20 +570,38 @@ git clone <repository-url>
 
 3. Configure the MySQL database.
 
-4. Update database connection settings for the local environment.
+4. Run the account separation migration if the database still uses the old combined `users` table.
 
-5. Build the project using Maven.
+```sql
+SOURCE database/01_split_users_into_customers_and_admins.sql;
+```
+
+5. Update database connection settings for the local environment.
+
+6. Build the project using Maven.
 
 ```bash
 mvn clean package
 ```
 
-6. Deploy the generated WAR file to Apache Tomcat.
+7. Deploy the generated WAR file to Apache Tomcat.
 
-7. Open the application in the browser.
+8. Open the application in the browser.
 
 ```text
 http://localhost:8080/EventHorizon
+```
+
+Customer login:
+
+```text
+http://localhost:8080/EventHorizon/login.jsp
+```
+
+Admin login:
+
+```text
+http://localhost:8080/EventHorizon/admin/login.jsp
 ```
 
 ### Maven Dependency Notes
@@ -575,6 +634,8 @@ mvn -U clean package
 - Full-stack Java web application
 - Professional event booking workflow
 - Clean JSP, Servlet, JDBC, and MySQL integration
+- Separate customer and admin database tables
+- Dedicated customer and admin login pages
 - Customer and admin role separation
 - Permission-based admin dashboard
 - Multi-ticket-type support
@@ -591,6 +652,7 @@ mvn -U clean package
 
 ## Future Improvements
 
+- Password hashing and stronger credential security
 - Online payment gateway integration
 - Email notification improvements
 - Advanced analytics dashboard
@@ -609,6 +671,6 @@ mvn -U clean package
 
 The project is actively maintained as a full-stack academic web application and continues to evolve with improved UI, better workflow handling, stronger admin access control, digital ticketing, QR verification, and downloadable PDF ticket generation.
 
-The latest completed feature is the downloadable PDF ticket system. Approved customers can now download official EventHorizon PDF tickets containing event details, booking details, payment status, ticket status, and QR-based verification support.
+The latest completed account-management improvement is the separation of customer and admin accounts into dedicated database tables with separate customer and admin login pages. The downloadable PDF ticket system is also completed, allowing approved customers to download official EventHorizon PDF tickets containing event details, booking details, payment status, ticket status, and QR-based verification support.
 
 ---
