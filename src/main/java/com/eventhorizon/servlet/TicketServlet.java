@@ -89,7 +89,7 @@ public class TicketServlet extends HttpServlet {
 
             case "scanPage":
                 if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
                     return;
                 }
                 req.getRequestDispatcher("/admin/scanTicket.jsp").forward(req, resp);

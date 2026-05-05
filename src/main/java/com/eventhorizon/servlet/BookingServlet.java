@@ -46,7 +46,7 @@ public class BookingServlet extends HttpServlet {
 
             case "allBookings":
                 if (session == null) {
-                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
                     return;
                 }
                 requireBookingAdmin(session, req, resp);
@@ -58,7 +58,7 @@ public class BookingServlet extends HttpServlet {
 
             case "eventBookings":
                 if (session == null) {
-                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
                     return;
                 }
                 requireBookingAdmin(session, req, resp);
@@ -81,7 +81,7 @@ public class BookingServlet extends HttpServlet {
 
             case "pendingPayments":
                 if (session == null) {
-                    resp.sendRedirect(req.getContextPath() + "/login.jsp");
+                    resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
                     return;
                 }
                 requireBookingAdmin(session, req, resp);
@@ -101,12 +101,18 @@ public class BookingServlet extends HttpServlet {
             throws ServletException, IOException {
 
         HttpSession session = req.getSession(false);
+        String action = req.getParameter("action");
+
         if (session == null) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            if ("approvePayment".equals(action)
+                    || "rejectPayment".equals(action)
+                    || "deleteBookingPermanently".equals(action)) {
+                resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            }
             return;
         }
-
-        String action = req.getParameter("action");
 
         switch (action == null ? "" : action) {
 
@@ -338,7 +344,7 @@ public class BookingServlet extends HttpServlet {
             throws IOException {
 
         if (!"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
             return;
         }
 

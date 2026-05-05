@@ -8,7 +8,7 @@
 
     if (session.getAttribute("userId") == null ||
         !"ADMIN".equals(session.getAttribute("role"))) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
         return;
     }
 %>

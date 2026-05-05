@@ -28,7 +28,11 @@ public class UserServlet extends HttpServlet {
                 break;
 
             case "login":
-                handleLogin(req, resp);
+                handleCustomerLogin(req, resp);
+                break;
+
+            case "adminLogin":
+                handleAdminLogin(req, resp);
                 break;
 
             case "logout":
@@ -139,57 +143,83 @@ public class UserServlet extends HttpServlet {
         }
     }
 
-    private void handleLogin(HttpServletRequest req, HttpServletResponse resp)
+    private void handleCustomerLogin(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
         String email = trim(req.getParameter("email"));
         String password = trim(req.getParameter("password"));
 
-        User user = userService.login(email, password);
+        User user = userService.loginCustomer(email, password);
 
-        if (user != null) {
-            HttpSession session = req.getSession(true);
-
-            session.setAttribute("userId", user.getUserId());
-            session.setAttribute("userName", user.getName());
-            session.setAttribute("userEmail", user.getEmail());
-            session.setAttribute("userPhone", user.getPhone());
-            session.setAttribute("role", user.getRole());
-
-            if ("ADMIN".equals(user.getRole()) && user instanceof Admin) {
-                Admin admin = (Admin) user;
-                String permission = admin.getAdminPermission();
-
-                session.setAttribute("adminPermission", permission);
-                session.setAttribute("canManageEvents", admin.canManageEvents());
-                session.setAttribute("canManageBookings", admin.canManageBookings());
-                session.setAttribute("hasFullAccess", UserService.hasFullAccess(permission));
-                session.setAttribute("canRequestAdmins", UserService.canRequestAdmin(permission));
-            } else {
-                session.removeAttribute("adminPermission");
-                session.removeAttribute("canManageEvents");
-                session.removeAttribute("canManageBookings");
-                session.removeAttribute("hasFullAccess");
-                session.removeAttribute("canRequestAdmins");
-            }
-
-            session.setMaxInactiveInterval(30 * 60);
-
-            if ("ADMIN".equals(user.getRole())) {
-                resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp");
-            } else {
-                resp.sendRedirect(req.getContextPath() + "/event?action=list");
-            }
+        if (user != null && "CUSTOMER".equalsIgnoreCase(user.getRole())) {
+            createCustomerSession(req, user);
+            resp.sendRedirect(req.getContextPath() + "/event?action=list");
         } else {
             resp.sendRedirect(req.getContextPath() + "/login.jsp?error=invalid");
         }
+    }
+
+    private void handleAdminLogin(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException {
+
+        String email = trim(req.getParameter("email"));
+        String password = trim(req.getParameter("password"));
+
+        Admin admin = userService.loginAdmin(email, password);
+
+        if (admin != null) {
+            createAdminSession(req, admin);
+            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/admin/login.jsp?error=invalid");
+        }
+    }
+
+    private void createCustomerSession(HttpServletRequest req, User user) {
+        HttpSession session = req.getSession(true);
+        session.setAttribute("userId", user.getUserId());
+        session.setAttribute("userName", user.getName());
+        session.setAttribute("userEmail", user.getEmail());
+        session.setAttribute("userPhone", user.getPhone());
+        session.setAttribute("role", user.getRole());
+
+        session.removeAttribute("adminPermission");
+        session.removeAttribute("canManageEvents");
+        session.removeAttribute("canManageBookings");
+        session.removeAttribute("hasFullAccess");
+        session.removeAttribute("canRequestAdmins");
+
+        session.setMaxInactiveInterval(30 * 60);
+    }
+
+    private void createAdminSession(HttpServletRequest req, Admin admin) {
+        HttpSession session = req.getSession(true);
+
+        String permission = admin.getAdminPermission();
+
+        session.setAttribute("userId", admin.getUserId());
+        session.setAttribute("userName", admin.getName());
+        session.setAttribute("userEmail", admin.getEmail());
+        session.setAttribute("userPhone", admin.getPhone());
+        session.setAttribute("role", admin.getRole());
+        session.setAttribute("adminPermission", permission);
+        session.setAttribute("canManageEvents", admin.canManageEvents());
+        session.setAttribute("canManageBookings", admin.canManageBookings());
+        session.setAttribute("hasFullAccess", UserService.hasFullAccess(permission));
+        session.setAttribute("canRequestAdmins", UserService.canRequestAdmin(permission));
+
+        session.setMaxInactiveInterval(30 * 60);
     }
 
     private void handleLogout(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
 
         HttpSession session = req.getSession(false);
+        boolean wasAdmin = false;
+
         if (session != null) {
+            Object role = session.getAttribute("role");
+            wasAdmin = role != null && "ADMIN".equalsIgnoreCase(String.valueOf(role));
             session.invalidate();
         }
 
@@ -197,7 +227,11 @@ public class UserServlet extends HttpServlet {
         resp.setHeader("Pragma", "no-cache");
         resp.setDateHeader("Expires", 0);
 
-        resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=logout");
+        if (wasAdmin) {
+            resp.sendRedirect(req.getContextPath() + "/admin/login.jsp?msg=logout");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/login.jsp?msg=logout");
+        }
     }
 
     private void handleUpdateProfile(HttpServletRequest req, HttpServletResponse resp)
@@ -210,6 +244,7 @@ public class UserServlet extends HttpServlet {
         }
 
         String userId = (String) session.getAttribute("userId");
+        String role = (String) session.getAttribute("role");
         String name = trim(req.getParameter("name"));
         String phone = trim(req.getParameter("phone"));
         String password = trim(req.getParameter("password"));
@@ -221,7 +256,11 @@ public class UserServlet extends HttpServlet {
             session.setAttribute("userPhone", phone);
             resp.sendRedirect(req.getContextPath() + "/profile.jsp?msg=updated");
         } else {
-            resp.sendRedirect(req.getContextPath() + "/profile.jsp?error=updateFailed");
+            if ("ADMIN".equalsIgnoreCase(role)) {
+                resp.sendRedirect(req.getContextPath() + "/profile.jsp?error=updateFailed");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/profile.jsp?error=updateFailed");
+            }
         }
     }
 
@@ -285,12 +324,6 @@ public class UserServlet extends HttpServlet {
                     session.setAttribute("canManageBookings", UserService.hasBookingAccess(normalizedPermission));
                     session.setAttribute("hasFullAccess", UserService.hasFullAccess(normalizedPermission));
                     session.setAttribute("canRequestAdmins", UserService.canRequestAdmin(normalizedPermission));
-                } else {
-                    session.removeAttribute("adminPermission");
-                    session.removeAttribute("canManageEvents");
-                    session.removeAttribute("canManageBookings");
-                    session.removeAttribute("hasFullAccess");
-                    session.removeAttribute("canRequestAdmins");
                 }
             }
             resp.sendRedirect(req.getContextPath() + "/user?action=list&msg=updated");
@@ -377,7 +410,7 @@ public class UserServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
             return;
         }
 
@@ -392,7 +425,7 @@ public class UserServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
             return;
         }
 

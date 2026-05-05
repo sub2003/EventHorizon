@@ -4,7 +4,7 @@
     String role = currentSession != null ? (String) currentSession.getAttribute("role") : null;
 
     if (currentSession == null || role == null || !"ADMIN".equals(role)) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
         return;
     }
 %>

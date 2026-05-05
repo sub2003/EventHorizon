@@ -66,7 +66,7 @@ public class EventServlet extends HttpServlet {
 
         HttpSession session = req.getSession(false);
         if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
             return;
         }
 
@@ -395,7 +395,7 @@ public class EventServlet extends HttpServlet {
         HttpSession session = req.getSession(false);
 
         if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/login.jsp");
+            resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
             return;
         }
 

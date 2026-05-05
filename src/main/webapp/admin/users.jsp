@@ -6,7 +6,7 @@
 <%
     Object roleObj = session.getAttribute("role");
     if (roleObj == null || !"ADMIN".equals(roleObj.toString())) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
         return;
     }
 

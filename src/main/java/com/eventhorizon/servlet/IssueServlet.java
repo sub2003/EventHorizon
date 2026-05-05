@@ -99,7 +99,7 @@ public class IssueServlet extends HttpServlet {
 
             case "adminList": {
                 if (!isAdmin(session)) {
-                    response.sendRedirect(request.getContextPath() + "/login.jsp");
+                    response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
                     return;
                 }
 
@@ -130,7 +130,7 @@ public class IssueServlet extends HttpServlet {
 
             case "adminDetail": {
                 if (!isAdmin(session)) {
-                    response.sendRedirect(request.getContextPath() + "/login.jsp");
+                    response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
                     return;
                 }
 
@@ -231,7 +231,7 @@ public class IssueServlet extends HttpServlet {
 
             case "reply": {
                 if (!isAdmin(session)) {
-                    response.sendRedirect(request.getContextPath() + "/login.jsp");
+                    response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
                     return;
                 }
 
@@ -255,7 +255,7 @@ public class IssueServlet extends HttpServlet {
 
             case "updateStatus": {
                 if (!isAdmin(session)) {
-                    response.sendRedirect(request.getContextPath() + "/login.jsp");
+                    response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
                     return;
                 }
 

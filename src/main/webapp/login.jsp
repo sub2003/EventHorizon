@@ -1,681 +1,344 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%
+    response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+    response.setHeader("Pragma", "no-cache");
+    response.setDateHeader("Expires", 0);
 
+    HttpSession currentSession = request.getSession(false);
+    if (currentSession != null && "ADMIN".equals(currentSession.getAttribute("role"))) {
+        response.sendRedirect(request.getContextPath() + "/admin/dashboard.jsp");
+        return;
+    }
+%>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login – EventHorizon</title>
+    <title>Admin Login | EventHorizon</title>
 
-    <!-- Do not link old css/style.css here because it may bring old dark/purple styles -->
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght,SOFT,WONK@9..144,600..900,40,0..1&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        *,
-        *::before,
-        *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         :root {
             --linen: #FAF8F4;
-            --linen-deep: #F1EBDD;
-            --paper: #FFFFFF;
-
+            --surface: #FFFFFF;
+            --surface-soft: #F4F8F5;
             --forest: #1E4A3A;
-            --forest-dark: #123528;
-            --forest-soft: #E8F1EC;
-
-            --sage: #72887A;
-            --clay: #B08D65;
-
-            --text: #18251F;
-            --text-soft: #52635A;
-            --muted: #6F7F76;
-
-            --border: rgba(30, 74, 58, 0.16);
-            --border-strong: rgba(30, 74, 58, 0.30);
-
-            --success-bg: #E8F6EE;
-            --success-text: #176B3B;
-
-            --danger-bg: #FFF0EC;
-            --danger-text: #A23A27;
-
-            --info-bg: #E8F1EC;
-            --info-text: #123528;
-
-            --shadow-soft: 0 18px 50px rgba(24, 37, 31, 0.09);
-            --shadow-premium: 0 30px 90px rgba(24, 37, 31, 0.15);
+            --forest-dark: #123428;
+            --sage: #6F8D7D;
+            --mint: #DDECE4;
+            --border: #D7E3DC;
+            --text: #10231B;
+            --muted: #5C6F65;
+            --danger: #B23B2E;
+            --danger-soft: #FBEAE7;
+            --success: #1E6B45;
+            --success-soft: #E8F6EE;
+            --shadow: 0 22px 60px rgba(20, 43, 33, 0.16);
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
+        * { box-sizing: border-box; }
 
         body {
-            position: relative;
-            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-            background:
-                radial-gradient(circle at top left, rgba(30, 74, 58, 0.08), transparent 32%),
-                radial-gradient(circle at top right, rgba(176, 141, 101, 0.10), transparent 30%),
-                linear-gradient(180deg, #ffffff 0%, var(--linen) 48%, #F7F3EA 100%);
-            color: var(--text);
+            margin: 0;
             min-height: 100vh;
-            line-height: 1.6;
-            overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body::before {
-            content: "";
-            position: fixed;
-            inset: 0;
-            z-index: -10;
-            pointer-events: none;
-            background-image:
-                radial-gradient(circle at 1px 1px, rgba(30, 74, 58, 0.10) 1.2px, transparent 1.4px),
-                linear-gradient(135deg, rgba(30, 74, 58, 0.035) 25%, transparent 25%),
-                linear-gradient(45deg, rgba(176, 141, 101, 0.035) 25%, transparent 25%);
-            background-size: 34px 34px, 88px 88px, 88px 88px;
-            background-position: 0 0, 0 0, 44px 44px;
-            opacity: 0.72;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        /* ================= SAME NAVBAR AS PROFILE PAGE ================= */
-
-        .eh-navbar {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            width: 100%;
-            background: rgba(250, 248, 244, 0.96);
-            border-bottom: 1px solid var(--border);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            box-shadow: 0 10px 28px rgba(24, 37, 31, 0.05);
-        }
-
-        .eh-navbar-inner {
-            width: min(92%, 1240px);
-            min-height: 76px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-        }
-
-        .eh-brand {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
-            color: var(--forest-dark);
-            font-weight: 900;
-            letter-spacing: 1.8px;
-            text-transform: uppercase;
-        }
-
-        .eh-brand-mark {
-            width: 42px;
-            height: 42px;
-            border-radius: 14px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            background: linear-gradient(135deg, var(--forest), var(--forest-dark));
-            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24);
-            flex-shrink: 0;
-        }
-
-        .eh-brand-mark i {
-            color: #ffffff;
-        }
-
-        .eh-brand-text {
-            font-size: 1.08rem;
-        }
-
-        .eh-nav-links {
-            list-style: none;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .eh-nav-links li {
-            list-style: none;
-        }
-
-        .eh-nav-link,
-        .eh-nav-btn-outline {
-            min-height: 42px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px 15px;
-            border-radius: 13px;
-            border: 1px solid transparent;
-            font-size: 0.88rem;
-            font-weight: 850;
-            color: var(--text-soft);
-            transition: 0.22s ease;
-            white-space: nowrap;
-        }
-
-        .eh-nav-link:hover,
-        .eh-nav-link.active {
-            color: var(--forest-dark);
-            background: #ffffff;
-            border-color: var(--border-strong);
-            box-shadow: 0 8px 18px rgba(24, 37, 31, 0.06);
-        }
-
-        .eh-nav-btn-outline {
-            color: var(--forest-dark);
-            background: #ffffff;
-            border-color: var(--border-strong);
-        }
-
-        .eh-nav-btn-outline:hover,
-        .eh-nav-btn-outline.active {
-            background: var(--forest-soft);
-            border-color: rgba(30, 74, 58, 0.45);
-        }
-
-        /* ================= AUTH PAGE ================= */
-
-        .auth-wrapper {
-            width: 100%;
-            min-height: calc(100vh - 76px);
-            padding: 64px 20px 80px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
-
-        .auth-card {
-            width: min(100%, 470px);
-            background: #ffffff;
-            border: 2px solid rgba(30, 74, 58, 0.20);
-            border-radius: 30px;
-            padding: 42px;
-            box-shadow: var(--shadow-premium);
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: var(--text);
-            position: relative;
-            overflow: hidden;
+            background:
+                    radial-gradient(circle at 12% 10%, rgba(30, 74, 58, 0.10), transparent 28%),
+                    radial-gradient(circle at 88% 18%, rgba(176, 141, 101, 0.12), transparent 26%),
+                    linear-gradient(135deg, #F8F6EF 0%, #EDF5EF 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 18px;
         }
 
-        .auth-card::before {
+        .auth-shell {
+            width: min(1040px, 100%);
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            background: rgba(255, 255, 255, 0.84);
+            border: 1px solid rgba(215, 227, 220, 0.95);
+            border-radius: 32px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            backdrop-filter: blur(16px);
+        }
+
+        .brand-panel {
+            position: relative;
+            padding: 52px;
+            background:
+                    linear-gradient(145deg, rgba(18, 52, 40, 0.94), rgba(30, 74, 58, 0.86)),
+                    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.18), transparent 36%);
+            color: #fff;
+            min-height: 560px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .brand-panel::after {
             content: "";
             position: absolute;
-            inset: 0 0 auto 0;
-            height: 6px;
-            background: linear-gradient(90deg, var(--forest), var(--sage));
+            inset: 0;
+            background-image:
+                    linear-gradient(135deg, rgba(255,255,255,0.06) 25%, transparent 25%),
+                    linear-gradient(225deg, rgba(255,255,255,0.05) 25%, transparent 25%);
+            background-size: 34px 34px;
+            opacity: 0.34;
+            pointer-events: none;
         }
 
-        .auth-logo {
+        .brand-content, .security-list { position: relative; z-index: 1; }
+
+        .brand-mark {
+            width: 64px;
+            height: 64px;
+            border-radius: 22px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.14);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            box-shadow: 0 16px 34px rgba(0,0,0,0.18);
+            margin-bottom: 24px;
+        }
+
+        .brand-mark i { font-size: 28px; color: #DCECE4; }
+
+        .brand-panel h1 {
+            margin: 0;
+            font-size: clamp(2rem, 4vw, 3.35rem);
+            line-height: 1;
+            letter-spacing: -0.06em;
+        }
+
+        .brand-panel p {
+            margin: 20px 0 0;
+            color: rgba(255,255,255,0.82);
+            max-width: 450px;
+            line-height: 1.7;
+            font-size: 1rem;
+        }
+
+        .security-list {
+            display: grid;
+            gap: 14px;
+        }
+
+        .security-item {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: rgba(255,255,255,0.88);
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .form-panel {
+            padding: 52px;
+            background: rgba(255,255,255,0.92);
             display: flex;
             align-items: center;
-            justify-content: center;
-            gap: 12px;
-            color: var(--forest-dark);
-            font-weight: 900;
-            letter-spacing: 1.8px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
         }
 
-        .auth-brand-mark {
-            width: 44px;
-            height: 44px;
-            border-radius: 15px;
+        .form-card { width: 100%; }
+
+        .eyebrow {
             display: inline-flex;
             align-items: center;
-            justify-content: center;
-            color: #ffffff;
-            background: linear-gradient(135deg, var(--forest), var(--forest-dark));
-            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24);
-            flex-shrink: 0;
-        }
-
-        .auth-brand-mark i {
-            color: #ffffff;
-        }
-
-        .auth-title {
-            color: var(--forest-dark);
-            text-align: center;
-            font-size: clamp(1.7rem, 4vw, 2.15rem);
-            font-weight: 900;
-            letter-spacing: -0.05em;
-            margin-top: 18px;
-            margin-bottom: 6px;
-        }
-
-        .auth-title i {
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 999px;
             color: var(--forest);
+            background: var(--mint);
+            font-weight: 800;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-bottom: 18px;
         }
 
-        .auth-subtitle {
-            color: var(--text-soft);
-            text-align: center;
-            font-size: 0.95rem;
-            font-weight: 650;
-            margin-bottom: 28px;
+        .form-card h2 {
+            margin: 0;
+            color: var(--forest-dark);
+            font-size: 2.15rem;
+            letter-spacing: -0.045em;
         }
 
-        .form-group {
-            margin-bottom: 19px;
+        .subtitle {
+            margin: 12px 0 28px;
+            color: var(--muted);
+            line-height: 1.65;
+            font-weight: 600;
         }
+
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            margin-bottom: 18px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .alert-danger {
+            background: var(--danger-soft);
+            color: var(--danger);
+            border: 1px solid rgba(178, 59, 46, 0.24);
+        }
+
+        .alert-success {
+            background: var(--success-soft);
+            color: var(--success);
+            border: 1px solid rgba(30, 107, 69, 0.22);
+        }
+
+        .form-group { margin-bottom: 18px; }
 
         .form-label {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.88rem;
+            font-weight: 800;
             color: var(--forest-dark);
-            font-size: 0.78rem;
-            font-weight: 900;
-            letter-spacing: 0.7px;
-            text-transform: uppercase;
-            margin-bottom: 9px;
-        }
-
-        .form-label i {
-            color: var(--forest);
+            margin-bottom: 8px;
         }
 
         .form-control {
             width: 100%;
-            min-height: 48px;
-            border-radius: 14px;
-            border: 1px solid var(--border-strong);
-            background: #ffffff;
+            height: 52px;
+            padding: 0 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: #FCFEFC;
             color: var(--text);
-            padding: 12px 15px;
-            font-size: 0.95rem;
-            font-weight: 700;
             outline: none;
-            transition: 0.2s ease;
+            font: inherit;
+            font-weight: 600;
+            transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
         }
 
         .form-control:focus {
-            border-color: rgba(30, 74, 58, 0.52);
-            box-shadow: 0 0 0 4px rgba(30, 74, 58, 0.10);
-        }
-
-        .form-control::placeholder {
-            color: #7E9086;
-            font-weight: 600;
-        }
-
-        .btn {
-            min-height: 48px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border-radius: 14px;
-            padding: 13px 20px;
-            border: none;
-            font-size: 0.92rem;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.22s ease;
-            text-decoration: none;
-            font-family: inherit;
-        }
-
-        .btn:hover {
+            border-color: var(--forest);
+            box-shadow: 0 0 0 4px rgba(30, 74, 58, 0.12);
             transform: translateY(-1px);
         }
 
-        .btn-block {
+        .btn {
             width: 100%;
-        }
-
-        .btn-primary {
-            color: #ffffff;
+            height: 54px;
+            border: 0;
+            border-radius: 17px;
             background: linear-gradient(135deg, var(--forest), var(--forest-dark));
-            box-shadow: 0 14px 30px rgba(30, 74, 58, 0.24);
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 18px 42px rgba(30, 74, 58, 0.30);
-        }
-
-        .auth-link-row {
-            text-align: center;
-            margin-top: 24px;
-            color: var(--text-soft);
-            font-size: 0.9rem;
-            font-weight: 650;
-        }
-
-        .auth-link-row a {
-            color: var(--forest-dark);
+            color: #fff;
             font-weight: 900;
-        }
-
-        .auth-link-row a:hover {
-            text-decoration: underline;
-        }
-
-        .back-home {
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .back-home a {
-            color: var(--text-soft);
-            font-size: 0.85rem;
-            font-weight: 750;
-        }
-
-        .back-home a:hover {
-            color: var(--forest-dark);
-        }
-
-        .demo-box {
-            margin-top: 24px;
-            padding: 16px;
-            border-radius: 16px;
-            background: var(--forest-soft);
-            color: var(--forest-dark);
-            border: 1px solid var(--border-strong);
-            font-size: 0.84rem;
-            line-height: 1.6;
-            font-weight: 700;
-        }
-
-        .demo-box strong {
-            color: var(--forest-dark);
-            font-weight: 900;
-        }
-
-        .demo-box i {
-            color: var(--forest);
-        }
-
-        .alert {
-            border-radius: 14px;
-            padding: 14px 16px;
-            margin-bottom: 18px;
-            font-size: 0.9rem;
-            font-weight: 800;
-            line-height: 1.5;
-            display: flex;
-            align-items: flex-start;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 18px 34px rgba(30, 74, 58, 0.24);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             gap: 10px;
+            transition: transform .2s ease, box-shadow .2s ease;
         }
 
-        .alert i {
-            margin-top: 2px;
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 24px 42px rgba(30, 74, 58, 0.30);
         }
 
-        .alert-success {
-            background: var(--success-bg);
-            color: var(--success-text);
-            border: 1px solid rgba(23, 107, 59, 0.22);
+        .small-note {
+            margin: 20px 0 0;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: var(--surface-soft);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.55;
+            font-weight: 600;
         }
 
-        .alert-danger {
-            background: var(--danger-bg);
-            color: var(--danger-text);
-            border: 1px solid rgba(162, 58, 39, 0.22);
-        }
+        .small-note strong { color: var(--forest-dark); }
 
-        .alert-info {
-            background: var(--info-bg);
-            color: var(--info-text);
-            border: 1px solid var(--border-strong);
-        }
-
-        @media (max-width: 900px) {
-            .eh-navbar-inner {
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                min-height: auto;
-                padding: 14px 0;
-            }
-
-            .eh-nav-links {
-                justify-content: center;
-            }
-
-            .eh-brand {
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 560px) {
-            .auth-wrapper {
-                padding: 34px 14px 60px;
-            }
-
-            .auth-card {
-                padding: 32px 22px;
-                border-radius: 24px;
-            }
-
-            .eh-nav-link span,
-            .eh-nav-btn-outline span {
-                display: none;
-            }
-
-            .eh-nav-link,
-            .eh-nav-btn-outline {
-                width: 42px;
-                padding: 0;
-            }
+        @media (max-width: 860px) {
+            .auth-shell { grid-template-columns: 1fr; }
+            .brand-panel { min-height: auto; padding: 34px; gap: 40px; }
+            .form-panel { padding: 34px; }
         }
     </style>
 </head>
-
 <body>
-
-<nav class="eh-navbar">
-    <div class="eh-navbar-inner">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="eh-brand">
-            <span class="eh-brand-mark">
-                <i class="fa-solid fa-leaf"></i>
-            </span>
-            <span class="eh-brand-text">EVENTHORIZON</span>
-        </a>
-
-        <ul class="eh-nav-links">
-            <li>
-                <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link">
-                    <i class="fa-solid fa-house"></i>
-                    <span>Home</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="${pageContext.request.contextPath}/event?action=list" class="eh-nav-link">
-                    <i class="fa-solid fa-calendar-days"></i>
-                    <span>Events</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="${pageContext.request.contextPath}/login.jsp" class="eh-nav-link active">
-                    <i class="fa-solid fa-right-to-bracket"></i>
-                    <span>Login</span>
-                </a>
-            </li>
-
-            <li>
-                <a href="${pageContext.request.contextPath}/register.jsp" class="eh-nav-btn-outline">
-                    <i class="fa-solid fa-user-plus"></i>
-                    <span>Register</span>
-                </a>
-            </li>
-        </ul>
-    </div>
-</nav>
-
-<div class="auth-wrapper">
-    <div class="auth-card">
-
-        <div class="auth-logo">
-            <span class="auth-brand-mark">
-                <i class="fa-solid fa-leaf"></i>
-            </span>
-            <span>EVENTHORIZON</span>
+<div class="auth-shell">
+    <section class="brand-panel">
+        <div class="brand-content">
+            <div class="brand-mark"><i class="fa-solid fa-leaf"></i></div>
+            <h1>EventHorizon Admin</h1>
+            <p>Protected administration entrance for event management, payment review, ticket scanning, issue handling, users, and admin access requests.</p>
         </div>
 
-        <h1 class="auth-title">
-            <i class="fa-solid fa-right-to-bracket"></i>
-            Welcome Back
-        </h1>
+        <div class="security-list">
+            <div class="security-item"><i class="fa-solid fa-user-shield"></i> Admin-only authentication</div>
+            <div class="security-item"><i class="fa-solid fa-lock"></i> Permission-based dashboard access</div>
+            <div class="security-item"><i class="fa-solid fa-qrcode"></i> Secure ticket verification tools</div>
+        </div>
+    </section>
 
-        <p class="auth-subtitle">Sign in to your account</p>
+    <section class="form-panel">
+        <div class="form-card">
+            <div class="eyebrow"><i class="fa-solid fa-shield-halved"></i> Admin Portal</div>
+            <h2>Sign in as Admin</h2>
+            <p class="subtitle">Use your authorized EventHorizon admin account. Customer accounts cannot sign in here.</p>
 
-        <% if ("invalid".equals(request.getParameter("error"))) { %>
-            <div class="alert alert-danger" data-auto-dismiss>
+            <% if ("invalid".equals(request.getParameter("error"))) { %>
+            <div class="alert alert-danger">
                 <i class="fa-solid fa-circle-xmark"></i>
-                <span>Invalid email or password.</span>
+                <span>Invalid admin email or password.</span>
             </div>
-        <% } %>
+            <% } %>
 
-        <% if ("notVerified".equals(request.getParameter("error"))) { %>
-            <div class="alert alert-danger" data-auto-dismiss>
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <span>Please verify your email before logging in.</span>
-            </div>
-        <% } %>
-
-        <% if ("invalidToken".equals(request.getParameter("error"))) { %>
-            <div class="alert alert-danger" data-auto-dismiss>
-                <i class="fa-solid fa-link-slash"></i>
-                <span>Verification link is invalid or expired.</span>
-            </div>
-        <% } %>
-
-        <% if ("emailSendFailed".equals(request.getParameter("error"))) { %>
-            <div class="alert alert-danger" data-auto-dismiss>
-                <i class="fa-solid fa-envelope-circle-check"></i>
-                <span>Account created, but email could not be sent.</span>
-            </div>
-        <% } %>
-
-        <% if ("registered".equals(request.getParameter("msg"))) { %>
-            <div class="alert alert-success" data-auto-dismiss>
+            <% if ("logout".equals(request.getParameter("msg"))) { %>
+            <div class="alert alert-success">
                 <i class="fa-solid fa-circle-check"></i>
-                <span>Account created successfully. Please log in.</span>
+                <span>You have successfully logged out from the admin portal.</span>
             </div>
-        <% } %>
+            <% } %>
 
-        <% if ("checkEmail".equals(request.getParameter("msg"))) { %>
-            <div class="alert alert-info" data-auto-dismiss>
-                <i class="fa-solid fa-envelope"></i>
-                <span>Registration successful. Check your email to verify your account.</span>
-            </div>
-        <% } %>
+            <form action="<%= request.getContextPath() %>/user" method="post" autocomplete="off">
+                <input type="hidden" name="action" value="adminLogin">
 
-        <% if ("verified".equals(request.getParameter("msg"))) { %>
-            <div class="alert alert-success" data-auto-dismiss>
-                <i class="fa-solid fa-circle-check"></i>
-                <span>Email verified successfully. You can now log in.</span>
-            </div>
-        <% } %>
+                <div class="form-group">
+                    <label class="form-label" for="email"><i class="fa-solid fa-envelope"></i> Admin Email</label>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="admin@eventhorizon.com" required autofocus>
+                </div>
 
-        <% if ("logout".equals(request.getParameter("msg"))) { %>
-            <div class="alert alert-info" data-auto-dismiss>
-                <i class="fa-solid fa-right-from-bracket"></i>
-                <span>You have been logged out.</span>
-            </div>
-        <% } %>
+                <div class="form-group">
+                    <label class="form-label" for="password"><i class="fa-solid fa-key"></i> Password</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Enter admin password" required>
+                </div>
 
-        <% if ("notAllowed".equals(request.getParameter("error"))) { %>
-            <div class="alert alert-danger" data-auto-dismiss>
-                <i class="fa-solid fa-ban"></i>
-                <span>That action is not allowed.</span>
-            </div>
-        <% } %>
+                <button type="submit" class="btn">
+                    <i class="fa-solid fa-arrow-right-to-bracket"></i>
+                    Enter Admin Dashboard
+                </button>
+            </form>
 
-        <form action="${pageContext.request.contextPath}/user" method="post" class="needs-validation">
-            <input type="hidden" name="action" value="login">
-
-            <div class="form-group">
-                <label class="form-label" for="email">
-                    <i class="fa-solid fa-envelope"></i>
-                    Email Address
-                </label>
-
-                <input type="email"
-                       id="email"
-                       name="email"
-                       class="form-control"
-                       placeholder="you@example.com"
-                       required>
-            </div>
-
-            <div class="form-group">
-                <label class="form-label" for="password">
-                    <i class="fa-solid fa-lock"></i>
-                    Password
-                </label>
-
-                <input type="password"
-                       id="password"
-                       name="password"
-                       class="form-control"
-                       placeholder="Enter your password"
-                       required>
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block" style="margin-top:8px;">
-                <i class="fa-solid fa-arrow-right-to-bracket"></i>
-                Sign In
-            </button>
-        </form>
-
-        <p class="auth-link-row">
-            Don't have an account?
-            <a href="${pageContext.request.contextPath}/register.jsp">Sign up</a>
-        </p>
-
-        <p class="back-home">
-            <a href="${pageContext.request.contextPath}/index.jsp">
-                <i class="fa-solid fa-arrow-left"></i>
-                Back to Home
-            </a>
-        </p>
-
-        <div class="demo-box">
-            <div>
-                <strong><i class="fa-solid fa-user-shield"></i> Demo Admin:</strong>
-                admin@eventhorizon.com / admin123
-            </div>
-
-            <div style="margin-top:4px;">
-                <strong><i class="fa-solid fa-user"></i> Demo Customer:</strong>
-                bob@gmail.com / pass123
+            <div class="small-note">
+                <strong>Direct URL only:</strong> this page is not shown in the public navigation. Admins can access it by typing <strong>/admin/login.jsp</strong> in the browser address bar.
             </div>
         </div>
-    </div>
+    </section>
 </div>
-
-<script src="${pageContext.request.contextPath}/js/main.js"></script>
-
 </body>
 </html>

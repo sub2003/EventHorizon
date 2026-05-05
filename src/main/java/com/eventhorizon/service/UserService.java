@@ -13,6 +13,9 @@ import java.util.Map;
 
 public class UserService {
 
+    private static final String CUSTOMER_TABLE = "customers";
+    private static final String ADMIN_TABLE = "admins";
+
     public boolean registerCustomer(String name, String email, String password, String phone) {
         name = safeTrim(name);
         email = normalizeEmail(email);
@@ -27,21 +30,20 @@ public class UserService {
             return false;
         }
 
-        String id = generateUserId("USR");
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String id = generateUserId("USR", CUSTOMER_TABLE, "customer_id", conn);
 
-        String sql = "INSERT INTO users (user_id, name, email, password, phone, role) " +
-                "VALUES (?, ?, ?, ?, ?, 'CUSTOMER')";
+            String sql = "INSERT INTO customers (customer_id, name, email, password, phone) " +
+                    "VALUES (?, ?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, id);
-            ps.setString(2, name);
-            ps.setString(3, email);
-            ps.setString(4, password);
-            ps.setString(5, phone);
-
-            return ps.executeUpdate() > 0;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, id);
+                ps.setString(2, name);
+                ps.setString(3, email);
+                ps.setString(4, password);
+                ps.setString(5, phone);
+                return ps.executeUpdate() > 0;
+            }
 
         } catch (SQLException e) {
             System.err.println("registerCustomer error: " + e.getMessage());
@@ -65,22 +67,21 @@ public class UserService {
             return false;
         }
 
-        String id = generateUserId("ADM");
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String id = generateUserId("ADM", ADMIN_TABLE, "admin_id", conn);
 
-        String sql = "INSERT INTO users (user_id, name, email, password, phone, role, admin_permission) " +
-                "VALUES (?, ?, ?, ?, ?, 'ADMIN', ?)";
+            String sql = "INSERT INTO admins (admin_id, name, email, password, phone, admin_permission) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, id);
-            ps.setString(2, name);
-            ps.setString(3, email);
-            ps.setString(4, password);
-            ps.setString(5, phone);
-            ps.setString(6, adminPermission);
-
-            return ps.executeUpdate() > 0;
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, id);
+                ps.setString(2, name);
+                ps.setString(3, email);
+                ps.setString(4, password);
+                ps.setString(5, phone);
+                ps.setString(6, adminPermission);
+                return ps.executeUpdate() > 0;
+            }
 
         } catch (SQLException e) {
             System.err.println("registerAdmin error: " + e.getMessage());
@@ -112,35 +113,40 @@ public class UserService {
         }
 
         String pendingCheckSql =
-                "SELECT request_id FROM admin_requests WHERE requested_email = ? AND status = 'PENDING'";
+                "SELECT request_id FROM admin_requests WHERE LOWER(requested_email) = LOWER(?) AND status = 'PENDING'";
 
         String insertSql =
                 "INSERT INTO admin_requests " +
                         "(request_id, requester_admin_id, requested_name, requested_email, requested_password, requested_phone, requested_permission, status) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING')";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement checkPs = conn.prepareStatement(pendingCheckSql);
-             PreparedStatement insertPs = conn.prepareStatement(insertSql)) {
-
-            checkPs.setString(1, email);
-            try (ResultSet rs = checkPs.executeQuery()) {
-                if (rs.next()) {
-                    return false;
-                }
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            if (getAdminById(requesterAdminId, conn) == null) {
+                return false;
             }
 
-            String requestId = generateAdminRequestId();
+            try (PreparedStatement checkPs = conn.prepareStatement(pendingCheckSql);
+                 PreparedStatement insertPs = conn.prepareStatement(insertSql)) {
 
-            insertPs.setString(1, requestId);
-            insertPs.setString(2, requesterAdminId);
-            insertPs.setString(3, name);
-            insertPs.setString(4, email);
-            insertPs.setString(5, password);
-            insertPs.setString(6, phone);
-            insertPs.setString(7, adminPermission);
+                checkPs.setString(1, email);
+                try (ResultSet rs = checkPs.executeQuery()) {
+                    if (rs.next()) {
+                        return false;
+                    }
+                }
 
-            return insertPs.executeUpdate() > 0;
+                String requestId = generateAdminRequestId(conn);
+
+                insertPs.setString(1, requestId);
+                insertPs.setString(2, requesterAdminId);
+                insertPs.setString(3, name);
+                insertPs.setString(4, email);
+                insertPs.setString(5, password);
+                insertPs.setString(6, phone);
+                insertPs.setString(7, adminPermission);
+
+                return insertPs.executeUpdate() > 0;
+            }
 
         } catch (SQLException e) {
             System.err.println("submitAdminRequest error: " + e.getMessage());
@@ -164,15 +170,7 @@ public class UserService {
                 row.put("requestedName", rs.getString("requested_name"));
                 row.put("requestedEmail", rs.getString("requested_email"));
                 row.put("requestedPhone", rs.getString("requested_phone"));
-
-                String requestedPermission;
-                try {
-                    requestedPermission = rs.getString("requested_permission");
-                } catch (SQLException e) {
-                    requestedPermission = Admin.CORE_ADMIN;
-                }
-
-                row.put("requestedPermission", normalizeAdminPermission(requestedPermission));
+                row.put("requestedPermission", normalizeAdminPermission(rs.getString("requested_permission")));
                 row.put("status", rs.getString("status"));
                 row.put("requestedAt", rs.getString("requested_at"));
                 requests.add(row);
@@ -186,12 +184,14 @@ public class UserService {
     }
 
     public boolean approveAdminRequest(String requestId, String approverAdminId) {
+        requestId = safeTrim(requestId);
+        approverAdminId = safeTrim(approverAdminId);
 
         String selectSql = "SELECT * FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
 
         String insertAdminSql =
-                "INSERT INTO users (user_id, name, email, password, phone, role, admin_permission) " +
-                        "VALUES (?, ?, ?, ?, ?, 'ADMIN', ?)";
+                "INSERT INTO admins (admin_id, name, email, password, phone, admin_permission) " +
+                        "VALUES (?, ?, ?, ?, ?, ?)";
 
         String updateRequestSql =
                 "UPDATE admin_requests " +
@@ -203,6 +203,11 @@ public class UserService {
         try {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
+
+            if (getAdminById(approverAdminId, conn) == null) {
+                conn.rollback();
+                return false;
+            }
 
             try (PreparedStatement selectPs = conn.prepareStatement(selectSql)) {
                 selectPs.setString(1, requestId);
@@ -217,22 +222,14 @@ public class UserService {
                     String email = normalizeEmail(rs.getString("requested_email"));
                     String password = rs.getString("requested_password");
                     String phone = rs.getString("requested_phone");
+                    String permission = normalizeAdminPermission(rs.getString("requested_permission"));
 
-                    String permission;
-                    try {
-                        permission = rs.getString("requested_permission");
-                    } catch (SQLException e) {
-                        permission = Admin.CORE_ADMIN;
-                    }
-
-                    permission = normalizeAdminPermission(permission);
-
-                    if (getUserByEmail(email) != null) {
+                    if (getUserByEmail(email, conn) != null) {
                         conn.rollback();
                         return false;
                     }
 
-                    String newAdminId = generateUserId("ADM", conn);
+                    String newAdminId = generateUserId("ADM", ADMIN_TABLE, "admin_id", conn);
 
                     try (PreparedStatement insertPs = conn.prepareStatement(insertAdminSql);
                          PreparedStatement updatePs = conn.prepareStatement(updateRequestSql)) {
@@ -278,19 +275,24 @@ public class UserService {
     }
 
     public boolean rejectAdminRequest(String requestId, String approverAdminId) {
+        requestId = safeTrim(requestId);
+        approverAdminId = safeTrim(approverAdminId);
 
         String updateSql =
                 "UPDATE admin_requests " +
                         "SET status = 'REJECTED', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP " +
                         "WHERE request_id = ? AND status = 'PENDING'";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            if (getAdminById(approverAdminId, conn) == null) {
+                return false;
+            }
 
-            updatePs.setString(1, approverAdminId);
-            updatePs.setString(2, requestId);
-
-            return updatePs.executeUpdate() > 0;
+            try (PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
+                updatePs.setString(1, approverAdminId);
+                updatePs.setString(2, requestId);
+                return updatePs.executeUpdate() > 0;
+            }
 
         } catch (SQLException e) {
             System.err.println("rejectAdminRequest error: " + e.getMessage());
@@ -300,14 +302,22 @@ public class UserService {
 
     public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM users ORDER BY role DESC, name ASC";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String customerSql = "SELECT * FROM customers ORDER BY name ASC";
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery(customerSql)) {
+                while (rs.next()) {
+                    users.add(mapCustomerRow(rs, conn));
+                }
+            }
 
-            while (rs.next()) {
-                users.add(mapRowToUser(rs, conn));
+            String adminSql = "SELECT * FROM admins ORDER BY name ASC";
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery(adminSql)) {
+                while (rs.next()) {
+                    users.add(mapAdminRow(rs));
+                }
             }
 
         } catch (SQLException e) {
@@ -319,24 +329,14 @@ public class UserService {
 
     public List<Customer> getAllCustomers() {
         List<Customer> customers = new ArrayList<>();
-        String sql = "SELECT * FROM users WHERE role = 'CUSTOMER' ORDER BY name ASC";
+        String sql = "SELECT * FROM customers ORDER BY name ASC";
 
         try (Connection conn = DatabaseConnection.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
 
             while (rs.next()) {
-                String id = rs.getString("user_id");
-                int bookingCount = getBookingCount(id, conn);
-
-                customers.add(new Customer(
-                        id,
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        rs.getString("phone"),
-                        bookingCount
-                ));
+                customers.add(mapCustomerRow(rs, conn));
             }
 
         } catch (SQLException e) {
@@ -347,49 +347,38 @@ public class UserService {
     }
 
     public User getUserById(String userId) {
-        String sql = "SELECT * FROM users WHERE user_id = ?";
+        userId = safeTrim(userId);
+        if (isBlank(userId)) return null;
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, safeTrim(userId));
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapRowToUser(rs, conn);
-                }
-            }
-
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            return getUserById(userId, conn);
         } catch (SQLException e) {
             System.err.println("getUserById error: " + e.getMessage());
+            return null;
         }
-
-        return null;
     }
 
     public User getUserByEmail(String email) {
-        String sql = "SELECT * FROM users WHERE LOWER(email) = LOWER(?)";
+        email = normalizeEmail(email);
+        if (isBlank(email)) return null;
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, normalizeEmail(email));
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapRowToUser(rs, conn);
-                }
-            }
-
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            return getUserByEmail(email, conn);
         } catch (SQLException e) {
             System.err.println("getUserByEmail error: " + e.getMessage());
+            return null;
         }
-
-        return null;
     }
 
+    /**
+     * Customer login only. Public /login.jsp must not authenticate admin accounts.
+     */
     public User login(String email, String password) {
-        String sql = "SELECT * FROM users WHERE LOWER(email) = LOWER(?) AND password = ?";
+        return loginCustomer(email, password);
+    }
+
+    public Customer loginCustomer(String email, String password) {
+        String sql = "SELECT * FROM customers WHERE LOWER(email) = LOWER(?) AND password = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -399,19 +388,41 @@ public class UserService {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    return mapRowToUser(rs, conn);
+                    return mapCustomerRow(rs, conn);
                 }
             }
 
         } catch (SQLException e) {
-            System.err.println("login error: " + e.getMessage());
+            System.err.println("loginCustomer error: " + e.getMessage());
+        }
+
+        return null;
+    }
+
+    public Admin loginAdmin(String email, String password) {
+        String sql = "SELECT * FROM admins WHERE LOWER(email) = LOWER(?) AND password = ?";
+
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, normalizeEmail(email));
+            ps.setString(2, safeTrim(password));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapAdminRow(rs);
+                }
+            }
+
+        } catch (SQLException e) {
+            System.err.println("loginAdmin error: " + e.getMessage());
         }
 
         return null;
     }
 
     public String getAdminPermission(String userId) {
-        String sql = "SELECT admin_permission FROM users WHERE user_id = ? AND role = 'ADMIN'";
+        String sql = "SELECT admin_permission FROM admins WHERE admin_id = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -441,10 +452,18 @@ public class UserService {
             return false;
         }
 
+        User existing = getUserById(userId);
+        if (existing == null) {
+            return false;
+        }
+
         boolean updatePassword = !isBlank(newPassword);
+        String table = "ADMIN".equalsIgnoreCase(existing.getRole()) ? ADMIN_TABLE : CUSTOMER_TABLE;
+        String idColumn = "ADMIN".equalsIgnoreCase(existing.getRole()) ? "admin_id" : "customer_id";
+
         String sql = updatePassword
-                ? "UPDATE users SET name = ?, phone = ?, password = ? WHERE user_id = ?"
-                : "UPDATE users SET name = ?, phone = ? WHERE user_id = ?";
+                ? "UPDATE " + table + " SET name = ?, phone = ?, password = ? WHERE " + idColumn + " = ?"
+                : "UPDATE " + table + " SET name = ?, phone = ? WHERE " + idColumn + " = ?";
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -499,6 +518,12 @@ public class UserService {
             return false;
         }
 
+        // In the separated-table design, role conversion is blocked intentionally.
+        // This prevents breaking booking/ticket/customer foreign keys or admin request history.
+        if (!existing.getRole().equalsIgnoreCase(role)) {
+            return false;
+        }
+
         User userWithSameEmail = getUserByEmail(email);
         if (userWithSameEmail != null && !targetUserId.equals(userWithSameEmail.getUserId())) {
             return false;
@@ -509,21 +534,17 @@ public class UserService {
         }
 
         boolean updatePassword = !isBlank(password);
-        boolean targetIsAdmin = "ADMIN".equalsIgnoreCase(role);
+        boolean targetIsAdmin = "ADMIN".equalsIgnoreCase(existing.getRole());
 
         String sql;
         if (targetIsAdmin) {
-            if (updatePassword) {
-                sql = "UPDATE users SET name = ?, email = ?, phone = ?, password = ?, role = ?, admin_permission = ? WHERE user_id = ?";
-            } else {
-                sql = "UPDATE users SET name = ?, email = ?, phone = ?, role = ?, admin_permission = ? WHERE user_id = ?";
-            }
+            sql = updatePassword
+                    ? "UPDATE admins SET name = ?, email = ?, phone = ?, password = ?, admin_permission = ? WHERE admin_id = ?"
+                    : "UPDATE admins SET name = ?, email = ?, phone = ?, admin_permission = ? WHERE admin_id = ?";
         } else {
-            if (updatePassword) {
-                sql = "UPDATE users SET name = ?, email = ?, phone = ?, password = ?, role = ?, admin_permission = NULL WHERE user_id = ?";
-            } else {
-                sql = "UPDATE users SET name = ?, email = ?, phone = ?, role = ?, admin_permission = NULL WHERE user_id = ?";
-            }
+            sql = updatePassword
+                    ? "UPDATE customers SET name = ?, email = ?, phone = ?, password = ? WHERE customer_id = ?"
+                    : "UPDATE customers SET name = ?, email = ?, phone = ? WHERE customer_id = ?";
         }
 
         try (Connection conn = DatabaseConnection.getConnection();
@@ -536,22 +557,18 @@ public class UserService {
             if (targetIsAdmin) {
                 if (updatePassword) {
                     ps.setString(4, password);
-                    ps.setString(5, role.toUpperCase());
-                    ps.setString(6, adminPermission);
-                    ps.setString(7, targetUserId);
-                } else {
-                    ps.setString(4, role.toUpperCase());
                     ps.setString(5, adminPermission);
                     ps.setString(6, targetUserId);
+                } else {
+                    ps.setString(4, adminPermission);
+                    ps.setString(5, targetUserId);
                 }
             } else {
                 if (updatePassword) {
                     ps.setString(4, password);
-                    ps.setString(5, role.toUpperCase());
-                    ps.setString(6, targetUserId);
-                } else {
-                    ps.setString(4, role.toUpperCase());
                     ps.setString(5, targetUserId);
+                } else {
+                    ps.setString(4, targetUserId);
                 }
             }
 
@@ -610,28 +627,43 @@ public class UserService {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            try (PreparedStatement bookingPs =
-                         conn.prepareStatement("DELETE FROM bookings WHERE customer_id = ?")) {
-                bookingPs.setString(1, userId);
-                bookingPs.executeUpdate();
-            } catch (SQLException ignored) {
-            }
+            if ("CUSTOMER".equalsIgnoreCase(targetUser.getRole())) {
+                try (PreparedStatement bookingPs = conn.prepareStatement(
+                        "DELETE FROM bookings WHERE customer_id = ?")) {
+                    bookingPs.setString(1, userId);
+                    bookingPs.executeUpdate();
+                }
 
-            try (PreparedStatement requestByApproverPs =
-                         conn.prepareStatement("DELETE FROM admin_requests WHERE reviewed_by = ?")) {
-                requestByApproverPs.setString(1, userId);
-                requestByApproverPs.executeUpdate();
-            } catch (SQLException ignored) {
-            }
+                try (PreparedStatement deletePs = conn.prepareStatement(
+                        "DELETE FROM customers WHERE customer_id = ?")) {
+                    deletePs.setString(1, userId);
+                    boolean success = deletePs.executeUpdate() > 0;
+                    if (!success) {
+                        conn.rollback();
+                        return false;
+                    }
+                }
+            } else {
+                try (PreparedStatement requestByApproverPs = conn.prepareStatement(
+                        "UPDATE admin_requests SET reviewed_by = NULL WHERE reviewed_by = ?")) {
+                    requestByApproverPs.setString(1, userId);
+                    requestByApproverPs.executeUpdate();
+                }
 
-            try (PreparedStatement deletePs =
-                         conn.prepareStatement("DELETE FROM users WHERE user_id = ?")) {
-                deletePs.setString(1, userId);
+                try (PreparedStatement requestByRequesterPs = conn.prepareStatement(
+                        "DELETE FROM admin_requests WHERE requester_admin_id = ?")) {
+                    requestByRequesterPs.setString(1, userId);
+                    requestByRequesterPs.executeUpdate();
+                }
 
-                boolean success = deletePs.executeUpdate() > 0;
-                if (!success) {
-                    conn.rollback();
-                    return false;
+                try (PreparedStatement deletePs = conn.prepareStatement(
+                        "DELETE FROM admins WHERE admin_id = ?")) {
+                    deletePs.setString(1, userId);
+                    boolean success = deletePs.executeUpdate() > 0;
+                    if (!success) {
+                        conn.rollback();
+                        return false;
+                    }
                 }
             }
 
@@ -661,13 +693,24 @@ public class UserService {
     }
 
     public boolean deleteUserByEmail(String email) {
-        String sql = "DELETE FROM users WHERE LOWER(email) = LOWER(?)";
+        email = normalizeEmail(email);
+        if (isBlank(email)) return false;
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            User user = getUserByEmail(email, conn);
+            if (user == null) return false;
 
-            ps.setString(1, normalizeEmail(email));
-            return ps.executeUpdate() > 0;
+            String sql;
+            if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+                sql = "DELETE FROM admins WHERE LOWER(email) = LOWER(?)";
+            } else {
+                sql = "DELETE FROM customers WHERE LOWER(email) = LOWER(?)";
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, email);
+                return ps.executeUpdate() > 0;
+            }
 
         } catch (SQLException e) {
             System.err.println("deleteUserByEmail error: " + e.getMessage());
@@ -694,42 +737,104 @@ public class UserService {
         return 0;
     }
 
-    private User mapRowToUser(ResultSet rs, Connection conn) throws SQLException {
-        String role = rs.getString("role");
-        String id = rs.getString("user_id");
-        String name = rs.getString("name");
-        String email = rs.getString("email");
-        String pass = rs.getString("password");
-        String phone = rs.getString("phone");
+    private User getUserById(String userId, Connection conn) throws SQLException {
+        if (userId != null && userId.toUpperCase().startsWith("ADM")) {
+            Admin admin = getAdminById(userId, conn);
+            if (admin != null) return admin;
+            return getCustomerById(userId, conn);
+        }
 
-        if ("ADMIN".equalsIgnoreCase(role)) {
-            String permission;
-            try {
-                permission = rs.getString("admin_permission");
-            } catch (SQLException e) {
-                permission = Admin.CORE_ADMIN;
+        Customer customer = getCustomerById(userId, conn);
+        if (customer != null) return customer;
+        return getAdminById(userId, conn);
+    }
+
+    private User getUserByEmail(String email, Connection conn) throws SQLException {
+        Customer customer = getCustomerByEmail(email, conn);
+        if (customer != null) return customer;
+        return getAdminByEmail(email, conn);
+    }
+
+    private Customer getCustomerById(String customerId, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM customers WHERE customer_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, safeTrim(customerId));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapCustomerRow(rs, conn);
+                }
             }
-
-            return new Admin(id, name, email, pass, phone, normalizeAdminPermission(permission));
         }
+        return null;
+    }
 
+    private Admin getAdminById(String adminId, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM admins WHERE admin_id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, safeTrim(adminId));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapAdminRow(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    private Customer getCustomerByEmail(String email, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM customers WHERE LOWER(email) = LOWER(?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, normalizeEmail(email));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapCustomerRow(rs, conn);
+                }
+            }
+        }
+        return null;
+    }
+
+    private Admin getAdminByEmail(String email, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM admins WHERE LOWER(email) = LOWER(?)";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, normalizeEmail(email));
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapAdminRow(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    private Customer mapCustomerRow(ResultSet rs, Connection conn) throws SQLException {
+        String id = rs.getString("customer_id");
         int bookingCount = getBookingCount(id, conn);
-        return new Customer(id, name, email, pass, phone, bookingCount);
+
+        return new Customer(
+                id,
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getString("phone"),
+                bookingCount
+        );
     }
 
-    private String generateUserId(String prefix) {
-        try (Connection conn = DatabaseConnection.getConnection()) {
-            return generateUserId(prefix, conn);
-        } catch (SQLException e) {
-            System.err.println("generateUserId error: " + e.getMessage());
-            return prefix + System.currentTimeMillis();
-        }
+    private Admin mapAdminRow(ResultSet rs) throws SQLException {
+        return new Admin(
+                rs.getString("admin_id"),
+                rs.getString("name"),
+                rs.getString("email"),
+                rs.getString("password"),
+                rs.getString("phone"),
+                normalizeAdminPermission(rs.getString("admin_permission"))
+        );
     }
 
-    private String generateUserId(String prefix, Connection conn) {
-        String sql =
-                "SELECT MAX(CAST(SUBSTRING(user_id, 4) AS UNSIGNED)) " +
-                        "FROM users WHERE user_id LIKE ?";
+    private String generateUserId(String prefix, String table, String column, Connection conn) {
+        String sql = "SELECT MAX(CAST(SUBSTRING(" + column + ", 4) AS UNSIGNED)) " +
+                "FROM " + table + " WHERE " + column + " LIKE ?";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, prefix + "%");
@@ -743,18 +848,17 @@ public class UserService {
             }
 
         } catch (SQLException e) {
-            System.err.println("generateUserId(conn) error: " + e.getMessage());
+            System.err.println("generateUserId error: " + e.getMessage());
             return prefix + System.currentTimeMillis();
         }
     }
 
-    private String generateAdminRequestId() {
+    private String generateAdminRequestId(Connection conn) {
         String sql =
                 "SELECT MAX(CAST(SUBSTRING(request_id, 4) AS UNSIGNED)) " +
                         "FROM admin_requests WHERE request_id LIKE 'ARQ%'";
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement st = conn.createStatement();
+        try (Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
 
             int next = 1;

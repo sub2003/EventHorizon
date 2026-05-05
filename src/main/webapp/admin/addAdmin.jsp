@@ -8,7 +8,7 @@
     String adminPermission = currentSession != null ? (String) currentSession.getAttribute("adminPermission") : null;
 
     if (currentSession == null || role == null || !"ADMIN".equals(role) || !UserService.canRequestAdmin(adminPermission)) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
         return;
     }
 

@@ -10,7 +10,7 @@
     if (adminPermission == null || adminPermission.trim().isEmpty()) adminPermission = Admin.CORE_ADMIN;
 
     if (roleObj == null || !"ADMIN".equals(roleObj.toString()) || !UserService.hasEventAccess(adminPermission)) {
-        response.sendRedirect(request.getContextPath() + "/login.jsp");
+        response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
         return;
     }
 
