@@ -19,6 +19,7 @@
     boolean canManageEvents = UserService.hasEventAccess(adminPermission);
     boolean canManageBookings = UserService.hasBookingAccess(adminPermission);
     boolean hasFullAccess = UserService.hasFullAccess(adminPermission);
+    boolean canRequestAdmins = UserService.canRequestAdmin(adminPermission);
 %>
 <!DOCTYPE html>
 <html lang="en">
@@ -89,7 +90,7 @@
                     <span>Issue Requests</span>
                 </a>
 
-                <% if (UserService.canRequestAdmin(adminPermission)) { %>
+                <% if (canRequestAdmins) { %>
                 <a href="<%= request.getContextPath() %>/user?action=addAdminForm">
                     <i class="fa-solid fa-user-plus"></i>
                     <span>Request New Admin</span>
@@ -186,17 +187,18 @@
                 <div>
                     <p class="eyebrow">Available Facilities</p>
                     <h2>Admin facilities and responsibilities</h2>
-                    <p>Each card explains what the facility allows you to do. Locked cards are not included in your permission level.</p>
+                    <p>Each card explains what the facility allows you to do for your current permission level.</p>
                 </div>
             </div>
 
             <div class="facility-grid">
-                <article class="facility-card <%= hasFullAccess ? "is-available" : "is-locked" %>">
+                <% if (hasFullAccess) { %>
+                <article class="facility-card is-available">
                     <div class="facility-icon"><i class="fa-solid fa-users"></i></div>
                     <div class="facility-content">
                         <div class="facility-topline">
                             <h3>User Control</h3>
-                            <span class="facility-status <%= hasFullAccess ? "available" : "locked" %>"><%= hasFullAccess ? "Available" : "Locked" %></span>
+                            <span class="facility-status available">Available</span>
                         </div>
                         <p>Manage customer accounts and admin accounts from one place.</p>
                         <ul class="facility-list">
@@ -206,13 +208,15 @@
                         </ul>
                     </div>
                 </article>
+                <% } %>
 
-                <article class="facility-card <%= canManageEvents ? "is-available" : "is-locked" %>">
+                <% if (canManageEvents) { %>
+                <article class="facility-card is-available">
                     <div class="facility-icon"><i class="fa-solid fa-calendar-days"></i></div>
                     <div class="facility-content">
                         <div class="facility-topline">
                             <h3>Event Management</h3>
-                            <span class="facility-status <%= canManageEvents ? "available" : "locked" %>"><%= canManageEvents ? "Available" : "Locked" %></span>
+                            <span class="facility-status available">Available</span>
                         </div>
                         <p>Create, edit, cancel, and organize events shown to customers.</p>
                         <ul class="facility-list">
@@ -222,13 +226,15 @@
                         </ul>
                     </div>
                 </article>
+                <% } %>
 
-                <article class="facility-card <%= canManageBookings ? "is-available" : "is-locked" %>">
+                <% if (canManageBookings) { %>
+                <article class="facility-card is-available">
                     <div class="facility-icon"><i class="fa-solid fa-ticket"></i></div>
                     <div class="facility-content">
                         <div class="facility-topline">
                             <h3>Booking Control</h3>
-                            <span class="facility-status <%= canManageBookings ? "available" : "locked" %>"><%= canManageBookings ? "Available" : "Locked" %></span>
+                            <span class="facility-status available">Available</span>
                         </div>
                         <p>Track customer bookings, booking status, and ticket generation flow.</p>
                         <ul class="facility-list">
@@ -239,12 +245,12 @@
                     </div>
                 </article>
 
-                <article class="facility-card <%= canManageBookings ? "is-available" : "is-locked" %>">
+                <article class="facility-card is-available">
                     <div class="facility-icon"><i class="fa-solid fa-money-check-dollar"></i></div>
                     <div class="facility-content">
                         <div class="facility-topline">
                             <h3>Payment Review</h3>
-                            <span class="facility-status <%= canManageBookings ? "available" : "locked" %>"><%= canManageBookings ? "Available" : "Locked" %></span>
+                            <span class="facility-status available">Available</span>
                         </div>
                         <p>Verify payment references submitted by customers before ticket approval.</p>
                         <ul class="facility-list">
@@ -254,6 +260,7 @@
                         </ul>
                     </div>
                 </article>
+                <% } %>
 
                 <article class="facility-card is-available">
                     <div class="facility-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
@@ -271,12 +278,31 @@
                     </div>
                 </article>
 
-                <article class="facility-card <%= hasFullAccess ? "is-available" : "is-locked" %>">
+                <% if (canRequestAdmins && !hasFullAccess) { %>
+                <article class="facility-card is-available">
+                    <div class="facility-icon"><i class="fa-solid fa-user-plus"></i></div>
+                    <div class="facility-content">
+                        <div class="facility-topline">
+                            <h3>Request New Admin</h3>
+                            <span class="facility-status available">Available</span>
+                        </div>
+                        <p>Create a request for a new admin account according to your permission level.</p>
+                        <ul class="facility-list">
+                            <li>Submit new admin requests</li>
+                            <li>Send requested admin details</li>
+                            <li>Wait for core admin approval</li>
+                        </ul>
+                    </div>
+                </article>
+                <% } %>
+
+                <% if (hasFullAccess) { %>
+                <article class="facility-card is-available">
                     <div class="facility-icon"><i class="fa-solid fa-user-check"></i></div>
                     <div class="facility-content">
                         <div class="facility-topline">
                             <h3>Admin Requests</h3>
-                            <span class="facility-status <%= hasFullAccess ? "available" : "locked" %>"><%= hasFullAccess ? "Available" : "Locked" %></span>
+                            <span class="facility-status available">Available</span>
                         </div>
                         <p>Review requests for new admin access and control admin permissions.</p>
                         <ul class="facility-list">
@@ -286,6 +312,7 @@
                         </ul>
                     </div>
                 </article>
+                <% } %>
             </div>
         </section>
 
@@ -311,6 +338,10 @@
                 <% if (hasFullAccess) { %>
                     <span class="access-chip"><i class="fa-solid fa-check"></i> Users</span>
                     <span class="access-chip"><i class="fa-solid fa-check"></i> Admin Requests</span>
+                <% } %>
+
+                <% if (canRequestAdmins && !hasFullAccess) { %>
+                    <span class="access-chip"><i class="fa-solid fa-check"></i> Request New Admin</span>
                 <% } %>
             </div>
         </section>
