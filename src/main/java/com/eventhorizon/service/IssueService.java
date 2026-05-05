@@ -91,9 +91,6 @@ public class IssueService {
     }
 
     public List<Issue> getIssuesByAdminType(String adminType) {
-        if ("EVENTS_AND_BOOKINGS_ADMIN".equalsIgnoreCase(adminType)) {
-            return getIssuesByFilter("EVENTS_ADMIN,BOOKINGS_ADMIN", null, null);
-        }
         return getIssuesByFilter(adminType, null, null);
     }
 
@@ -103,18 +100,7 @@ public class IssueService {
         StringBuilder sql = new StringBuilder("SELECT * FROM issues WHERE 1=1 ");
         List<Object> params = new ArrayList<>();
 
-        if (!isBlank(adminTypeFilter) && !"CORE_ADMIN".equalsIgnoreCase(adminTypeFilter.trim())) {
-            String[] types = adminTypeFilter.split(",");
-            sql.append("AND assigned_admin_type IN (");
-            for (int i = 0; i < types.length; i++) {
-                if (i > 0) {
-                    sql.append(", ");
-                }
-                sql.append("?");
-                params.add(types[i].trim());
-            }
-            sql.append(") ");
-        }
+        appendAdminTypeCondition(sql, params, adminTypeFilter);
 
         if (!isBlank(categoryFilter) && !"ALL".equalsIgnoreCase(categoryFilter.trim())) {
             sql.append("AND category = ? ");
@@ -328,20 +314,11 @@ public class IssueService {
     }
 
     public int countByStatus(String status, String adminType) {
-        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM issues WHERE status = ?");
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM issues WHERE status = ? ");
         List<Object> params = new ArrayList<>();
         params.add(safeStatus(status));
 
-        if (!isBlank(adminType) && !"CORE_ADMIN".equalsIgnoreCase(adminType.trim())) {
-            if ("EVENTS_AND_BOOKINGS_ADMIN".equalsIgnoreCase(adminType.trim())) {
-                sql.append(" AND assigned_admin_type IN (?, ?)");
-                params.add("EVENTS_ADMIN");
-                params.add("BOOKINGS_ADMIN");
-            } else {
-                sql.append(" AND assigned_admin_type = ?");
-                params.add(adminType.trim());
-            }
-        }
+        appendAdminTypeCondition(sql, params, adminType);
 
         try (Connection conn = DatabaseConnection.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
@@ -362,6 +339,117 @@ public class IssueService {
         }
 
         return 0;
+    }
+
+    /*
+     * This method is the important fix.
+     *
+     * The issues table stores assigned_admin_type as:
+     * CORE_ADMIN / EVENTS_ADMIN / BOOKINGS_ADMIN
+     *
+     * But your logged-in admin permission can be:
+     * CORE_ADMIN / EVENTS_BOOKINGS_REQUEST_ADMIN / EVENTS_ONLY / BOOKINGS_ONLY
+     *
+     * Also IssueServlet converts Events + Bookings permission into:
+     * EVENTS_AND_BOOKINGS_ADMIN
+     *
+     * So we convert all possible admin permission names into the actual
+     * assigned_admin_type values stored in the issues table.
+     */
+    private void appendAdminTypeCondition(StringBuilder sql, List<Object> params, String adminTypeFilter) {
+        List<String> allowedAssignedTypes = getAllowedAssignedAdminTypes(adminTypeFilter);
+
+        // null means Core Admin / full access / no admin-type restriction
+        if (allowedAssignedTypes == null) {
+            return;
+        }
+
+        // Empty list means invalid/unknown permission. Return no rows safely.
+        if (allowedAssignedTypes.isEmpty()) {
+            sql.append("AND 1 = 0 ");
+            return;
+        }
+
+        sql.append("AND assigned_admin_type IN (");
+        for (int i = 0; i < allowedAssignedTypes.size(); i++) {
+            if (i > 0) {
+                sql.append(", ");
+            }
+            sql.append("?");
+            params.add(allowedAssignedTypes.get(i));
+        }
+        sql.append(") ");
+    }
+
+    private List<String> getAllowedAssignedAdminTypes(String adminTypeFilter) {
+        if (isBlank(adminTypeFilter)) {
+            return null;
+        }
+
+        String normalized = adminTypeFilter.trim().toUpperCase();
+
+        if (isCorePermission(normalized)) {
+            return null;
+        }
+
+        List<String> result = new ArrayList<>();
+        String[] parts = normalized.split(",");
+
+        for (String part : parts) {
+            String value = part == null ? "" : part.trim().toUpperCase();
+            if (value.isEmpty()) {
+                continue;
+            }
+
+            if (isCorePermission(value)) {
+                return null;
+            }
+
+            if (isEventsAndBookingsPermission(value)) {
+                addUnique(result, "EVENTS_ADMIN");
+                addUnique(result, "BOOKINGS_ADMIN");
+            } else if (isEventsPermission(value)) {
+                addUnique(result, "EVENTS_ADMIN");
+            } else if (isBookingsPermission(value)) {
+                addUnique(result, "BOOKINGS_ADMIN");
+            } else {
+                // Backward-compatible fallback for old direct assigned_admin_type values.
+                addUnique(result, value);
+            }
+        }
+
+        return result;
+    }
+
+    private boolean isCorePermission(String value) {
+        return "CORE_ADMIN".equals(value)
+                || value.contains("CORE")
+                || value.contains("FULL");
+    }
+
+    private boolean isEventsAndBookingsPermission(String value) {
+        return "EVENTS_AND_BOOKINGS_ADMIN".equals(value)
+                || "EVENTS_BOOKINGS_REQUEST_ADMIN".equals(value)
+                || "EVENTS_AND_BOOKINGS_REQUEST_ADMIN".equals(value)
+                || (value.contains("EVENT") && value.contains("BOOKING"));
+    }
+
+    private boolean isEventsPermission(String value) {
+        return "EVENTS_ADMIN".equals(value)
+                || "EVENTS_ONLY".equals(value)
+                || value.contains("EVENT");
+    }
+
+    private boolean isBookingsPermission(String value) {
+        return "BOOKINGS_ADMIN".equals(value)
+                || "BOOKINGS_ONLY".equals(value)
+                || value.contains("BOOKING");
+    }
+
+    private void addUnique(List<String> list, String value) {
+        if (!list.contains(value)) {
+            list.add(value);
+        }
     }
 
     private Issue mapIssue(ResultSet rs) throws SQLException {
