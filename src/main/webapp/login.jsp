@@ -468,7 +468,6 @@
         }
     }
 </style>
-```
 
 </head>
 
@@ -483,7 +482,6 @@
             <span class="eh-brand-text">EVENTHORIZON</span>
         </a>
 
-```
     <ul class="eh-nav-links">
         <li>
             <a href="${pageContext.request.contextPath}/index.jsp" class="eh-nav-link">
@@ -514,14 +512,14 @@
         </li>
     </ul>
 </div>
-```
+
 
 </nav>
 
 <div class="auth-wrapper">
     <div class="auth-card">
 
-```
+
     <div class="auth-logo">
         <span class="auth-brand-mark">
             <i class="fa-solid fa-leaf"></i>
@@ -648,7 +646,7 @@
         </a>
     </p>
 </div>
-```
+
 
 </div>
 
