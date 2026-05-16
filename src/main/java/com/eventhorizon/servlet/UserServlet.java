@@ -94,6 +94,7 @@ public class UserServlet extends HttpServlet {
         if (action == null) action = "";
 
         switch (action) {
+
             case "logout":
                 handleLogout(req, resp);
                 return;
@@ -102,6 +103,8 @@ public class UserServlet extends HttpServlet {
                 requireFullAccessAdmin(req, resp);
                 if (resp.isCommitted()) return;
 
+                // Pass current admin ID from session
+                String currentAdminId = (String) req.getSession().getAttribute("userId");
                 req.setAttribute("users", userService.getAllUsers());
                 req.getRequestDispatcher("/admin/users.jsp").forward(req, resp);
                 return;
@@ -114,15 +117,19 @@ public class UserServlet extends HttpServlet {
                 return;
 
             case "listAdminRequests":
+                // Only Core Admins can see pending requests
                 requireFullAccessAdmin(req, resp);
                 if (resp.isCommitted()) return;
 
-                req.setAttribute("adminRequests", userService.getPendingAdminRequests());
+                // Pass the current admin ID to enforce server-side permission
+                currentAdminId = (String) req.getSession().getAttribute("userId");
+                req.setAttribute("adminRequests", userService.getPendingAdminRequests(currentAdminId));
                 req.getRequestDispatcher("/admin/adminRequests.jsp").forward(req, resp);
                 return;
 
             default:
                 resp.sendRedirect(req.getContextPath() + "/index.jsp");
+                return;
         }
     }
 
