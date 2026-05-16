@@ -188,15 +188,10 @@ public class UserService {
         approverAdminId = safeTrim(approverAdminId);
 
         String selectSql = "SELECT * FROM admin_requests WHERE request_id = ? AND status = 'PENDING'";
-
         String insertAdminSql =
-                "INSERT INTO admins (admin_id, name, email, password, phone, admin_permission) " +
-                        "VALUES (?, ?, ?, ?, ?, ?)";
-
+                "INSERT INTO admins (admin_id, name, email, password, phone, admin_permission) VALUES (?, ?, ?, ?, ?, ?)";
         String updateRequestSql =
-                "UPDATE admin_requests " +
-                        "SET status = 'APPROVED', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP " +
-                        "WHERE request_id = ?";
+                "UPDATE admin_requests SET status = 'APPROVED', reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP WHERE request_id = ?";
 
         Connection conn = null;
 
@@ -204,33 +199,45 @@ public class UserService {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            if (getAdminById(approverAdminId, conn) == null) {
+            // Step 1: Check that approver exists
+            Admin approver = getAdminById(approverAdminId, conn);
+            if (approver == null) {
                 conn.rollback();
                 return false;
             }
 
+            // Step 2: Check that approver is Core Admin
+            if (!hasFullAccess(approver.getAdminPermission())) {
+                conn.rollback();
+                return false;
+            }
+
+            // Step 3: Check the request exists and is pending
             try (PreparedStatement selectPs = conn.prepareStatement(selectSql)) {
                 selectPs.setString(1, requestId);
-
                 try (ResultSet rs = selectPs.executeQuery()) {
                     if (!rs.next()) {
                         conn.rollback();
                         return false;
                     }
 
+                    // Step 4: Extract requested admin details
                     String name = rs.getString("requested_name");
                     String email = normalizeEmail(rs.getString("requested_email"));
                     String password = rs.getString("requested_password");
                     String phone = rs.getString("requested_phone");
                     String permission = normalizeAdminPermission(rs.getString("requested_permission"));
 
+                    // Step 5: Prevent duplicate emails
                     if (getUserByEmail(email, conn) != null) {
                         conn.rollback();
                         return false;
                     }
 
+                    // Step 6: Generate new admin ID
                     String newAdminId = generateUserId("ADM", ADMIN_TABLE, "admin_id", conn);
 
+                    // Step 7: Insert new admin and update request
                     try (PreparedStatement insertPs = conn.prepareStatement(insertAdminSql);
                          PreparedStatement updatePs = conn.prepareStatement(updateRequestSql)) {
 
@@ -256,20 +263,13 @@ public class UserService {
             System.err.println("approveAdminRequest error: " + e.getMessage());
 
             if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException ignored) {
-                }
+                try { conn.rollback(); } catch (SQLException ignored) {}
             }
             return false;
 
         } finally {
             if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                } catch (SQLException ignored) {
-                }
+                try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ignored) {}
             }
         }
     }
