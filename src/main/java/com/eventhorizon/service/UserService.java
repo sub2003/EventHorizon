@@ -163,26 +163,35 @@ public class UserService {
         }
     }
 
-    public List<Map<String, String>> getPendingAdminRequests() {
+    public List<Map<String, String>> getPendingAdminRequests(String currentAdminId) {
         List<Map<String, String>> requests = new ArrayList<>();
 
-        String sql = "SELECT * FROM admin_requests WHERE status = 'PENDING' ORDER BY requested_at DESC";
+        try (Connection conn = DatabaseConnection.getConnection()) {
 
-        try (Connection conn = DatabaseConnection.getConnection();
-             Statement st = conn.createStatement();
-             ResultSet rs = st.executeQuery(sql)) {
+            // Step 1: Check if the current admin exists and has full access (Core Admin)
+            Admin admin = getAdminById(currentAdminId, conn);
+            if (admin == null || !hasFullAccess(admin.getAdminPermission())) {
+                // Not authorized, return empty list
+                return requests;
+            }
 
-            while (rs.next()) {
-                Map<String, String> row = new HashMap<>();
-                row.put("requestId", rs.getString("request_id"));
-                row.put("requesterAdminId", rs.getString("requester_admin_id"));
-                row.put("requestedName", rs.getString("requested_name"));
-                row.put("requestedEmail", rs.getString("requested_email"));
-                row.put("requestedPhone", rs.getString("requested_phone"));
-                row.put("requestedPermission", normalizeAdminPermission(rs.getString("requested_permission")));
-                row.put("status", rs.getString("status"));
-                row.put("requestedAt", rs.getString("requested_at"));
-                requests.add(row);
+            // Step 2: Fetch pending requests from the database
+            String sql = "SELECT * FROM admin_requests WHERE status = 'PENDING' ORDER BY requested_at DESC";
+            try (Statement st = conn.createStatement();
+                 ResultSet rs = st.executeQuery(sql)) {
+
+                while (rs.next()) { // Loop through each row in the database
+                    Map<String, String> row = new HashMap<>();
+                    row.put("requestId", rs.getString("request_id"));
+                    row.put("requesterAdminId", rs.getString("requester_admin_id"));
+                    row.put("requestedName", rs.getString("requested_name"));
+                    row.put("requestedEmail", rs.getString("requested_email"));
+                    row.put("requestedPhone", rs.getString("requested_phone"));
+                    row.put("requestedPermission", normalizeAdminPermission(rs.getString("requested_permission")));
+                    row.put("status", rs.getString("status"));
+                    row.put("requestedAt", rs.getString("requested_at"));
+                    requests.add(row);
+                }
             }
 
         } catch (SQLException e) {
