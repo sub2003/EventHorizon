@@ -94,8 +94,9 @@ public class UserService {
                                       String email,
                                       String password,
                                       String phone,
-                                      String adminPermission) {
+                                      String adminPermission) {  // Allows an existing admin to submit a request for creating a new admin account.
 
+        // Step 1: Clean and normalize input
         requesterAdminId = safeTrim(requesterAdminId);
         name = safeTrim(name);
         email = normalizeEmail(email);
@@ -103,31 +104,37 @@ public class UserService {
         phone = safeTrim(phone);
         adminPermission = normalizeAdminPermission(adminPermission);
 
+        // Step 2: Validate required fields
         if (isBlank(requesterAdminId) || isBlank(name) || isBlank(email)
                 || isBlank(password) || isBlank(phone)) {
             return false;
         }
 
+        // Step 3: Prevent duplicate email
         if (getUserByEmail(email) != null) {
             return false;
         }
 
+        // SQL statements
         String pendingCheckSql =
                 "SELECT request_id FROM admin_requests WHERE LOWER(requested_email) = LOWER(?) AND status = 'PENDING'";
-
         String insertSql =
                 "INSERT INTO admin_requests " +
                         "(request_id, requester_admin_id, requested_name, requested_email, requested_password, requested_phone, requested_permission, status) " +
                         "VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING')";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            if (getAdminById(requesterAdminId, conn) == null) {
-                return false;
+
+            // Step 4: Check requester admin exists and has permission
+            Admin requester = getAdminById(requesterAdminId, conn);
+            if (requester == null || !canRequestAdmin(requester.getAdminPermission())) {
+                return false;  // Only CORE_ADMIN or EVENTS_BOOKINGS_REQUEST_ADMIN can submit
             }
 
             try (PreparedStatement checkPs = conn.prepareStatement(pendingCheckSql);
                  PreparedStatement insertPs = conn.prepareStatement(insertSql)) {
 
+                // Step 5: Prevent duplicate pending requests for same email
                 checkPs.setString(1, email);
                 try (ResultSet rs = checkPs.executeQuery()) {
                     if (rs.next()) {
@@ -135,8 +142,10 @@ public class UserService {
                     }
                 }
 
+                // Step 6: Generate new request ID
                 String requestId = generateAdminRequestId(conn);
 
+                // Step 7: Insert new admin request
                 insertPs.setString(1, requestId);
                 insertPs.setString(2, requesterAdminId);
                 insertPs.setString(3, name);
