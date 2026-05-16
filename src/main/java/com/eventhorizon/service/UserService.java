@@ -302,10 +302,16 @@ public class UserService {
                         "WHERE request_id = ? AND status = 'PENDING'";
 
         try (Connection conn = DatabaseConnection.getConnection()) {
-            if (getAdminById(approverAdminId, conn) == null) {
-                return false;
+
+            // Step 1: Fetch the admin object
+            Admin approver = getAdminById(approverAdminId, conn);
+
+            // Step 2: Check that the approver exists and is CORE_ADMIN
+            if (approver == null || !hasFullAccess(approver.getAdminPermission())) {
+                return false; // Only Core Admins can reject
             }
 
+            // Step 3: Execute the update
             try (PreparedStatement updatePs = conn.prepareStatement(updateSql)) {
                 updatePs.setString(1, approverAdminId);
                 updatePs.setString(2, requestId);
