@@ -8,11 +8,7 @@ import com.eventhorizon.service.UserService;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.Part;
+import javax.servlet.http.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Connection;
@@ -98,6 +94,8 @@ public class EventServlet extends HttpServlet {
         }
     }
 
+    // ======================= GET Handlers ========================
+
     private void showEventList(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
 
@@ -176,6 +174,8 @@ public class EventServlet extends HttpServlet {
         req.getRequestDispatcher("/admin/addEvent.jsp").forward(req, resp);
     }
 
+    // ======================= POST Handlers =======================
+
     private void handleAdd(HttpServletRequest req, HttpServletResponse resp)
             throws IOException, ServletException {
 
@@ -190,9 +190,6 @@ public class EventServlet extends HttpServlet {
         String[] typePrices = req.getParameterValues("typePrice");
         String[] typeSeats = req.getParameterValues("typeSeats");
 
-        double summaryPrice = calculateMinPrice(typePrices);
-        int summarySeats = calculateTotalSeats(typeSeats);
-
         Part imagePart = req.getPart("eventImage");
         byte[] imageData = extractImageBytes(imagePart);
         String imageType = getImageType(imagePart);
@@ -205,17 +202,8 @@ public class EventServlet extends HttpServlet {
             conn.setAutoCommit(false);
 
             newId = eventService.addEvent(
-                    title,
-                    category,
-                    date,
-                    time,
-                    venue,
-                    description,
-                    imageData,
-                    imageType,
-                    summaryPrice,
-                    summarySeats,
-                    conn
+                    title, category, date, time, venue, description,
+                    imageData, imageType, 0, 0, conn
             );
 
             if (newId == null) {
@@ -225,25 +213,17 @@ public class EventServlet extends HttpServlet {
             }
 
             ticketTypeService.replaceTicketTypes(newId, typeNames, typePrices, typeSeats, conn);
+            ticketTypeService.refreshEventSummary(newId, conn);
 
             conn.commit();
             resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=added");
 
         } catch (Exception e) {
             e.printStackTrace();
-            try {
-                if (conn != null) conn.rollback();
-            } catch (Exception ignored) {
-            }
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=error");
         } finally {
-            try {
-                if (conn != null) {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            } catch (Exception ignored) {
-            }
+            try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {}
         }
     }
 
@@ -262,7 +242,6 @@ public class EventServlet extends HttpServlet {
         String[] typePrices = req.getParameterValues("typePrice");
         String[] typeSeats = req.getParameterValues("typeSeats");
 
-        double summaryPrice = calculateMinPrice(typePrices);
         Part imagePart = req.getPart("eventImage");
 
         Connection conn = null;
@@ -271,37 +250,14 @@ public class EventServlet extends HttpServlet {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
+            // 1. Update event details (image optional)
             boolean ok;
-
             if (imagePart != null && imagePart.getSize() > 0) {
                 byte[] imageData = extractImageBytes(imagePart);
                 String imageType = getImageType(imagePart);
-
-                ok = eventService.updateEventWithImage(
-                        eventId,
-                        title,
-                        category,
-                        date,
-                        time,
-                        venue,
-                        description,
-                        imageData,
-                        imageType,
-                        summaryPrice,
-                        conn
-                );
+                ok = eventService.updateEventWithImage(eventId, title, category, date, time, venue, description, imageData, imageType, 0, conn);
             } else {
-                ok = eventService.updateEvent(
-                        eventId,
-                        title,
-                        category,
-                        date,
-                        time,
-                        venue,
-                        description,
-                        summaryPrice,
-                        conn
-                );
+                ok = eventService.updateEvent(eventId, title, category, date, time, venue, description, 0, conn);
             }
 
             if (!ok) {
@@ -310,26 +266,21 @@ public class EventServlet extends HttpServlet {
                 return;
             }
 
+            // 2. Replace ticket types
             ticketTypeService.replaceTicketTypes(eventId, typeNames, typePrices, typeSeats, conn);
+
+            // 3. Refresh summary (min price, total seats, available seats)
+            ticketTypeService.refreshEventSummary(eventId, conn);
 
             conn.commit();
             resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=updated");
 
         } catch (Exception e) {
             e.printStackTrace();
-            try {
-                if (conn != null) conn.rollback();
-            } catch (Exception ignored) {
-            }
+            try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=error");
         } finally {
-            try {
-                if (conn != null) {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                }
-            } catch (Exception ignored) {
-            }
+            try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {}
         }
     }
 
@@ -348,6 +299,8 @@ public class EventServlet extends HttpServlet {
         eventService.cancelEvent(eventId);
         resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=cancelled");
     }
+
+    // ======================= Utility =========================
 
     private void serveEventImage(HttpServletRequest req, HttpServletResponse resp)
             throws IOException {
@@ -373,19 +326,14 @@ public class EventServlet extends HttpServlet {
     }
 
     private byte[] extractImageBytes(Part imagePart) throws IOException {
-        if (imagePart == null || imagePart.getSize() == 0) {
-            return null;
-        }
-
+        if (imagePart == null || imagePart.getSize() == 0) return null;
         try (InputStream inputStream = imagePart.getInputStream()) {
             return inputStream.readAllBytes();
         }
     }
 
     private String getImageType(Part imagePart) {
-        if (imagePart == null || imagePart.getSize() == 0) {
-            return null;
-        }
+        if (imagePart == null || imagePart.getSize() == 0) return null;
         return imagePart.getContentType();
     }
 
@@ -405,43 +353,5 @@ public class EventServlet extends HttpServlet {
         if (!UserService.hasEventAccess(permission)) {
             resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noEventPermission");
         }
-    }
-
-    private double calculateMinPrice(String[] prices) {
-        if (prices == null || prices.length == 0) return 0;
-
-        double min = Double.MAX_VALUE;
-        boolean found = false;
-
-        for (String p : prices) {
-            if (p == null || p.trim().isEmpty()) continue;
-
-            try {
-                double value = Double.parseDouble(p.trim());
-                if (value >= 0) {
-                    min = Math.min(min, value);
-                    found = true;
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        return found ? min : 0;
-    }
-
-    private int calculateTotalSeats(String[] seats) {
-        if (seats == null || seats.length == 0) return 0;
-
-        int total = 0;
-        for (String s : seats) {
-            if (s == null || s.trim().isEmpty()) continue;
-
-            try {
-                int value = Integer.parseInt(s.trim());
-                if (value > 0) total += value;
-            } catch (Exception ignored) {
-            }
-        }
-        return total;
     }
 }
