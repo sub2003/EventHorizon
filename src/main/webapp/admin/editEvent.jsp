@@ -1,4 +1,3 @@
-<!-- editEvent.jsp -->
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
 <%@ page import="com.eventhorizon.model.Admin" %>
@@ -15,7 +14,9 @@
     String adminPermission = (String) session.getAttribute("adminPermission");
     if (adminPermission == null || adminPermission.trim().isEmpty()) adminPermission = Admin.CORE_ADMIN;
 
-    if (session.getAttribute("userId") == null || !"ADMIN".equals(session.getAttribute("role")) || !UserService.hasEventAccess(adminPermission)) {
+    if (session.getAttribute("userId") == null
+            || !"ADMIN".equals(session.getAttribute("role"))
+            || !UserService.hasEventAccess(adminPermission)) {
         response.sendRedirect(request.getContextPath() + "/admin/login.jsp");
         return;
     }
@@ -61,26 +62,43 @@
             }
         }
 
+        /**
+         * Adds a new ticket type row to the form.
+         *
+         * KEY FIX: includes a hidden ticketTypeId input with an empty value.
+         * Empty value signals to EventServlet / updateTicketTypes() that this
+         * is a brand-new row that needs to be INSERTed, not UPDATEd.
+         */
         function addTicketTypeRow(defaultName, defaultPrice, defaultSeats) {
             const list = document.getElementById("ticketTypeList");
-            const row = document.createElement("div");
+            const row  = document.createElement("div");
             row.className = "ticket-row";
 
             row.innerHTML =
+                /* Hidden ID — empty string = new row, will be INSERT-ed */
+                '<input type="hidden" name="ticketTypeId" value="">' +
+
                 '<div class="mini-group">' +
                     '<label>Type Name</label>' +
-                    '<input type="text" name="typeName" required placeholder="e.g. VIP, Standard, Gold" value="' + (defaultName || '') + '">' +
+                    '<input type="text" name="typeName" required ' +
+                           'placeholder="e.g. VIP, Standard, Gold" ' +
+                           'value="' + (defaultName  || '') + '">' +
                 '</div>' +
                 '<div class="mini-group">' +
                     '<label>Price (LKR)</label>' +
-                    '<input type="number" name="typePrice" step="0.01" min="0" required placeholder="0.00" value="' + (defaultPrice || '') + '">' +
+                    '<input type="number" name="typePrice" step="0.01" min="0" required ' +
+                           'placeholder="0.00" ' +
+                           'value="' + (defaultPrice || '') + '">' +
                 '</div>' +
                 '<div class="mini-group">' +
                     '<label>Total Seats</label>' +
-                    '<input type="number" name="typeSeats" min="1" required placeholder="Enter seats" value="' + (defaultSeats || '') + '">' +
+                    '<input type="number" name="typeSeats" min="1" required ' +
+                           'placeholder="Enter seats" ' +
+                           'value="' + (defaultSeats || '') + '">' +
                 '</div>' +
                 '<div class="ticket-actions">' +
-                    '<button type="button" class="btn btn-remove-type" onclick="removeTicketTypeRow(this)">Remove</button>' +
+                    '<button type="button" class="btn btn-remove-type" ' +
+                            'onclick="removeTicketTypeRow(this)">Remove</button>' +
                 '</div>';
 
             list.appendChild(row);
@@ -99,30 +117,26 @@
 
         function updateTicketSummary() {
             const priceInputs = document.querySelectorAll('input[name="typePrice"]');
-            const seatInputs = document.querySelectorAll('input[name="typeSeats"]');
+            const seatInputs  = document.querySelectorAll('input[name="typeSeats"]');
 
-            let minPrice = 0;
+            let minPrice   = 0;
             let totalSeats = 0;
             let foundPrice = false;
 
             priceInputs.forEach(function(input) {
                 const val = parseFloat(input.value || "0");
                 if (!isNaN(val) && val >= 0) {
-                    if (!foundPrice || val < minPrice) {
-                        minPrice = val;
-                    }
+                    if (!foundPrice || val < minPrice) { minPrice = val; }
                     foundPrice = true;
                 }
             });
 
             seatInputs.forEach(function(input) {
                 const val = parseInt(input.value || "0", 10);
-                if (!isNaN(val) && val > 0) {
-                    totalSeats += val;
-                }
+                if (!isNaN(val) && val > 0) { totalSeats += val; }
             });
 
-            document.getElementById("summaryMinPrice").innerText = "LKR " + minPrice.toFixed(2);
+            document.getElementById("summaryMinPrice").innerText  = "LKR " + minPrice.toFixed(2);
             document.getElementById("summaryTotalSeats").innerText = totalSeats;
         }
 
@@ -153,7 +167,7 @@
 
         <div class="actions">
             <a href="<%=request.getContextPath()%>/event?action=adminList" class="btn btn-outline">Back to Events</a>
-            <a href="<%=request.getContextPath()%>/admin/dashboard.jsp" class="btn btn-outline">Dashboard</a>
+            <a href="<%=request.getContextPath()%>/admin/dashboard.jsp"    class="btn btn-outline">Dashboard</a>
         </div>
     </div>
 
@@ -164,7 +178,7 @@
 
         <div class="panel-body">
             <form action="<%=request.getContextPath()%>/event" method="post" enctype="multipart/form-data">
-                <input type="hidden" name="action" value="update">
+                <input type="hidden" name="action"  value="update">
                 <input type="hidden" name="eventId" value="<%= event.getEventId() %>">
 
                 <div class="form-grid">
@@ -176,16 +190,16 @@
                     <div class="form-group">
                         <label>Category</label>
                         <select name="category" required>
-                            <option value="Concert" <%= "Concert".equals(event.getCategory()) ? "selected" : "" %>>Concert</option>
-                            <option value="Sports" <%= "Sports".equals(event.getCategory()) ? "selected" : "" %>>Sports</option>
-                            <option value="Technology" <%= "Technology".equals(event.getCategory()) ? "selected" : "" %>>Technology</option>
-                            <option value="Cultural" <%= "Cultural".equals(event.getCategory()) ? "selected" : "" %>>Cultural</option>
-                            <option value="Music" <%= "Music".equals(event.getCategory()) ? "selected" : "" %>>Music</option>
-                            <option value="Conference" <%= "Conference".equals(event.getCategory()) ? "selected" : "" %>>Conference</option>
-                            <option value="Workshop" <%= "Workshop".equals(event.getCategory()) ? "selected" : "" %>>Workshop</option>
-                            <option value="Exhibition" <%= "Exhibition".equals(event.getCategory()) ? "selected" : "" %>>Exhibition</option>
-                            <option value="Festival" <%= "Festival".equals(event.getCategory()) ? "selected" : "" %>>Festival</option>
-                            <option value="Seminar" <%= "Seminar".equals(event.getCategory()) ? "selected" : "" %>>Seminar</option>
+                            <option value="Concert"     <%= "Concert".equals(event.getCategory())     ? "selected" : "" %>>Concert</option>
+                            <option value="Sports"      <%= "Sports".equals(event.getCategory())      ? "selected" : "" %>>Sports</option>
+                            <option value="Technology"  <%= "Technology".equals(event.getCategory())  ? "selected" : "" %>>Technology</option>
+                            <option value="Cultural"    <%= "Cultural".equals(event.getCategory())    ? "selected" : "" %>>Cultural</option>
+                            <option value="Music"       <%= "Music".equals(event.getCategory())       ? "selected" : "" %>>Music</option>
+                            <option value="Conference"  <%= "Conference".equals(event.getCategory())  ? "selected" : "" %>>Conference</option>
+                            <option value="Workshop"    <%= "Workshop".equals(event.getCategory())    ? "selected" : "" %>>Workshop</option>
+                            <option value="Exhibition"  <%= "Exhibition".equals(event.getCategory())  ? "selected" : "" %>>Exhibition</option>
+                            <option value="Festival"    <%= "Festival".equals(event.getCategory())    ? "selected" : "" %>>Festival</option>
+                            <option value="Seminar"     <%= "Seminar".equals(event.getCategory())     ? "selected" : "" %>>Seminar</option>
                         </select>
                     </div>
 
@@ -207,11 +221,10 @@
                     <div class="form-group span-2">
                         <label>Current Image</label>
 
-                        <img
-                            src="<%=request.getContextPath()%>/event?action=image&id=<%= event.getEventId() %>"
-                            alt="Current event image"
-                            class="current-image"
-                            onerror="this.style.display='none'; document.getElementById('currentImagePlaceholder').style.display='flex';">
+                        <img src="<%=request.getContextPath()%>/event?action=image&id=<%= event.getEventId() %>"
+                             alt="Current event image"
+                             class="current-image"
+                             onerror="this.style.display='none'; document.getElementById('currentImagePlaceholder').style.display='flex';">
 
                         <div id="currentImagePlaceholder" class="placeholder" style="display:none;">
                             No Image
@@ -252,39 +265,62 @@
                                 <% if (ticketTypes != null && !ticketTypes.isEmpty()) { %>
                                     <% for (EventTicketType type : ticketTypes) { %>
                                         <div class="ticket-row">
+                                            <%-- KEY FIX: hidden input carries the existing ticket_type_id.
+                                                 The servlet reads this to UPDATE the row in place instead
+                                                 of deleting and re-inserting it. --%>
+                                            <input type="hidden" name="ticketTypeId" value="<%= type.getTicketTypeId() %>">
+
                                             <div class="mini-group">
                                                 <label>Type Name</label>
-                                                <input type="text" name="typeName" required value="<%= type.getTypeName() %>" placeholder="e.g. VIP, Standard, Gold">
+                                                <input type="text" name="typeName" required
+                                                       value="<%= type.getTypeName() %>"
+                                                       placeholder="e.g. VIP, Standard, Gold">
                                             </div>
                                             <div class="mini-group">
                                                 <label>Price (LKR)</label>
-                                                <input type="number" name="typePrice" step="0.01" min="0" required value="<%= String.format("%.2f", type.getPrice()) %>" placeholder="0.00">
+                                                <input type="number" name="typePrice" step="0.01" min="0" required
+                                                       value="<%= String.format("%.2f", type.getPrice()) %>"
+                                                       placeholder="0.00">
                                             </div>
                                             <div class="mini-group">
                                                 <label>Total Seats</label>
-                                                <input type="number" name="typeSeats" min="1" required value="<%= type.getTotalSeats() %>" placeholder="Enter seats">
+                                                <input type="number" name="typeSeats" min="1" required
+                                                       value="<%= type.getTotalSeats() %>"
+                                                       placeholder="Enter seats">
                                             </div>
                                             <div class="ticket-actions">
-                                                <button type="button" class="btn btn-remove-type" onclick="removeTicketTypeRow(this)">Remove</button>
+                                                <button type="button" class="btn btn-remove-type"
+                                                        onclick="removeTicketTypeRow(this)">Remove</button>
                                             </div>
                                         </div>
                                     <% } %>
                                 <% } else { %>
+                                    <%-- Fallback: event has no ticket types in DB yet (rare).
+                                         ticketTypeId is empty → will be INSERTed as new. --%>
                                     <div class="ticket-row">
+                                        <input type="hidden" name="ticketTypeId" value="">
+
                                         <div class="mini-group">
                                             <label>Type Name</label>
-                                            <input type="text" name="typeName" required value="Standard" placeholder="e.g. VIP, Standard, Gold">
+                                            <input type="text" name="typeName" required
+                                                   value="Standard"
+                                                   placeholder="e.g. VIP, Standard, Gold">
                                         </div>
                                         <div class="mini-group">
                                             <label>Price (LKR)</label>
-                                            <input type="number" name="typePrice" step="0.01" min="0" required value="<%= String.format("%.2f", event.getTicketPrice()) %>" placeholder="0.00">
+                                            <input type="number" name="typePrice" step="0.01" min="0" required
+                                                   value="<%= String.format("%.2f", event.getTicketPrice()) %>"
+                                                   placeholder="0.00">
                                         </div>
                                         <div class="mini-group">
                                             <label>Total Seats</label>
-                                            <input type="number" name="typeSeats" min="1" required value="<%= event.getTotalSeats() %>" placeholder="Enter seats">
+                                            <input type="number" name="typeSeats" min="1" required
+                                                   value="<%= event.getTotalSeats() %>"
+                                                   placeholder="Enter seats">
                                         </div>
                                         <div class="ticket-actions">
-                                            <button type="button" class="btn btn-remove-type" onclick="removeTicketTypeRow(this)">Remove</button>
+                                            <button type="button" class="btn btn-remove-type"
+                                                    onclick="removeTicketTypeRow(this)">Remove</button>
                                         </div>
                                     </div>
                                 <% } %>
