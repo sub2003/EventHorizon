@@ -37,7 +37,6 @@ public class EventService {
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE', ?, ?)";
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, id);
             ps.setString(2, title);
             ps.setString(3, category);

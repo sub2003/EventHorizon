@@ -32,27 +32,18 @@ public class EventServlet extends HttpServlet {
             throws ServletException, IOException {
 
         String action = req.getParameter("action");
+        if (action == null) action = "list";
 
-        switch (action == null ? "list" : action) {
-            case "list":
-                showEventList(req, resp);
-                break;
-            case "view":
-                showEventDetail(req, resp);
-                break;
-            case "search":
-                showEventList(req, resp);
-                break;
+        switch (action) {
+            case "list": showEventList(req, resp); break;
+            case "view": showEventDetail(req, resp); break;
+            case "search": showEventList(req, resp); break;
             case "adminList":
                 requireEventAdmin(req, resp);
                 if (resp.isCommitted()) return;
-                showAdminEventList(req, resp);
-                break;
-            case "image":
-                serveEventImage(req, resp);
-                break;
-            default:
-                resp.sendRedirect(req.getContextPath() + "/event?action=list");
+                showAdminEventList(req, resp); break;
+            case "image": serveEventImage(req, resp); break;
+            default: resp.sendRedirect(req.getContextPath() + "/event?action=list");
         }
     }
 
@@ -75,33 +66,21 @@ public class EventServlet extends HttpServlet {
         }
 
         String action = req.getParameter("action");
+        if (action == null) action = "";
 
-        switch (action == null ? "" : action) {
-            case "add":
-                handleAdd(req, resp);
-                break;
-            case "update":
-                handleUpdate(req, resp);
-                break;
-            case "delete":
-                handleDelete(req, resp);
-                break;
-            case "cancel":
-                handleCancel(req, resp);
-                break;
-            default:
-                resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
+        switch (action) {
+            case "add": handleAdd(req, resp); break;
+            case "update": handleUpdate(req, resp); break;
+            case "delete": handleDelete(req, resp); break;
+            case "cancel": handleCancel(req, resp); break;
+            default: resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Unknown action");
         }
     }
 
     // ======================= GET Handlers ========================
-
-    private void showEventList(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
+    private void showEventList(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String keyword = req.getParameter("keyword");
         String category = req.getParameter("category");
-
         if (keyword != null) keyword = keyword.trim();
         if (category != null) category = category.trim();
 
@@ -115,7 +94,6 @@ public class EventServlet extends HttpServlet {
             filteredEvents = allEvents;
         } else {
             String lowerKeyword = hasKeyword ? keyword.toLowerCase() : "";
-
             for (Event event : allEvents) {
                 boolean matchesKeyword = true;
                 boolean matchesCategory = true;
@@ -131,54 +109,36 @@ public class EventServlet extends HttpServlet {
                     matchesCategory = eventCategory.equalsIgnoreCase(category);
                 }
 
-                if (matchesKeyword && matchesCategory) {
-                    filteredEvents.add(event);
-                }
+                if (matchesKeyword && matchesCategory) filteredEvents.add(event);
             }
         }
 
         req.setAttribute("events", filteredEvents);
         req.setAttribute("keyword", keyword != null ? keyword : "");
         req.setAttribute("category", category != null ? category : "");
-
         req.getRequestDispatcher("/events.jsp").forward(req, resp);
     }
 
-    private void showEventDetail(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
+    private void showEventDetail(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String id = req.getParameter("id");
-
-        if (id == null || id.trim().isEmpty()) {
-            resp.sendRedirect(req.getContextPath() + "/event?action=list");
-            return;
-        }
+        if (id == null || id.trim().isEmpty()) { resp.sendRedirect(req.getContextPath() + "/event?action=list"); return; }
 
         Event event = eventService.getEventById(id.trim());
-
-        if (event == null) {
-            resp.sendRedirect(req.getContextPath() + "/event?action=list");
-            return;
-        }
+        if (event == null) { resp.sendRedirect(req.getContextPath() + "/event?action=list"); return; }
 
         req.setAttribute("event", event);
         req.setAttribute("ticketTypes", ticketTypeService.getByEvent(id.trim()));
         req.getRequestDispatcher("/eventDetail.jsp").forward(req, resp);
     }
 
-    private void showAdminEventList(HttpServletRequest req, HttpServletResponse resp)
-            throws ServletException, IOException {
-
+    private void showAdminEventList(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         List<Event> events = eventService.getAllEvents();
         req.setAttribute("events", events);
         req.getRequestDispatcher("/admin/addEvent.jsp").forward(req, resp);
     }
 
     // ======================= POST Handlers =======================
-
-    private void handleAdd(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException, ServletException {
-
+    private void handleAdd(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String title = req.getParameter("title");
         String category = req.getParameter("category");
         String date = req.getParameter("date");
@@ -196,40 +156,26 @@ public class EventServlet extends HttpServlet {
 
         Connection conn = null;
         String newId = null;
-
         try {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            newId = eventService.addEvent(
-                    title, category, date, time, venue, description,
-                    imageData, imageType, 0, 0, conn
-            );
-
-            if (newId == null) {
-                conn.rollback();
-                resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=error");
-                return;
-            }
+            newId = eventService.addEvent(title, category, date, time, venue, description, imageData, imageType, 0, 0, conn);
+            if (newId == null) { conn.rollback(); resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=error"); return; }
 
             ticketTypeService.replaceTicketTypes(newId, typeNames, typePrices, typeSeats, conn);
             ticketTypeService.refreshEventSummary(newId, conn);
 
             conn.commit();
             resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=added");
-
         } catch (Exception e) {
             e.printStackTrace();
             try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=error");
-        } finally {
-            try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {}
-        }
+        } finally { try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {} }
     }
 
-    private void handleUpdate(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException, ServletException {
-
+    private void handleUpdate(HttpServletRequest req, HttpServletResponse resp) throws IOException, ServletException {
         String eventId = req.getParameter("eventId");
         String title = req.getParameter("title");
         String category = req.getParameter("category");
@@ -245,12 +191,10 @@ public class EventServlet extends HttpServlet {
         Part imagePart = req.getPart("eventImage");
 
         Connection conn = null;
-
         try {
             conn = DatabaseConnection.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Update event details (image optional)
             boolean ok;
             if (imagePart != null && imagePart.getSize() > 0) {
                 byte[] imageData = extractImageBytes(imagePart);
@@ -260,64 +204,39 @@ public class EventServlet extends HttpServlet {
                 ok = eventService.updateEvent(eventId, title, category, date, time, venue, description, 0, conn);
             }
 
-            if (!ok) {
-                conn.rollback();
-                resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=error");
-                return;
-            }
+            if (!ok) { conn.rollback(); resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=error"); return; }
 
-            // 2. Replace ticket types
             ticketTypeService.replaceTicketTypes(eventId, typeNames, typePrices, typeSeats, conn);
-
-            // 3. Refresh summary (min price, total seats, available seats)
             ticketTypeService.refreshEventSummary(eventId, conn);
 
             conn.commit();
             resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=updated");
-
         } catch (Exception e) {
             e.printStackTrace();
             try { if (conn != null) conn.rollback(); } catch (Exception ignored) {}
             resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=error");
-        } finally {
-            try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {}
-        }
+        } finally { try { if (conn != null) { conn.setAutoCommit(true); conn.close(); } } catch (Exception ignored) {} }
     }
 
-    private void handleDelete(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-
+    private void handleDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String eventId = req.getParameter("eventId");
         eventService.deleteEvent(eventId);
         resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=deleted");
     }
 
-    private void handleCancel(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-
+    private void handleCancel(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String eventId = req.getParameter("eventId");
         eventService.cancelEvent(eventId);
         resp.sendRedirect(req.getContextPath() + "/event?action=adminList&msg=cancelled");
     }
 
-    // ======================= Utility =========================
-
-    private void serveEventImage(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-
+    // ======================= Utilities =========================
+    private void serveEventImage(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String eventId = req.getParameter("id");
-
-        if (eventId == null || eventId.trim().isEmpty()) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST);
-            return;
-        }
+        if (eventId == null || eventId.trim().isEmpty()) { resp.sendError(HttpServletResponse.SC_BAD_REQUEST); return; }
 
         Event event = eventService.getEventById(eventId.trim());
-
-        if (event == null || event.getImageData() == null || event.getImageData().length == 0) {
-            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
+        if (event == null || event.getImageData() == null || event.getImageData().length == 0) { resp.sendError(HttpServletResponse.SC_NOT_FOUND); return; }
 
         resp.setContentType(event.getImageType() != null ? event.getImageType() : "image/jpeg");
         resp.setContentLength(event.getImageData().length);
@@ -327,31 +246,16 @@ public class EventServlet extends HttpServlet {
 
     private byte[] extractImageBytes(Part imagePart) throws IOException {
         if (imagePart == null || imagePart.getSize() == 0) return null;
-        try (InputStream inputStream = imagePart.getInputStream()) {
-            return inputStream.readAllBytes();
-        }
+        try (InputStream inputStream = imagePart.getInputStream()) { return inputStream.readAllBytes(); }
     }
 
-    private String getImageType(Part imagePart) {
-        if (imagePart == null || imagePart.getSize() == 0) return null;
-        return imagePart.getContentType();
-    }
+    private String getImageType(Part imagePart) { if (imagePart == null || imagePart.getSize() == 0) return null; return imagePart.getContentType(); }
 
-    private void requireEventAdmin(HttpServletRequest req, HttpServletResponse resp)
-            throws IOException {
-
+    private void requireEventAdmin(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         HttpSession session = req.getSession(false);
-
-        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) {
-            resp.sendRedirect(req.getContextPath() + "/admin/login.jsp");
-            return;
-        }
-
+        if (session == null || !"ADMIN".equals(session.getAttribute("role"))) { resp.sendRedirect(req.getContextPath() + "/admin/login.jsp"); return; }
         String permission = (String) session.getAttribute("adminPermission");
         if (permission == null) permission = Admin.CORE_ADMIN;
-
-        if (!UserService.hasEventAccess(permission)) {
-            resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noEventPermission");
-        }
+        if (!UserService.hasEventAccess(permission)) { resp.sendRedirect(req.getContextPath() + "/admin/dashboard.jsp?error=noEventPermission"); }
     }
 }
