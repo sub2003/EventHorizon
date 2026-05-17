@@ -94,27 +94,8 @@
             filterUsers();
         }
 
-        function togglePermissionField(userId) {
-            var roleSelect = document.getElementById("role-" + userId);
-            var permissionWrap = document.getElementById("permission-wrap-" + userId);
-
-            if (!roleSelect || !permissionWrap) return;
-
-            if (roleSelect.value === "ADMIN") {
-                permissionWrap.style.display = "block";
-            } else {
-                permissionWrap.style.display = "none";
-            }
-        }
-
         window.addEventListener("DOMContentLoaded", function() {
             filterUsers();
-
-            var roleSelects = document.querySelectorAll(".role-select");
-            roleSelects.forEach(function(select) {
-                var userId = select.getAttribute("data-user-id");
-                togglePermissionField(userId);
-            });
         });
     </script>
 
@@ -304,23 +285,8 @@
                                                        placeholder="Leave blank to keep current password">
                                             </div>
 
-                                            <div class="form-group">
-                                                <label>Role</label>
-                                                <select name="role"
-                                                        id="role-<%= user.getUserId() %>"
-                                                        class="role-select"
-                                                        data-user-id="<%= user.getUserId() %>"
-                                                        onchange="togglePermissionField('<%= user.getUserId() %>')"
-                                                        required
-                                                    <%= user.getUserId().equals(currentAdminId) ? "disabled" : "" %>>
-                                                    <option value="ADMIN" <%= "ADMIN".equals(user.getRole()) ? "selected" : "" %>>ADMIN</option>
-                                                    <option value="CUSTOMER" <%= "CUSTOMER".equals(user.getRole()) ? "selected" : "" %>>CUSTOMER</option>
-                                                </select>
-
-                                                <% if (user.getUserId().equals(currentAdminId)) { %>
-                                                    <input type="hidden" name="role" value="ADMIN">
-                                                <% } %>
-                                            </div>
+                                            <%-- Role is read-only — pass the current value silently so the servlet receives it --%>
+                                            <input type="hidden" name="role" value="<%= user.getRole() %>">
 
                                             <div class="form-group permission-group"
                                                  id="permission-wrap-<%= user.getUserId() %>"
